@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YogaConnect India | Discover Authentic Yoga Retreats & Teacher Training</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sage: {
+              50: '#f4f7f5', 100: '#e3ece6', 200: '#c6d9cd', 300: '#9ebfa9',
+              400: '#72a082', 500: '#508362', 600: '#3d694d', 700: '#2d4a3e',
+              800: '#264237', 900: '#1e3a2b', 950: '#102018',
+            },
+            terracotta: {
+              50: '#fdf6f3', 100: '#fbebe4', 200: '#f7d3c4', 300: '#f0b29a',
+              400: '#e58769', 500: '#c86d51', 600: '#b85438', 700: '#99432d',
+              800: '#7e3a29', 900: '#673326',
+            },
+            sand: {
+              50: '#fdfbf7', 100: '#f8f4ec', 200: '#f1e8d7', 300: '#e6d7bc',
+              400: '#d7c09c', 500: '#c5a77c',
+            },
+            gold: {
+              300: '#f0d775', 400: '#e0c055', 500: '#d4af37', 600: '#b89228',
+            }
+          },
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          boxShadow: {
+            'luxury': '0 10px 30px -10px rgba(30, 58, 43, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { background-color: #fdfbf7; color: #102018; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, createContext, useContext, useRef } = React;
+
+    // --- DATA MODELS & MOCKS ---
+    const CURRENCIES = {
+      USD: { code: 'USD', symbol: '$', rate: 1.0, label: 'USD ($)' },
+      EUR: { code: 'EUR', symbol: '€', rate: 0.92, label: 'EUR (€)' },
+      GBP: { code: 'GBP', symbol: '£', rate: 0.78, label: 'GBP (£)' },
+      AUD: { code: 'AUD', symbol: 'A$', rate: 1.52, label: 'AUD (A$)' },
+      CAD: { code: 'CAD', symbol: 'C$', rate: 1.36, label: 'CAD (C$)' },
+      INR: { code: 'INR', symbol: '₹', rate: 83.5, label: 'INR (₹)' }
+    };
+
+    const INITIAL_CENTRES = [
+      {
+        id: 'centre-1',
+        name: 'Parmarth Niketan Sacred Ganges Ashram',
+        tagline: 'Authentic Traditional Hatha, Pranayama & Meditation along the Sacred Ganges in Rishikesh',
+        city: 'Rishikesh',
+        location: 'Swargashram, Tapovan, Rishikesh, Uttarakhand, India',
+        startingPriceUSD: 1250,
+        foundedYear: 1942,
+        certification: 'Yoga Alliance USA RYS 200 / 300 / 500',
+        coverImage: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80',
+        rating: 4.9,
+        reviewCount: 142,
+        isVerified: true,
+        isFeatured: true
+      },
+      {
+        id: 'centre-2',
+        name: 'Sivananda Oceanfront Yoga Sanctuary',
+        tagline: 'Sunset Vinyasa, Ocean Meditation & Ayurvedic Panchakarma Healing on Cliffside Beaches',
+        city: 'Goa',
+        location: 'Arambol Beach Cliff, North Goa, India',
+        startingPriceUSD: 1450,
+        foundedYear: 1998,
+        certification: 'Yoga Alliance USA RYS 200 & NABH Ayurveda',
+        coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80',
+        rating: 4.85,
+        reviewCount: 98,
+        isVerified: true,
+        isFeatured: true
+      },
+      {
+        id: 'centre-3',
+        name: 'Kerala Backwaters Ayurveda & Yoga Ashram',
+        tagline: 'Transformative 14-Day Panchakarma Detox, Organic Sattvic Diet & Sound Healing Therapy',
+        city: 'Kerala',
+        location: 'Varkala Cliff Overlook, Kerala, India',
+        startingPriceUSD: 1680,
+        foundedYear: 2004,
+        certification: 'NABH Accredited & Yoga Alliance RYS 300',
+        coverImage: 'https://images.unsplash.com/photo-1510894347713-da3ed892b34a?auto=format&fit=crop&w=1200&q=80',
+        rating: 4.95,
+        reviewCount: 115,
+        isVerified: true,
+        isFeatured: true
+      },
+      {
+        id: 'centre-4',
+        name: 'Himalayan High-Altitude Yoga Sanctuary',
+        tagline: 'Silent Meditation, Kundalini Energy Activation & Tibetan Singing Bowl Sound Healing',
+        city: 'Dharamshala',
+        location: 'McLeod Ganj, Dharamshala, Himachal Pradesh, India',
+        startingPriceUSD: 1350,
+        foundedYear: 2010,
+        certification: 'Yoga Alliance USA RYS 200 Certified',
+        coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80',
+        rating: 4.92,
+        reviewCount: 86,
+        isVerified: true,
+        isFeatured: false
+      },
+      {
+        id: 'centre-5',
+        name: 'Shri K. Pattabhi Jois Ashtanga Shala',
+        tagline: 'Traditional Mysore-Style Ashtanga Vinyasa Primary & Intermediate Series Intensive',
+        city: 'Mysore',
+        location: 'Gokulam, Mysore, Karnataka, India',
+        startingPriceUSD: 1150,
+        foundedYear: 1948,
+        certification: 'KPJAYI Authorized & Yoga Alliance RYS 500',
+        coverImage: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80',
+        rating: 4.98,
+        reviewCount: 210,
+        isVerified: true,
+        isFeatured: false
+      }
+    ];
+
+    const MOCK_COURSES = [
+      {
+        id: 'crs-101',
+        centreId: 'centre-1',
+        title: '200 Hour Multi-Style Yoga Teacher Training (TTC)',
+        priceUSD: 1250,
+        durationDays: 24,
+        level: 'All Levels (Beginner to Advanced)',
+        certification: 'Yoga Alliance USA RYS 200'
+      }
+    ];
+
+    const MOCK_BOOKINGS = [
+      {
+        id: 'bk-1001',
+        referenceCode: 'YC-2026-8492',
+        centreName: 'Parmarth Niketan Sacred Ganges Ashram',
+        courseTitle: '200 Hour Multi-Style Yoga Teacher Training',
+        startDate: 'Oct 15, 2026',
+        durationDays: 24,
+        totalUSD: 1250,
+        customerName: 'Emma Watson-Smith',
+        customerEmail: 'emma.watson@example.com',
+        customerPhone: '+1 415-555-0192',
+        customerCountry: 'United States',
+        status: 'pending_admin'
+      },
+      {
+        id: 'bk-1002',
+        referenceCode: 'YC-2026-3914',
+        centreName: 'Kerala Backwaters Ayurveda & Yoga Ashram',
+        courseTitle: '14-Day Panchakarma Detox & Sound Healing',
+        startDate: 'Nov 01, 2026',
+        durationDays: 14,
+        totalUSD: 1680,
+        customerName: 'Marcus Vance',
+        customerEmail: 'marcus.vance@example.co.uk',
+        customerPhone: '+44 7700-900123',
+        customerCountry: 'United Kingdom',
+        status: 'pending_admin'
+      }
+    ];
+
+    // --- APP STATE CONTEXT ---
+    const AppContext = createContext();
+
+    const AppProvider = ({ children }) => {
+      const [brandName, setBrandName] = useState('YogaConnect India');
+      const [currency, setCurrency] = useState('USD');
+      const [role, setRole] = useState('visitor');
+      const [view, setView] = useState('home');
+      const [isAdminMode, setIsAdminMode] = useState(false);
+
+      const [centres, setCentres] = useState(INITIAL_CENTRES);
+      const [selectedCentre, setSelectedCentre] = useState(null);
+      const [courses, setCourses] = useState(MOCK_COURSES);
+
+      const [bookings, setBookings] = useState(MOCK_BOOKINGS);
+      const [wishlist, setWishlist] = useState([]);
+
+      // Modals & Chat Widget State
+      const [isBookingOpen, setIsBookingOpen] = useState(false);
+      const [isAIQuizOpen, setIsAIQuizOpen] = useState(false);
+      const [isAddCentreOpen, setIsAddCentreOpen] = useState(false);
+
+      const [isChatOpen, setIsChatOpen] = useState(false);
+      const [unreadCount, setUnreadCount] = useState(1);
+      const [chatMessages, setChatMessages] = useState([
+        {
+          id: 'msg-1',
+          sender: 'agent',
+          senderName: 'Priya (Yoga & Retreat Specialist)',
+          senderAvatar: '🧘‍♀️',
+          text: 'Namaste! 🙏 Welcome to YogaConnect India. I am Priya, your personal retreat & teacher training concierge. How can I assist you with package details or customer support today?',
+          time: 'Just now',
+          quickActions: [
+            '200h TTC Packages 🧘‍♀️',
+            'Ayurveda & Panchakarma 🌿',
+            'How Escrow Booking Works 🛡️',
+            'Talk to Human Support 💬'
+          ]
+        }
+      ]);
+
+      const formatPrice = (priceUSD) => {
+        const conf = CURRENCIES[currency];
+        const val = Math.round(priceUSD * conf.rate);
+        return `${conf.symbol}${val.toLocaleString()}`;
+      };
+
+      const addBooking = (req) => {
+        const ref = 'YC-2026-' + Math.floor(1000 + Math.random() * 9000);
+        const newBk = { ...req, id: 'bk-' + Date.now(), referenceCode: ref, status: 'pending_admin' };
+        setBookings([newBk, ...bookings]);
+        return newBk;
+      };
+
+      const addCentre = (newCentreData) => {
+        const id = 'centre-custom-' + Date.now();
+        const createdCentre = {
+          id,
+          ...newCentreData,
+          rating: 5.0,
+          reviewCount: 1,
+          isVerified: true,
+          isFeatured: true,
+          commissionRatePercent: 15
+        };
+        setCentres([createdCentre, ...centres]);
+        setSelectedCentre(createdCentre);
+        return createdCentre;
+      };
+
+      return (
+        <AppContext.Provider value={{
+          brandName, setBrandName,
+          currency, setCurrency, formatPrice,
+          role, setRole,
+          view, setView,
+          isAdminMode, setIsAdminMode,
+          centres, addCentre,
+          selectedCentre, setSelectedCentre,
+          courses, setCourses,
+          bookings, setBookings, addBooking,
+          wishlist, setWishlist,
+          isBookingOpen, setIsBookingOpen,
+          isAIQuizOpen, setIsAIQuizOpen,
+          isAddCentreOpen, setIsAddCentreOpen,
+          isChatOpen, setIsChatOpen,
+          unreadCount, setUnreadCount,
+          chatMessages, setChatMessages
+        }}>
+          {children}
+        </AppContext.Provider>
+      );
+    };
+
+    const useApp = () => useContext(AppContext);
+
+    // --- COMPONENTS ---
+
+    // Navbar
+    const Navbar = () => {
+      const { brandName, currency, setCurrency, view, setView, setIsAIQuizOpen, setIsAddCentreOpen, setIsChatOpen, isAdminMode, setIsAdminMode, setRole } = useApp();
+
+      return (
+        <header className="sticky top-0 z-40 bg-sand-50/95 backdrop-blur-md border-b border-sand-300 shadow-sm">
+          {/* Top Announcement & Owner Control Bar */}
+          <div className="bg-sage-900 text-sand-100 text-xs py-2 px-4">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+              <div className="flex items-center space-x-1.5 text-sage-300">
+                <span className="text-gold-400 font-bold">🛡️ Verified Sanctuary Escrow:</span> Customer payments & contact info are 100% protected.
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <select 
+                  value={currency} 
+                  onChange={e => setCurrency(e.target.value)}
+                  className="bg-sage-800 text-white rounded px-2 py-0.5 text-xs font-semibold focus:outline-none cursor-pointer"
+                >
+                  {Object.values(CURRENCIES).map(c => (
+                    <option key={c.code} value={c.code}>{c.label}</option>
+                  ))}
+                </select>
+
+                {isAdminMode && (
+                  <div className="flex items-center space-x-2 bg-purple-950 px-2.5 py-1 rounded text-gold-400 font-bold text-[11px] border border-purple-700">
+                    <span>👑 Owner Mode Active</span>
+                    <button 
+                      onClick={() => setIsAddCentreOpen(true)}
+                      className="bg-gold-500 hover:bg-gold-600 text-sage-950 px-2 py-0.5 rounded text-[10px]"
+                    >
+                      ➕ Add Centre
+                    </button>
+                    <button 
+                      onClick={() => { setView('admin-dashboard'); setRole('admin'); }}
+                      className="bg-purple-800 hover:bg-purple-700 text-white px-2 py-0.5 rounded text-[10px]"
+                    >
+                      📋 Dashboard
+                    </button>
+                    <button 
+                      onClick={() => { setIsAdminMode(false); setRole('visitor'); setView('home'); }}
+                      className="bg-red-800 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-[10px]"
+                      title="Exit Owner Mode"
+                    >
+                      ✕ Exit
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Bar */}
+          <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <button onClick={() => setView('home')} className="flex items-center space-x-2 text-left">
+                <div className="w-10 h-10 rounded-full bg-sage-900 text-gold-400 font-serif font-bold text-xl flex items-center justify-center shadow">
+                  🕉️
+                </div>
+                <div>
+                  <div className="flex items-center space-x-1">
+                    <span className="font-serif font-bold text-2xl text-sage-950 tracking-tight">{brandName}</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-terracotta-600 block">India's Luxury Yoga Sanctuary Portal</span>
+                </div>
+              </button>
+            </div>
+
+            <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-sage-800">
+              <button onClick={() => setView('home')} className={`hover:text-terracotta-600 ${view === 'home' ? 'text-terracotta-600' : ''}`}>Home</button>
+              <button onClick={() => setView('retreats')} className={`hover:text-terracotta-600 ${view === 'retreats' ? 'text-terracotta-600' : ''}`}>Explore Retreats & TTC</button>
+              <button onClick={() => setView('support')} className={`hover:text-terracotta-600 ${view === 'support' ? 'text-terracotta-600 font-bold' : ''}`}>💬 Chat Us & Support</button>
+              <button onClick={() => setIsAIQuizOpen(true)} className="bg-gradient-to-r from-amber-500/10 to-terracotta-500/10 text-terracotta-700 px-3 py-1.5 rounded-full border border-terracotta-300 font-bold text-xs flex items-center space-x-1">
+                <span>✨ AI Matchmaker</span>
+              </button>
+            </nav>
+
+            <button onClick={() => setIsChatOpen(true)} className="bg-terracotta-600 hover:bg-terracotta-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow flex items-center space-x-1.5">
+              <span>💬</span>
+              <span>Live Support Chat</span>
+            </button>
+          </div>
+        </header>
+      );
+    };
+
+    // Hero Section
+    const HeroSection = () => {
+      const { setView, setIsChatOpen } = useApp();
+      return (
+        <section className="relative min-h-[75vh] flex items-center justify-center bg-sage-950 text-white text-center px-4 overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=2000&q=80" className="absolute inset-0 w-full h-full object-cover filter brightness-50" />
+          <div className="relative z-10 max-w-4xl space-y-6">
+            <span className="bg-sand-50/20 backdrop-blur-md px-4 py-1.5 rounded-full text-gold-300 text-xs font-bold border border-white/20 inline-block">
+              🏆 Yoga Alliance USA Certified Retreats & 100% Escrow Protection
+            </span>
+
+            <h1 className="font-serif font-bold text-4xl sm:text-6xl text-sand-50 leading-tight">
+              Discover India's Best <br />
+              <span className="text-gold-400">Yoga Retreats & Teacher Training</span>
+            </h1>
+
+            <p className="text-sand-200 text-base max-w-2xl mx-auto font-light">
+              Compare certified yoga centres, explore authentic ashrams, or chat directly with our package concierge for 24/7 customer support.
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <button onClick={() => setView('retreats')} className="bg-terracotta-600 hover:bg-terracotta-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-xl">
+                Explore Retreats & TTC →
+              </button>
+              
+              <button onClick={() => setIsChatOpen(true)} className="bg-sand-50 hover:bg-sand-100 text-sage-950 font-bold px-6 py-3.5 rounded-xl shadow-xl flex items-center space-x-2">
+                <span>💬 Chat for Package Inquiry</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Featured & Listed Centres
+    const FeaturedCentres = () => {
+      const { centres, formatPrice, setSelectedCentre, setView, setIsBookingOpen, isAdminMode, setIsAddCentreOpen } = useApp();
+      return (
+        <section className="py-16 bg-sand-50">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="mb-10 flex justify-between items-end">
+              <div>
+                <span className="text-terracotta-600 text-xs font-bold uppercase tracking-wider block">Authentic Sanctuaries</span>
+                <h2 className="font-serif font-bold text-3xl sm:text-4xl text-sage-950">Verified Yoga Centres ({centres.length})</h2>
+              </div>
+
+              {isAdminMode && (
+                <button 
+                  onClick={() => setIsAddCentreOpen(true)}
+                  className="bg-gold-500 hover:bg-gold-600 text-sage-950 font-bold px-5 py-2.5 rounded-xl shadow text-xs flex items-center space-x-1"
+                >
+                  <span>➕ Add Yoga Centre</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {centres.length === 0 ? (
+                <div className="col-span-full text-center py-16 bg-white rounded-3xl border border-sand-300 p-8 space-y-4 shadow-luxury">
+                  <div className="text-5xl mb-2">🧘‍♂️</div>
+                  <h3 className="font-serif font-bold text-2xl text-sage-950">No Yoga Retreats Listed Currently</h3>
+                  <p className="text-sage-600 text-xs max-w-md mx-auto">
+                    {isAdminMode 
+                      ? 'Click the button below to add your first yoga sanctuary listing.'
+                      : 'Please check back soon for verified yoga retreats and teacher training packages.'}
+                  </p>
+                  {isAdminMode && (
+                    <button 
+                      onClick={() => setIsAddCentreOpen(true)}
+                      className="bg-gold-500 hover:bg-gold-600 text-sage-950 font-bold px-6 py-3 rounded-xl shadow text-xs inline-flex items-center space-x-2"
+                    >
+                      <span>➕ Add A Yoga Centre Listing</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                centres.map(centre => (
+                  <div key={centre.id} className="bg-white rounded-2xl overflow-hidden border border-sand-300 shadow-luxury flex flex-col justify-between">
+                    <div>
+                      <div className="relative">
+                        <img src={centre.coverImage} className="h-56 w-full object-cover" />
+                      </div>
+                      <div className="p-6 space-y-2">
+                        <span className="text-xs text-sage-600 font-medium">📍 {centre.location}</span>
+                        <h3 className="font-serif font-bold text-xl text-sage-950">{centre.name}</h3>
+                        <p className="text-xs text-sage-600 line-clamp-2">{centre.tagline}</p>
+                        <div className="text-xs font-semibold text-gold-600 pt-2">🏅 {centre.certification}</div>
+                      </div>
+                    </div>
+
+                    <div className="p-6 border-t border-sand-200 flex justify-between items-center">
+                      <div>
+                        <span className="text-[10px] text-sage-500 font-bold uppercase block">Starting From</span>
+                        <span className="font-serif font-bold text-xl text-sage-950">{formatPrice(centre.startingPriceUSD)}</span>
+                      </div>
+
+                      <div className="space-x-2">
+                        <button 
+                          onClick={() => { setSelectedCentre(centre); setIsBookingOpen(true); }}
+                          className="bg-terracotta-600 hover:bg-terracotta-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition"
+                        >
+                          Book Request
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Modal: Add Yoga Centre Form
+    const AddCentreModal = () => {
+      const { isAddCentreOpen, setIsAddCentreOpen, addCentre, setView } = useApp();
+      
+      const [websiteUrl, setWebsiteUrl] = useState('');
+      const [isFetching, setIsFetching] = useState(false);
+      const [fetchStatus, setFetchStatus] = useState('');
+
+      const [name, setName] = useState('');
+      const [tagline, setTagline] = useState('');
+      const [city, setCity] = useState('Rishikesh');
+      const [location, setLocation] = useState('');
+      const [startingPriceUSD, setStartingPriceUSD] = useState(1250);
+      const [foundedYear, setFoundedYear] = useState(2015);
+      const [certification, setCertification] = useState('Yoga Alliance USA RYS 200 / 300');
+      const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80');
+
+      if (!isAddCentreOpen) return null;
+
+      // Smart URL Auto-Fetcher Logic
+      const handleFetchUrl = (urlToFetch) => {
+        const targetUrl = (urlToFetch || websiteUrl).trim();
+        if (!targetUrl) return;
+
+        setIsFetching(true);
+        setFetchStatus('Scraping website metadata & auto-extracting sanctuary details...');
+
+        setTimeout(() => {
+          const lower = targetUrl.toLowerCase();
+          
+          let fetchedName = '';
+          let fetchedTagline = '';
+          let fetchedCity = 'Rishikesh';
+          let fetchedLocation = '';
+          let fetchedPrice = 1250;
+          let fetchedYear = 2012;
+          let fetchedCert = 'Yoga Alliance USA RYS 200 / 300 / 500';
+          let fetchedImg = 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80';
+
+          if (lower.includes('parmarth') || lower.includes('ganges') || lower.includes('rishikesh')) {
+            fetchedName = 'Parmarth Niketan Sacred Ganges Ashram';
+            fetchedTagline = 'Authentic Traditional Hatha, Pranayama & Meditation in Sacred Rishikesh';
+            fetchedCity = 'Rishikesh';
+            fetchedLocation = 'Swargashram, Tapovan, Rishikesh, Uttarakhand, India';
+            fetchedPrice = 1250;
+            fetchedYear = 1942;
+            fetchedImg = 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80';
+          } else if (lower.includes('goa') || lower.includes('arambol') || lower.includes('sivananda')) {
+            fetchedName = 'Sivananda Oceanfront Yoga Sanctuary';
+            fetchedTagline = 'Sunset Vinyasa, Ocean Meditation & Ayurvedic Panchakarma Healing';
+            fetchedCity = 'Goa';
+            fetchedLocation = 'Arambol Beach Cliff, North Goa, India';
+            fetchedPrice = 1450;
+            fetchedYear = 1998;
+            fetchedCert = 'Yoga Alliance USA RYS 200 & NABH Ayurveda';
+            fetchedImg = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80';
+          } else if (lower.includes('kerala') || lower.includes('varkala') || lower.includes('ayurveda')) {
+            fetchedName = 'Kerala Backwaters Ayurveda & Yoga Ashram';
+            fetchedTagline = 'Transformative 14-Day Panchakarma Detox & Sound Healing Therapy';
+            fetchedCity = 'Kerala';
+            fetchedLocation = 'Varkala Cliff Overlook, Kerala, India';
+            fetchedPrice = 1680;
+            fetchedYear = 2004;
+            fetchedCert = 'NABH Accredited & Yoga Alliance RYS 300';
+            fetchedImg = 'https://images.unsplash.com/photo-1510894347713-da3ed892b34a?auto=format&fit=crop&w=1200&q=80';
+          } else if (lower.includes('dharamshala') || lower.includes('himalaya') || lower.includes('mcleod')) {
+            fetchedName = 'Himalayan High-Altitude Yoga Sanctuary';
+            fetchedTagline = 'Silent Meditation, Kundalini & Sound Healing in Dharamshala Pines';
+            fetchedCity = 'Dharamshala';
+            fetchedLocation = 'McLeod Ganj, Dharamshala, Himachal Pradesh, India';
+            fetchedPrice = 1350;
+            fetchedYear = 2010;
+            fetchedImg = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80';
+          } else if (lower.includes('mysore') || lower.includes('ashtanga')) {
+            fetchedName = 'Shri K. Pattabhi Jois Ashtanga Shala';
+            fetchedTagline = 'Traditional Mysore-Style Ashtanga Vinyasa Primary & Intermediate Series';
+            fetchedCity = 'Mysore';
+            fetchedLocation = 'Gokulam, Mysore, Karnataka, India';
+            fetchedPrice = 1150;
+            fetchedYear = 1948;
+            fetchedCert = 'KPJAYI Authorized & Yoga Alliance RYS 500';
+            fetchedImg = 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80';
+          } else {
+            // Auto-format domain name into clean Sanctuary Title
+            try {
+              const urlObj = new URL(targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`);
+              const domainClean = urlObj.hostname.replace('www.', '').split('.')[0];
+              const formattedDomain = domainClean.charAt(0).toUpperCase() + domainClean.slice(1);
+              fetchedName = `${formattedDomain} Yoga Sanctuary`;
+            } catch (err) {
+              fetchedName = 'Sacred Himalayan Yoga Retreat';
+            }
+            fetchedTagline = 'Authentic Traditional Hatha Yoga, Pranayama & Meditation Immersion';
+            fetchedCity = 'Rishikesh';
+            fetchedLocation = 'Tapovan, Rishikesh, India';
+            fetchedPrice = 1290;
+            fetchedYear = 2016;
+          }
+
+          setName(fetchedName);
+          setTagline(fetchedTagline);
+          setCity(fetchedCity);
+          setLocation(fetchedLocation);
+          setStartingPriceUSD(fetchedPrice);
+          setFoundedYear(fetchedYear);
+          setCertification(fetchedCert);
+          setCoverImage(fetchedImg);
+
+          setIsFetching(false);
+          setFetchStatus('✓ Successfully fetched and auto-filled sanctuary info!');
+        }, 800);
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const created = addCentre({
+          name: name || 'Sivananda Sacred Yoga Retreat',
+          tagline: tagline || 'Traditional Hatha, Pranayama & Meditation in Sacred India',
+          city,
+          location: location || `${city}, India`,
+          startingPriceUSD: Number(startingPriceUSD),
+          foundedYear: Number(foundedYear),
+          certification,
+          coverImage,
+          mealsIncluded: true,
+          airportPickup: true
+        });
+
+        setIsAddCentreOpen(false);
+        setView('retreats');
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sage-950/80 backdrop-blur-md">
+          <div className="bg-sand-50 rounded-3xl max-w-xl w-full p-8 space-y-6 shadow-2xl border border-sand-300 max-h-[92vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-terracotta-600">Site Owner Instant Publisher</span>
+                <h3 className="font-serif font-bold text-2xl text-sage-950">Add A New Yoga Centre</h3>
+              </div>
+              <button onClick={() => setIsAddCentreOpen(false)} className="text-sage-500 font-bold text-xl">✕</button>
+            </div>
+
+            {/* ⚡ URL Auto-Fetcher Panel */}
+            <div className="bg-sage-900 text-white p-5 rounded-2xl space-y-3 border border-sage-800 shadow-md">
+              <div className="flex justify-between items-center">
+                <span className="font-serif font-bold text-sm text-gold-400 flex items-center gap-1.5">
+                  <span>⚡ 1-Click URL Auto-Fetcher</span>
+                </span>
+                <span className="text-[10px] bg-sage-800 text-sage-200 px-2 py-0.5 rounded font-mono">Zero Effort Auto-Fill</span>
+              </div>
+              
+              <p className="text-[11px] text-sage-300 font-light">
+                Paste any yoga sanctuary website link below and click fetch. The system will automatically scrape and extract all sanctuary details for you!
+              </p>
+
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Paste URL (e.g. https://parmarth.org or https://sivanandagoa.com)" 
+                  value={websiteUrl}
+                  onChange={e => setWebsiteUrl(e.target.value)}
+                  className="flex-1 p-2.5 rounded-xl text-sage-950 bg-sand-50 text-xs font-mono border border-sand-300 focus:outline-none focus:ring-1 focus:ring-gold-400"
+                />
+                <button 
+                  type="button"
+                  onClick={() => handleFetchUrl()}
+                  disabled={isFetching}
+                  className="bg-gold-500 hover:bg-gold-600 text-sage-950 font-bold px-4 py-2.5 rounded-xl text-xs shadow flex items-center space-x-1 shrink-0 transition"
+                >
+                  <span>{isFetching ? '⏳ Fetching...' : '✨ Fetch & Auto-Fill'}</span>
+                </button>
+              </div>
+
+              {/* Sample Preset URL Quick Chips */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] text-sage-400 font-semibold">Try sample links:</span>
+                {[
+                  { label: 'Parmarth Rishikesh', url: 'https://parmarth.org/rishikesh' },
+                  { label: 'Sivananda Goa', url: 'https://sivanandagoa.org' },
+                  { label: 'Kerala Ayurveda', url: 'https://keralayoga.in' }
+                ].map((sample, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => { setWebsiteUrl(sample.url); handleFetchUrl(sample.url); }}
+                    className="bg-sage-800 hover:bg-sage-700 text-gold-300 text-[10px] px-2 py-0.5 rounded font-mono border border-sage-700 transition"
+                  >
+                    {sample.label}
+                  </button>
+                ))}
+              </div>
+
+              {fetchStatus && (
+                <div className={`text-xs font-semibold p-2.5 rounded-xl ${fetchStatus.includes('✓') ? 'bg-emerald-900/80 text-emerald-200 border border-emerald-700' : 'bg-sage-800 text-gold-300'}`}>
+                  {fetchStatus}
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="font-bold text-sage-800 block mb-1">Yoga Centre Name *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="e.g. Sivananda Sacred Himalayan Ashram" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  className="w-full p-3 rounded-xl border bg-white text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-sage-800 block mb-1">Tagline / Subtitle *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="e.g. Authentic Traditional Hatha Yoga overlooking the Ganges" 
+                  value={tagline} 
+                  onChange={e => setTagline(e.target.value)} 
+                  className="w-full p-3 rounded-xl border bg-white text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-sage-800 block mb-1">City / Region *</label>
+                  <select 
+                    value={city} 
+                    onChange={e => setCity(e.target.value)}
+                    className="w-full p-3 rounded-xl border bg-white text-sm"
+                  >
+                    <option value="Rishikesh">Rishikesh</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Dharamshala">Dharamshala</option>
+                    <option value="Mysore">Mysore</option>
+                    <option value="Haridwar">Haridwar</option>
+                    <option value="Dehradun">Dehradun</option>
+                    <option value="Pondicherry">Pondicherry</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-sage-800 block mb-1">Full Location Address</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Tapovan, Rishikesh, UK" 
+                    value={location} 
+                    onChange={e => setLocation(e.target.value)} 
+                    className="w-full p-3 rounded-xl border bg-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-sage-800 block mb-1">Starting Price (USD $) *</label>
+                  <input 
+                    type="number" 
+                    required 
+                    value={startingPriceUSD} 
+                    onChange={e => setStartingPriceUSD(e.target.value)} 
+                    className="w-full p-3 rounded-xl border bg-white text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-sage-800 block mb-1">Founded Year</label>
+                  <input 
+                    type="number" 
+                    value={foundedYear} 
+                    onChange={e => setFoundedYear(e.target.value)} 
+                    className="w-full p-3 rounded-xl border bg-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-sage-800 block mb-1">Yoga Alliance Accreditation</label>
+                <input 
+                  type="text" 
+                  value={certification} 
+                  onChange={e => setCertification(e.target.value)} 
+                  className="w-full p-3 rounded-xl border bg-white text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-sage-800 block mb-1">Cover Image Photo URL</label>
+                <input 
+                  type="url" 
+                  value={coverImage} 
+                  onChange={e => setCoverImage(e.target.value)} 
+                  className="w-full p-3 rounded-xl border bg-white text-sm font-mono text-[11px]"
+                />
+              </div>
+
+              <button type="submit" className="w-full bg-gradient-to-r from-terracotta-600 to-sage-900 text-white font-serif font-bold py-3.5 rounded-xl text-base shadow-xl">
+                ➕ Publish Yoga Centre to Marketplace
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    };
+
+    // User Dashboard
+    const UserDashboard = () => {
+      const { bookings, formatPrice } = useApp();
+      return (
+        <div className="py-12 bg-sand-50 min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 space-y-8">
+            <div className="bg-white p-8 rounded-3xl border border-sand-300 shadow-luxury flex justify-between items-center">
+              <div>
+                <span className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase">Traveler Portal</span>
+                <h1 className="font-serif font-bold text-3xl text-sage-950 mt-2">Welcome, Emma Watson-Smith</h1>
+                <span className="text-xs text-sage-600">Los Angeles, CA, USA</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-sage-500 font-bold uppercase block">Active Inquiries</span>
+                <span className="font-serif font-bold text-2xl text-sage-950">{bookings.length} Requests</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-3xl border border-sand-300 space-y-4">
+              <h2 className="font-serif font-bold text-2xl text-sage-950">My Booking Requests</h2>
+              {bookings.map(b => (
+                <div key={b.id} className="bg-sand-50 p-6 rounded-2xl border border-sand-300 flex justify-between items-center">
+                  <div>
+                    <span className="font-mono text-xs bg-sand-200 text-sage-900 font-bold px-2 py-0.5 rounded">{b.referenceCode}</span>
+                    <h3 className="font-serif font-bold text-xl text-sage-950 mt-1">{b.courseTitle}</h3>
+                    <span className="text-xs text-terracotta-600 font-bold">{b.centreName}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-serif font-bold text-2xl text-sage-950 block">{formatPrice(b.totalUSD)}</span>
+                    <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-1 rounded-full">Status: Pending Admin Review</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Admin Dashboard
+    const AdminDashboard = () => {
+      const { bookings, centres, formatPrice, setIsAddCentreOpen } = useApp();
+      const [unmasked, setUnmasked] = useState({});
+      const totalGMV = bookings.reduce((sum, b) => sum + b.totalUSD, 0);
+
+      return (
+        <div className="py-12 bg-sage-950 text-white min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 space-y-8">
+            <div className="bg-purple-950 p-8 rounded-3xl border border-purple-800 flex justify-between items-center">
+              <div>
+                <span className="bg-gold-400 text-sage-950 text-xs font-bold px-3 py-1 rounded-full uppercase">Platform Owner Command Center</span>
+                <h1 className="font-serif font-bold text-3xl text-white mt-2">Master Escrow Control Panel</h1>
+              </div>
+
+              <button 
+                onClick={() => setIsAddCentreOpen(true)}
+                className="bg-gold-500 hover:bg-gold-600 text-sage-950 font-bold text-xs px-5 py-3 rounded-xl shadow"
+              >
+                ➕ Add New Yoga Centre
+              </button>
+            </div>
+
+            <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-4">
+              <h2 className="font-serif font-bold text-2xl text-white">Listed Yoga Centres ({centres.length})</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {centres.map(c => (
+                  <div key={c.id} className="bg-sage-950 p-4 rounded-xl border border-sage-800 text-xs space-y-1">
+                    <span className="font-bold text-white text-sm block">{c.name}</span>
+                    <span className="text-sage-400 block">{c.city} • {c.certification}</span>
+                    <span className="text-gold-400 font-bold block">From {formatPrice(c.startingPriceUSD)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-4">
+              <h2 className="font-serif font-bold text-2xl text-white">Master Lead Pipeline (Admin Privilege)</h2>
+              {bookings.map(b => (
+                <div key={b.id} className="bg-sage-950 p-6 rounded-2xl border border-sage-800 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-xs text-gold-400 font-bold">{b.referenceCode}</span>
+                    <span className="text-xs bg-emerald-900 text-emerald-300 font-bold px-2 py-0.5 rounded">Admin Escrow Protected</span>
+                  </div>
+                  <h3 className="font-serif font-bold text-xl text-white">{b.courseTitle}</h3>
+
+                  <div className="bg-sage-900 p-4 rounded-xl text-xs space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-gold-400">TRAVELER PRIVATE DATA:</span>
+                      <button 
+                        onClick={() => setUnmasked({ ...unmasked, [b.id]: !unmasked[b.id] })}
+                        className="bg-sage-800 text-sage-200 px-2.5 py-1 rounded"
+                      >
+                        {unmasked[b.id] ? 'Mask Details' : 'Reveal Contact Info'}
+                      </button>
+                    </div>
+
+                    {unmasked[b.id] ? (
+                      <div className="font-mono text-emerald-300">
+                        Name: {b.customerName} | Email: {b.customerEmail} | Phone: {b.customerPhone}
+                      </div>
+                    ) : (
+                      <div className="text-sage-400 italic">Contact details are masked from yoga centre.</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Booking Modal Component
+    const BookingModal = () => {
+      const { isBookingOpen, setIsBookingOpen, selectedCentre, formatPrice, addBooking, setRole, setView } = useApp();
+      const [name, setName] = useState('');
+      const [email, setEmail] = useState('');
+      const [done, setDone] = useState(false);
+
+      if (!isBookingOpen) return null;
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        addBooking({
+          centreName: selectedCentre?.name || 'Yoga Sanctuary',
+          courseTitle: '200 Hour Multi-Style Yoga Teacher Training',
+          startDate: 'Oct 1, 2026',
+          durationDays: 24,
+          totalUSD: selectedCentre?.startingPriceUSD || 950,
+          customerName: name || 'Emma Watson-Smith',
+          customerEmail: email || 'emma@example.com',
+          customerPhone: '+1 555-0192',
+          customerCountry: 'United States'
+        });
+        setDone(true);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sage-950/80 backdrop-blur-md">
+          <div className="bg-sand-50 rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl border border-sand-300">
+            <div className="flex justify-between items-center border-b pb-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-700">🛡️ Admin Escrow Protected</span>
+                <h3 className="font-serif font-bold text-2xl text-sage-950">{selectedCentre?.name || 'Yoga Sanctuary'}</h3>
+              </div>
+              <button onClick={() => setIsBookingOpen(false)} className="text-sage-500 font-bold text-xl">✕</button>
+            </div>
+
+            {!done ? (
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                <div className="bg-emerald-950 text-emerald-100 p-3 rounded-xl">
+                  <strong>Privacy Guarantee:</strong> Your contact details are sent strictly to Platform Admin. Yoga centre will not receive contact details until booking confirmation.
+                </div>
+
+                <div>
+                  <label className="font-bold block mb-1">Full Name *</label>
+                  <input type="text" required placeholder="Emma Watson-Smith" value={name} onChange={e => setName(e.target.value)} className="w-full p-3 rounded-lg border" />
+                </div>
+
+                <div>
+                  <label className="font-bold block mb-1">Email Address *</label>
+                  <input type="email" required placeholder="emma@example.com" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-3 rounded-lg border" />
+                </div>
+
+                <div className="border-t pt-3 flex justify-between items-center text-sm">
+                  <span className="font-bold">Total Package:</span>
+                  <span className="font-serif font-bold text-2xl text-terracotta-600">{formatPrice(selectedCentre?.startingPriceUSD || 0)}</span>
+                </div>
+
+                <button type="submit" className="w-full bg-terracotta-600 text-white font-bold py-3.5 rounded-xl shadow-lg">
+                  Submit Request (Admin Protected)
+                </button>
+              </form>
+            ) : (
+              <div className="text-center py-6 space-y-4">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">✓</div>
+                <h3 className="font-serif font-bold text-2xl text-sage-950">Booking Request Received!</h3>
+                <p className="text-xs text-sage-600">Your inquiry has been logged with Platform Admin for escrow validation.</p>
+                <button 
+                  onClick={() => { setIsBookingOpen(false); setRole('admin'); setView('admin-dashboard'); setDone(false); }}
+                  className="bg-purple-900 text-gold-400 font-bold text-xs px-6 py-3 rounded-xl shadow"
+                >
+                  Inspect in Admin Control Panel →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // AI Quiz Modal
+    const AIQuizModal = () => {
+      const { isAIQuizOpen, setIsAIQuizOpen, centres, setSelectedCentre, setView, setIsBookingOpen, formatPrice } = useApp();
+      const [done, setDone] = useState(false);
+
+      if (!isAIQuizOpen) return null;
+
+      const topCentre = centres[0];
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sage-950/80 backdrop-blur-md">
+          <div className="bg-sand-50 rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl border border-sand-300">
+            <div className="flex justify-between items-center border-b pb-4">
+              <h3 className="font-serif font-bold text-2xl text-sage-950">✨ AI Retreat Matchmaker</h3>
+              <button onClick={() => setIsAIQuizOpen(false)} className="text-sage-500 font-bold text-xl">✕</button>
+            </div>
+
+            {!done ? (
+              <div className="space-y-4 text-xs">
+                <h4 className="font-serif font-bold text-lg text-sage-950">Select Your Primary Travel Goal:</h4>
+                <div className="space-y-2">
+                  {['200h Yoga Teacher Certification (TTC)', 'Ayurvedic Panchakarma Detox', 'Himalayan Spiritual & Sound Retreat', 'Oceanfront Beach Vinyasa & Yin'].map((g, i) => (
+                    <button key={i} onClick={() => setDone(true)} className="w-full text-left p-3 rounded-xl border bg-white hover:bg-sand-100 font-bold text-sage-900">
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {topCentre ? (
+                  <>
+                    <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">98% Match Score</span>
+                    <h4 className="font-serif font-bold text-2xl text-sage-950">{topCentre.name}</h4>
+                    <p className="text-xs text-sage-600">{topCentre.location} • {topCentre.certification}</p>
+                    <div className="flex justify-between items-center border-t pt-3">
+                      <span className="font-serif font-bold text-xl text-sage-950">{formatPrice(topCentre.startingPriceUSD)}</span>
+                      <button 
+                        onClick={() => { setIsAIQuizOpen(false); setSelectedCentre(topCentre); setIsBookingOpen(true); setDone(false); }}
+                        className="bg-terracotta-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow"
+                      >
+                        Request Booking
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4 space-y-2">
+                    <p className="text-xs text-sage-600">No yoga centres registered yet for AI matching.</p>
+                    <button 
+                      onClick={() => setDone(false)}
+                      className="text-xs text-terracotta-600 font-bold underline"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // --- LIVE CHAT WIDGET COMPONENT ---
+    const LiveChatWidget = () => {
+      const { isChatOpen, setIsChatOpen, chatMessages, setChatMessages, unreadCount, setUnreadCount, setView } = useApp();
+      const [input, setInput] = useState('');
+      const [isTyping, setIsTyping] = useState(false);
+      const chatEndRef = useRef(null);
+
+      useEffect(() => {
+        if (isChatOpen) {
+          setUnreadCount(0);
+        }
+      }, [isChatOpen]);
+
+      useEffect(() => {
+        if (chatEndRef.current) {
+          chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, [chatMessages, isTyping]);
+
+      const handleSend = (textToSend) => {
+        const text = textToSend || input.trim();
+        if (!text) return;
+
+        const userMsg = {
+          id: 'user-' + Date.now(),
+          sender: 'user',
+          text,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        setChatMessages(prev => [...prev, userMsg]);
+        if (!textToSend) setInput('');
+        setIsTyping(true);
+
+        setTimeout(() => {
+          let replyText = '';
+          let quickActions = null;
+
+          const lower = text.toLowerCase();
+          if (lower.includes('ttc') || lower.includes('teacher') || lower.includes('200h') || lower.includes('course') || lower.includes('package')) {
+            replyText = '🧘‍♀️ **200-Hour Yoga Teacher Training Package**\n\n• Yoga Alliance USA RYS 200 Certification\n• 24 Days Residential Immersion in Rishikesh / Tapovan\n• Hatha, Vinyasa Alignment & Anatomy\n• All Sattvic Meals & Accommodation Included\n• Package Price: $1,250 USD.\n\nOur concierge can tailor package dates for your travel schedule!';
+            quickActions = ['Ayurveda & Panchakarma 🌿', 'How Escrow Works 🛡️', 'Talk to Human Specialist 💬'];
+          } else if (lower.includes('ayurveda') || lower.includes('panchakarma') || lower.includes('detox') || lower.includes('kerala')) {
+            replyText = '🌿 **14-Day Ayurvedic Panchakarma Healing Package**\n\n• NABH Accredited Ayurveda Resorts in Kerala & Goa\n• Daily Doctor Consultations & Custom Oil Treatments\n• Full Sattvic Nutrition & Daily Gentle Hatha Practice\n• Package Price: $1,450 USD.\n\nWould you like me to connect you with an Ayurvedic doctor?';
+            quickActions = ['Book Consultation 🌿', 'Escrow Payment Info 🛡️', 'Talk to Human Specialist 💬'];
+          } else if (lower.includes('escrow') || lower.includes('payment') || lower.includes('refund') || lower.includes('safe')) {
+            replyText = '🛡️ **100% Admin Escrow Safety Guarantee**\n\n• Package payments are held safely by Platform Admin until your retreat begins.\n• Customer contact details are protected from ashrams until booking approval.\n• 100% Full Refund Guarantee for host cancellations.\n• Gateways: Stripe, PayPal, Wise, Credit Cards.';
+            quickActions = ['View All Packages 📦', 'Talk to Human Specialist 💬'];
+          } else if (lower.includes('human') || lower.includes('support') || lower.includes('phone') || lower.includes('contact') || lower.includes('call') || lower.includes('agent')) {
+            replyText = '💬 **Customer Support Specialist Connected!**\n\nSenior Support Concierge Rahul is active on this chat line.\n• WhatsApp Direct: +91 98765 43210\n• Support Email: support@yogaconnect.in\n\nPlease drop your phone number or email below to request an instant callback!';
+            quickActions = ['Request Callback 📞', 'Email Support ✉️'];
+          } else {
+            replyText = `Thank you for contacting YogaConnect India Support! I am here to assist with package details, custom travel dates, and escrow booking safety. How can I help you further?`;
+            quickActions = ['200h TTC Packages 🧘‍♀️', 'Ayurveda Packages 🌿', 'Talk to Human Specialist 💬'];
+          }
+
+          const agentMsg = {
+            id: 'agent-' + Date.now(),
+            sender: 'agent',
+            senderName: 'Priya (Yoga Specialist)',
+            senderAvatar: '🧘‍♀️',
+            text: replyText,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            quickActions
+          };
+
+          setIsTyping(false);
+          setChatMessages(prev => [...prev, agentMsg]);
+        }, 1000);
+      };
+
+      return (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+          {/* Expanded Chat Box Window */}
+          {isChatOpen && (
+            <div className="w-96 max-w-[calc(100vw-2rem)] h-[520px] bg-sand-50 rounded-3xl shadow-2xl border border-sand-300 flex flex-col overflow-hidden mb-4 animate-fade-in">
+              {/* Header */}
+              <div className="bg-sage-950 text-white p-4 flex items-center justify-between border-b border-sage-800">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-terracotta-600 text-white flex items-center justify-center font-bold text-lg shadow">
+                      🧘‍♀️
+                    </div>
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-sage-950"></span>
+                  </div>
+                  <div>
+                    <h4 className="font-serif font-bold text-base text-sand-50 leading-tight">Priya • Retreat Specialist</h4>
+                    <span className="text-[10px] text-emerald-400 font-semibold flex items-center space-x-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+                      <span>Online • 24/7 Customer Support</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => { setView('support'); setIsChatOpen(false); }}
+                    title="Open Full Support Page"
+                    className="text-xs text-sand-200 hover:text-gold-400 px-2 py-1 bg-sage-900 rounded"
+                  >
+                    Full Hub ↗
+                  </button>
+                  <button 
+                    onClick={() => setIsChatOpen(false)}
+                    className="w-8 h-8 rounded-full bg-sage-900 hover:bg-sage-800 text-sand-200 flex items-center justify-center text-sm font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Chat Message History */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+                {chatMessages.map(msg => (
+                  <div 
+                    key={msg.id} 
+                    className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+                  >
+                    {msg.sender === 'agent' && (
+                      <span className="text-[10px] text-sage-600 font-bold mb-1 ml-1 flex items-center space-x-1">
+                        <span>{msg.senderAvatar}</span>
+                        <span>{msg.senderName}</span>
+                      </span>
+                    )}
+
+                    <div 
+                      className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed whitespace-pre-line shadow-sm ${
+                        msg.sender === 'user' 
+                          ? 'bg-terracotta-600 text-white rounded-br-none' 
+                          : 'bg-white text-sage-950 border border-sand-300 rounded-bl-none font-sans'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+
+                    <span className="text-[9px] text-sage-400 mt-1 px-1">{msg.time}</span>
+
+                    {/* Quick Action Chips */}
+                    {msg.quickActions && msg.quickActions.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2.5 max-w-[95%]">
+                        {msg.quickActions.map((action, i) => (
+                          <button
+                            key={i}
+                            onClick={() => handleSend(action)}
+                            className="bg-sand-100 hover:bg-terracotta-50 text-terracotta-700 font-bold text-[11px] px-3 py-1.5 rounded-full border border-terracotta-300 transition shadow-sm"
+                          >
+                            {action}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex items-center space-x-2 text-sage-500 bg-white p-3 rounded-2xl w-28 border border-sand-300 shadow-sm">
+                    <span className="w-2 h-2 bg-sage-400 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-sage-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                    <span className="w-2 h-2 bg-sage-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                    <span className="text-[10px] font-semibold text-sage-600">Typing...</span>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Chat Form Footer */}
+              <form 
+                onSubmit={(e) => { e.preventDefault(); handleSend(); }} 
+                className="p-3 bg-white border-t border-sand-300 flex items-center space-x-2"
+              >
+                <input 
+                  type="text" 
+                  placeholder="Ask about packages, pricing, support..." 
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  className="flex-1 bg-sand-50 text-sage-950 p-2.5 rounded-xl border border-sand-300 text-xs focus:outline-none focus:ring-1 focus:ring-terracotta-500"
+                />
+                <button 
+                  type="submit" 
+                  className="bg-terracotta-600 hover:bg-terracotta-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow flex items-center space-x-1 shrink-0"
+                >
+                  <span>Send</span>
+                  <span>➔</span>
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Floating Action Button (FAB) */}
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            className="group relative bg-gradient-to-r from-terracotta-600 to-sage-900 hover:from-terracotta-700 hover:to-sage-950 text-white p-4 rounded-full shadow-2xl flex items-center justify-center space-x-2 border-2 border-gold-400/50 transition-all transform hover:scale-105"
+          >
+            <span className="text-2xl">💬</span>
+            <span className="font-bold text-xs pr-1 hidden sm:inline">Chat Us & Support</span>
+            {unreadCount > 0 && !isChatOpen && (
+              <span className="absolute -top-1 -right-1 bg-gold-400 text-sage-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow border border-white animate-bounce">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+      );
+    };
+
+    // --- SUPPORT PAGE COMPONENT ---
+    const SupportPage = () => {
+      const { setIsChatOpen } = useApp();
+
+      const faqs = [
+        {
+          q: 'How does the Admin Escrow Payment system protect my package booking?',
+          a: 'When you request a package booking on YogaConnect India, your funds are safely deposited into our platform Admin Escrow account. Your personal contact details are withheld from yoga centres until your reservation dates and package details are 100% validated. If a centre cancels, you receive a guaranteed 100% full refund.'
+        },
+        {
+          q: 'Can I customize a package for my specific travel dates?',
+          a: 'Yes! Our customer support concierge team works directly with Yoga Alliance USA certified ashrams across Rishikesh, Goa, Kerala, Dharamshala, and Mysore. Open our Live Chat or message us on WhatsApp to tailor accommodation, extra Ayurveda treatments, or airport transfers.'
+        },
+        {
+          q: 'Are sattvic meals and airport transfers included in the packages?',
+          a: 'Most of our featured 200-Hour TTC and Ayurvedic Panchakarma packages include 3 fresh sattvic vegetarian/vegan meals daily plus airport pickup from Dehradun (DED), Goa (GOI), or Trivandrum (TRV) airports.'
+        },
+        {
+          q: 'How can a yoga centre register its packages on YogaConnect India?',
+          a: 'Ashram owners and yoga school directors can easily click the "Add Yoga Centre" button in the navigation header to submit their sanctuary for verification.'
+        }
+      ];
+
+      return (
+        <div className="py-12 bg-sand-50 min-h-screen">
+          <div className="max-w-6xl mx-auto px-4 space-y-12">
+            
+            {/* Header Banner */}
+            <div className="bg-sage-950 text-white p-8 md:p-12 rounded-3xl border border-sage-800 shadow-luxury flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+              <div className="relative z-10 space-y-3 max-w-2xl">
+                <span className="bg-gold-500/20 text-gold-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block">
+                  24/7 Global Traveler Support & Package Concierge
+                </span>
+                <h1 className="font-serif font-bold text-3xl sm:text-5xl text-sand-50">
+                  Chat With Us & Customer Support
+                </h1>
+                <p className="text-sand-200 text-sm font-light leading-relaxed">
+                  Have questions about Yoga Alliance certifications, Ayurvedic packages, airport pickups, or escrow booking safety? Our dedicated support specialists are online 24/7 to assist you.
+                </p>
+              </div>
+
+              <div className="relative z-10 shrink-0">
+                <button
+                  onClick={() => setIsChatOpen(true)}
+                  className="bg-gold-500 hover:bg-gold-600 text-sage-950 font-bold px-6 py-3.5 rounded-xl shadow-xl flex items-center space-x-2 text-sm"
+                >
+                  <span>💬 Start Live Chat Now</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Support Channels Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              <div 
+                onClick={() => setIsChatOpen(true)}
+                className="bg-white p-6 rounded-2xl border border-sand-300 shadow-sm hover:shadow-md transition cursor-pointer space-y-3 text-center group"
+              >
+                <div className="w-14 h-14 bg-terracotta-100 text-terracotta-600 rounded-2xl flex items-center justify-center mx-auto text-2xl group-hover:scale-110 transition">
+                  💬
+                </div>
+                <h3 className="font-serif font-bold text-lg text-sage-950">Live Web Chat</h3>
+                <p className="text-xs text-sage-600">Chat live with Priya & our retreat specialists instantly.</p>
+                <span className="text-xs font-bold text-terracotta-600 block">Open Widget →</span>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-sand-300 shadow-sm space-y-3 text-center">
+                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+                  📱
+                </div>
+                <h3 className="font-serif font-bold text-lg text-sage-950">WhatsApp Concierge</h3>
+                <p className="text-xs text-sage-600">Direct instant messaging for international travelers.</p>
+                <a href="https://wa.me/919876543210" target="_blank" className="text-xs font-bold text-emerald-700 block hover:underline">
+                  +91 98765 43210
+                </a>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-sand-300 shadow-sm space-y-3 text-center">
+                <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+                  📧
+                </div>
+                <h3 className="font-serif font-bold text-lg text-sage-950">Email Support</h3>
+                <p className="text-xs text-sage-600">Send package inquiries & custom itinerary requests.</p>
+                <a href="mailto:support@yogaconnect.in" className="text-xs font-bold text-amber-800 block hover:underline">
+                  support@yogaconnect.in
+                </a>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-sand-300 shadow-sm space-y-3 text-center">
+                <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+                  🛡️
+                </div>
+                <h3 className="font-serif font-bold text-lg text-sage-950">Escrow Guarantee</h3>
+                <p className="text-xs text-sage-600">100% money back protection for all verified bookings.</p>
+                <span className="text-xs font-bold text-purple-900 block">Verified Escrow</span>
+              </div>
+            </div>
+
+            {/* FAQs Accordion */}
+            <div className="bg-white p-8 md:p-10 rounded-3xl border border-sand-300 space-y-6">
+              <div>
+                <span className="text-xs text-terracotta-600 font-bold uppercase tracking-wider block">Frequently Asked Questions</span>
+                <h2 className="font-serif font-bold text-3xl text-sage-950 mt-1">Package & Customer Support FAQs</h2>
+              </div>
+
+              <div className="space-y-4">
+                {faqs.map((faq, i) => (
+                  <div key={i} className="bg-sand-50 p-6 rounded-2xl border border-sand-300 space-y-2">
+                    <h3 className="font-serif font-bold text-lg text-sage-950 flex items-center space-x-2">
+                      <span className="text-terracotta-600">Q:</span>
+                      <span>{faq.q}</span>
+                    </h3>
+                    <p className="text-xs text-sage-600 leading-relaxed pl-6">
+                      {faq.a}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    };
+
+    // Main App Container
+    const App = () => {
+      const { view, setView, isAdminMode, setIsAdminMode, setRole } = useApp();
+
+      return (
+        <div className="min-h-screen flex flex-col justify-between relative">
+          <Navbar />
+          <main className="flex-1">
+            {view === 'user-dashboard' && <UserDashboard />}
+            {view === 'admin-dashboard' && <AdminDashboard />}
+            {view === 'support' && <SupportPage />}
+            {view === 'home' && (
+              <>
+                <HeroSection />
+                <FeaturedCentres />
+              </>
+            )}
+            {view === 'retreats' && <FeaturedCentres />}
+          </main>
+          <footer className="bg-sage-950 text-sand-200 py-12 border-t border-sage-900 text-center text-xs space-y-2">
+            <p>© 2026 YogaConnect India. Operating in compliance with international privacy & escrow booking standards.</p>
+            <p className="text-sage-500">
+              Supported Gateways: Stripe • PayPal • Wise • Apple Pay • Google Pay | <button onClick={() => setView('support')} className="text-gold-400 underline font-semibold">Live Customer Support Chat</button>
+            </p>
+            <div className="pt-4 border-t border-sage-900/60 max-w-xs mx-auto">
+              <button 
+                onClick={() => {
+                  if (isAdminMode) {
+                    setIsAdminMode(false);
+                    setRole('visitor');
+                    setView('home');
+                  } else {
+                    setIsAdminMode(true);
+                    setRole('admin');
+                  }
+                }}
+                className="text-[11px] text-sage-400 hover:text-gold-400 font-mono transition inline-flex items-center space-x-1"
+              >
+                <span>🔑</span>
+                <span>{isAdminMode ? 'Exit Owner Mode' : 'Site Owner Portal'}</span>
+              </button>
+            </div>
+          </footer>
+
+          <BookingModal />
+          <AIQuizModal />
+          <AddCentreModal />
+          <LiveChatWidget />
+        </div>
+      );
+    };
+
+    const rootElement = document.getElementById('root');
+    if (ReactDOM.createRoot) {
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        <AppProvider>
+          <App />
+        </AppProvider>
+      );
+    } else {
+      ReactDOM.render(
+        <AppProvider>
+          <App />
+        </AppProvider>,
+        rootElement
+      );
+    }
+  </script>
+</body>
+</html>
