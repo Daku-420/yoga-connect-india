@@ -116,19 +116,19 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between">
         
         {/* Brand Logo - Standalone Official Logo */}
         <div className="flex items-center">
           <button 
             onClick={() => setActiveView('home')} 
-            className="flex items-center text-left group focus-visible:outline-none shrink-0 py-0.5"
+            className="flex items-center text-left group focus-visible:outline-none shrink-0"
             aria-label="YogaConnect India Home"
           >
             <img 
               src="/pictures/yogaconnect_india_logo.svg" 
               alt="YogaConnect India" 
-              className="h-14 sm:h-16 lg:h-18 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              className="h-16 sm:h-20 lg:h-[90px] xl:h-[96px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
           </button>
         </div>
@@ -137,7 +137,7 @@ export const Navbar: React.FC = () => {
         <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7 text-sm font-medium text-[#252C27]" aria-label="Main Navigation">
           <button 
             onClick={() => handleNavClick('retreats')}
-            className={`transition-colors py-1 hover:text-[#536B50] ${activeView === 'retreats' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'retreats' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Explore
           </button>
@@ -147,7 +147,7 @@ export const Navbar: React.FC = () => {
               setFilters(f => ({ ...f, courseCategory: 'all' }));
               setActiveView('retreats');
             }}
-            className="transition-colors py-1 hover:text-[#536B50]"
+            className="transition-colors py-1.5 hover:text-[#536B50]"
           >
             Yoga Centres
           </button>
@@ -157,21 +157,21 @@ export const Navbar: React.FC = () => {
               setFilters(f => ({ ...f, courseCategory: '200h-ttc' }));
               setActiveView('retreats');
             }}
-            className="transition-colors py-1 hover:text-[#536B50]"
+            className="transition-colors py-1.5 hover:text-[#536B50]"
           >
             Yoga Retreats
           </button>
 
           <button 
             onClick={() => setActiveView('destinations')}
-            className={`transition-colors py-1 hover:text-[#536B50] ${activeView === 'destinations' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'destinations' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Destinations
           </button>
 
           <button 
             onClick={() => setActiveView('blog')}
-            className={`transition-colors py-1 hover:text-[#536B50] ${activeView === 'blog' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'blog' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Journal
           </button>
@@ -186,7 +186,7 @@ export const Navbar: React.FC = () => {
               setUserRole('user');
               setActiveView('user-dashboard');
             }}
-            className="relative p-2 text-[#59665C] hover:text-[#263D32] hover:bg-[#E6EDE2] rounded-full transition"
+            className="relative p-2.5 text-[#59665C] hover:text-[#263D32] hover:bg-[#E6EDE2] rounded-full transition"
             title="Saved Centres"
             aria-label="View saved centres"
           >
@@ -201,7 +201,7 @@ export const Navbar: React.FC = () => {
           {/* AI Retreat Quiz Modal trigger */}
           <button 
             onClick={() => setIsAIQuizModalOpen(true)}
-            className="flex items-center space-x-1.5 text-xs text-[#263D32] bg-[#E6EDE2] hover:bg-[#D4E0CE] px-3 py-2 rounded-lg font-medium transition"
+            className="flex items-center space-x-1.5 text-xs text-[#263D32] bg-[#E6EDE2] hover:bg-[#D4E0CE] px-3.5 py-2.5 rounded-lg font-medium transition"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#536B50]" />
             <span>AI Matchmaker</span>
@@ -210,7 +210,7 @@ export const Navbar: React.FC = () => {
           {/* List Your Centre CTA - Visible without competing with discovery */}
           <button 
             onClick={() => setIsAddCentreOpen(true)}
-            className="border border-[#536B50] text-[#536B50] hover:bg-[#536B50] hover:text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors flex items-center space-x-1.5"
+            className="border border-[#536B50] text-[#536B50] hover:bg-[#536B50] hover:text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors flex items-center space-x-1.5"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>List Your Centre</span>
@@ -219,7 +219,7 @@ export const Navbar: React.FC = () => {
           {/* Primary Action Button */}
           <button 
             onClick={() => setActiveView('retreats')}
-            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors shadow-sm hidden xl:inline-flex"
+            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-colors shadow-sm hidden xl:inline-flex"
           >
             Explore Retreats
           </button>
@@ -230,7 +230,7 @@ export const Navbar: React.FC = () => {
         <div className="lg:hidden flex items-center space-x-2">
           <button 
             onClick={() => setIsAddCentreOpen(true)}
-            className="text-xs font-medium text-[#536B50] px-2.5 py-1.5 rounded-md border border-[#536B50] md:hidden"
+            className="text-xs font-medium text-[#536B50] px-3 py-2 rounded-md border border-[#536B50] md:hidden"
           >
             List Centre
           </button>
@@ -256,7 +256,7 @@ export const Navbar: React.FC = () => {
             <img 
               src="/pictures/yogaconnect_india_logo.svg" 
               alt="YogaConnect India" 
-              className="h-12 w-auto object-contain" 
+              className="h-16 w-auto object-contain" 
             />
           </div>
           

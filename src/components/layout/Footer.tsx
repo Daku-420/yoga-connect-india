@@ -96,7 +96,7 @@ export const Footer: React.FC = () => {
                 <img 
                   src="/pictures/yogaconnect_india_logo.svg" 
                   alt="YogaConnect India" 
-                  className="h-16 w-auto object-contain" 
+                  className="h-20 w-auto object-contain" 
                 />
               </div>
             </div>
