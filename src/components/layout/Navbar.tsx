@@ -118,26 +118,18 @@ export const Navbar: React.FC = () => {
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3 flex items-center justify-between">
         
-        {/* Brand Logo & Name */}
+        {/* Brand Logo - Standalone Official Logo */}
         <div className="flex items-center">
           <button 
             onClick={() => setActiveView('home')} 
-            className="flex items-center space-x-3 text-left group focus-visible:outline-none shrink-0"
+            className="flex items-center text-left group focus-visible:outline-none shrink-0 py-0.5"
             aria-label="YogaConnect India Home"
           >
             <img 
               src="/pictures/yogaconnect_india_logo.svg" 
-              alt="YogaConnect India Logo" 
-              className="h-12 sm:h-14 lg:h-16 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              alt="YogaConnect India" 
+              className="h-14 sm:h-16 lg:h-18 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
-            <div className="hidden sm:block">
-              <span className="font-serif font-bold text-lg lg:text-xl text-[#263D32] tracking-tight block leading-tight">
-                YogaConnect <span className="text-[#536B50] font-normal italic">India</span>
-              </span>
-              <span className="text-[9px] lg:text-[10px] uppercase tracking-widest text-[#59665C] font-semibold block">
-                Himalayan Discovery & Retreats
-              </span>
-            </div>
           </button>
         </div>
 
@@ -259,21 +251,13 @@ export const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-[#F7F5EE] border-b border-[#E2E5DD] p-4 space-y-4 shadow-lg animate-in slide-in-from-top duration-200">
           
-          {/* Mobile Drawer Header with Official Logo */}
-          <div className="flex items-center space-x-3 pb-3 border-b border-[#E2E5DD]">
+          {/* Mobile Drawer Header with Standalone Official Logo */}
+          <div className="flex items-center justify-start pb-3 border-b border-[#E2E5DD]">
             <img 
               src="/pictures/yogaconnect_india_logo.svg" 
-              alt="YogaConnect India Logo" 
-              className="h-11 w-auto object-contain" 
+              alt="YogaConnect India" 
+              className="h-12 w-auto object-contain" 
             />
-            <div>
-              <span className="font-serif font-bold text-base text-[#263D32] block leading-tight">
-                YogaConnect <span className="text-[#536B50] font-normal italic">India</span>
-              </span>
-              <span className="text-[9px] uppercase tracking-widest text-[#59665C] font-semibold block">
-                Himalayan Discovery & Retreats
-              </span>
-            </div>
           </div>
           
           {/* Role Switcher Grid */}

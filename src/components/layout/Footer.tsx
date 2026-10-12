@@ -91,21 +91,13 @@ export const Footer: React.FC = () => {
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center space-x-3.5">
-              <div className="bg-[#F7F5EE] p-2 rounded-xl shadow-sm border border-white/10 shrink-0">
+            <div>
+              <div className="bg-[#F7F5EE] p-2.5 rounded-2xl shadow-sm border border-white/10 inline-block">
                 <img 
                   src="/pictures/yogaconnect_india_logo.svg" 
-                  alt="YogaConnect India Logo" 
-                  className="h-12 w-auto object-contain" 
+                  alt="YogaConnect India" 
+                  className="h-16 w-auto object-contain" 
                 />
-              </div>
-              <div>
-                <span className="font-serif font-bold text-2xl text-white block leading-tight">
-                  YogaConnect <span className="text-[#DCCDB5] font-normal italic">India</span>
-                </span>
-                <span className="text-[10px] uppercase tracking-widest text-[#A5B89A] font-semibold block mt-0.5">
-                  Himalayan Discovery & Retreats
-                </span>
               </div>
             </div>
             <p className="text-[#A5B89A] leading-relaxed max-w-sm">
