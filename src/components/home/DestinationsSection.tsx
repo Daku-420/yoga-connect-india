@@ -1,84 +1,92 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { mockDestinations } from '../../data/mockDestinations';
-import { MapPin, ArrowRight, Sparkles, Plane } from 'lucide-react';
+import { MapPin, ArrowRight, Plane, Sparkles } from 'lucide-react';
 
 export const DestinationsSection: React.FC = () => {
   const { setSelectedDestinationSlug, setActiveView, setFilters } = useApp();
 
+  // Highlight Uttarakhand destinations
+  const uttarakhandDests = mockDestinations.filter(d => 
+    ['rishikesh', 'uttarkashi', 'dehradun', 'haridwar', 'nainital'].includes(d.slug)
+  );
+
   return (
-    <section className="py-20 bg-sand-100">
+    <section className="py-20 bg-white border-t border-b border-[#E2E5DD]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-          <div className="inline-flex items-center space-x-1.5 text-terracotta-600 text-xs font-bold uppercase tracking-wider">
-            <MapPin className="w-4 h-4 text-terracotta-500" />
-            <span>Sacred Wellness Destinations</span>
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 text-[#536B50] text-xs font-semibold uppercase tracking-wider mb-2">
+              <MapPin className="w-4 h-4 text-[#536B50]" />
+              <span>Sacred Himalayan Geography</span>
+            </div>
+            <h2 className="font-serif font-bold text-3xl sm:text-4xl text-[#263D32]">
+              Popular Uttarakhand Destinations
+            </h2>
+            <p className="text-[#59665C] text-sm mt-2 max-w-xl">
+              From the Ganges foothills of Rishikesh to the high mountain silence of Uttarkashi and pine valleys of Dehradun.
+            </p>
           </div>
-          <h2 className="font-serif font-bold text-3xl sm:text-5xl text-sage-950">
-            Explore Popular Retreat Destinations in India
-          </h2>
-          <p className="text-sage-700 text-sm sm:text-base font-sans">
-            From the high Himalayan foothills of Rishikesh to the tropical palms of Kerala and oceanfront shalas of Goa.
-          </p>
+
+          <button
+            onClick={() => {
+              setFilters(f => ({ ...f, searchLocation: 'all' }));
+              setActiveView('destinations');
+            }}
+            className="inline-flex items-center space-x-2 text-[#263D32] font-semibold text-sm hover:text-[#536B50] transition group"
+          >
+            <span>Explore All Destinations</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mockDestinations.map((dest) => (
+        {/* Destination Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {uttarakhandDests.map((dest) => (
             <div 
               key={dest.id}
               onClick={() => {
-                if (!dest.isUpcoming) {
-                  setSelectedDestinationSlug(dest.slug);
-                  setFilters(f => ({ ...f, searchLocation: dest.name }));
-                  setActiveView('retreats');
-                }
+                setSelectedDestinationSlug(dest.slug);
+                setFilters(f => ({ ...f, searchLocation: dest.name.split(' ')[0] }));
+                setActiveView('retreats');
               }}
-              className={`relative rounded-2xl overflow-hidden shadow-luxury border border-sand-300/80 group h-80 cursor-pointer transition-all duration-500 ${
-                dest.isUpcoming ? 'opacity-85' : 'hover:-translate-y-1 hover:shadow-2xl'
-              }`}
+              className="bg-[#F7F5EE] rounded-2xl overflow-hidden border border-[#E2E5DD] shadow-sm hover:shadow-md group cursor-pointer transition-all duration-300 flex flex-col justify-between"
             >
-              <img 
-                src={dest.coverImage} 
-                alt={dest.name} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-sage-950 via-sage-950/40 to-transparent" />
+              <div className="relative aspect-[16/10] overflow-hidden bg-[#E6EDE2]">
+                <img 
+                  src={dest.coverImage} 
+                  alt={dest.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-              {/* Badges */}
-              <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-                {dest.isUpcoming ? (
-                  <span className="bg-gold-500/90 text-sage-950 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow flex items-center space-x-1">
-                    <Sparkles className="w-3 h-3" />
-                    <span>Future Expansion</span>
+                <div className="absolute top-3 left-3">
+                  <span className="bg-white/95 backdrop-blur-md text-[#263D32] text-[11px] font-semibold px-2.5 py-1 rounded-md shadow-sm">
+                    {dest.retreatCount} Verified Retreats
                   </span>
-                ) : (
-                  <span className="bg-sand-50/90 backdrop-blur-md text-sage-900 text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
-                    {dest.retreatCount} Verified Ashrams
-                  </span>
-                )}
-              </div>
-
-              {/* Bottom Content */}
-              <div className="absolute bottom-4 left-4 right-4 text-white space-y-1.5">
-                <div className="flex items-center space-x-1 text-xs text-gold-400 font-medium">
-                  <Plane className="w-3 h-3" />
-                  <span>{dest.nearbyAirport}</span>
                 </div>
 
-                <h3 className="font-serif font-bold text-2xl text-sand-50 group-hover:text-gold-300 transition">
-                  {dest.name}
-                </h3>
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <span className="text-[11px] text-[#A5B89A] flex items-center space-x-1">
+                    <Plane className="w-3 h-3 text-[#DCCDB5]" />
+                    <span>{dest.nearbyAirport}</span>
+                  </span>
+                  <h3 className="font-serif font-bold text-2xl text-white group-hover:text-[#DCCDB5] transition-colors leading-tight">
+                    {dest.name}
+                  </h3>
+                </div>
+              </div>
 
-                <p className="text-xs text-sand-200 line-clamp-1 font-light">
-                  {dest.subtitle}
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <p className="text-xs text-[#59665C] leading-relaxed line-clamp-2">
+                  {dest.description}
                 </p>
 
-                <div className="pt-2 flex items-center justify-between text-xs font-semibold text-gold-400">
-                  <span>{dest.isUpcoming ? 'Coming Soon' : 'Explore Courses'}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <div className="pt-2 border-t border-[#E2E5DD] flex items-center justify-between text-xs font-semibold text-[#536B50]">
+                  <span>Explore Centres in {dest.name}</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
 

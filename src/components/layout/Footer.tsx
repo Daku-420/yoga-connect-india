@@ -6,177 +6,217 @@ import {
   Lock, 
   Award, 
   HeartHandshake, 
-  Globe2, 
-  FileText,
-  CreditCard
+  Compass, 
+  MapPin,
+  PlusCircle
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const { 
-    brandName, 
     setActiveView, 
-    setIsSchemaModalOpen, 
-    setSelectedDestinationSlug 
+    setIsAddCentreOpen,
+    setSelectedDestinationSlug,
+    setFilters
   } = useApp();
 
+  const handleDestinationClick = (city: string) => {
+    setFilters(f => ({ ...f, searchLocation: city }));
+    setActiveView('retreats');
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setFilters(f => ({ ...f, courseCategory: category }));
+    setActiveView('retreats');
+  };
+
   return (
-    <footer className="bg-sage-950 text-sand-200 pt-16 pb-12 border-t border-sage-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="bg-[#263D32] text-[#F7F5EE] pt-16 pb-12 border-t border-[#1E3228]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* Trust Feature Strip */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pb-12 border-b border-sage-800/80">
-          <div className="flex items-start space-x-3 bg-sage-900/40 p-4 rounded-xl border border-sage-800/50">
-            <div className="w-10 h-10 rounded-full bg-sage-800 flex items-center justify-center text-gold-400 shrink-0">
-              <ShieldCheck className="w-5 h-5" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12 border-b border-[#3D5E4C]/40">
+          
+          <div className="flex items-start space-x-3.5 bg-[#1E3228] p-4 rounded-xl border border-[#3D5E4C]/30">
+            <div className="w-10 h-10 rounded-lg bg-[#536B50] flex items-center justify-center text-white shrink-0">
+              <ShieldCheck className="w-5 h-5 text-[#E6EDE2]" />
             </div>
             <div>
               <h4 className="text-white font-semibold text-sm font-serif">100% Admin Escrow</h4>
-              <p className="text-sage-400 text-xs mt-1">
+              <p className="text-[#A5B89A] text-xs mt-1">
                 Your contact details stay private with admin until booking confirmation. Zero direct spam.
               </p>
             </div>
           </div>
 
-          <div className="flex items-start space-x-3 bg-sage-900/40 p-4 rounded-xl border border-sage-800/50">
-            <div className="w-10 h-10 rounded-full bg-sage-800 flex items-center justify-center text-gold-400 shrink-0">
-              <Award className="w-5 h-5" />
+          <div className="flex items-start space-x-3.5 bg-[#1E3228] p-4 rounded-xl border border-[#3D5E4C]/30">
+            <div className="w-10 h-10 rounded-lg bg-[#536B50] flex items-center justify-center text-white shrink-0">
+              <Award className="w-5 h-5 text-[#E6EDE2]" />
             </div>
             <div>
               <h4 className="text-white font-semibold text-sm font-serif">Yoga Alliance Certified</h4>
-              <p className="text-sage-400 text-xs mt-1">
-                All listed TTC schools hold verified RYS 200, 300, or 500 accreditation.
+              <p className="text-[#A5B89A] text-xs mt-1">
+                Listed Himalayan TTC schools hold verified RYS 200, 300, or 500 accreditation.
               </p>
             </div>
           </div>
 
-          <div className="flex items-start space-x-3 bg-sage-900/40 p-4 rounded-xl border border-sage-800/50">
-            <div className="w-10 h-10 rounded-full bg-sage-800 flex items-center justify-center text-gold-400 shrink-0">
-              <Lock className="w-5 h-5" />
+          <div className="flex items-start space-x-3.5 bg-[#1E3228] p-4 rounded-xl border border-[#3D5E4C]/30">
+            <div className="w-10 h-10 rounded-lg bg-[#536B50] flex items-center justify-center text-white shrink-0">
+              <Lock className="w-5 h-5 text-[#E6EDE2]" />
             </div>
             <div>
-              <h4 className="text-white font-semibold text-sm font-serif">Best Price Guarantee</h4>
-              <p className="text-sage-400 text-xs mt-1">
-                Direct ashram prices with zero hidden markup fees and transparent multi-currency billing.
+              <h4 className="text-white font-semibold text-sm font-serif">Direct Ashram Rates</h4>
+              <p className="text-[#A5B89A] text-xs mt-1">
+                Transparent multi-currency pricing in USD, EUR, GBP, AUD, CAD, and INR with zero markup.
               </p>
             </div>
           </div>
 
-          <div className="flex items-start space-x-3 bg-sage-900/40 p-4 rounded-xl border border-sage-800/50">
-            <div className="w-10 h-10 rounded-full bg-sage-800 flex items-center justify-center text-gold-400 shrink-0">
-              <HeartHandshake className="w-5 h-5" />
+          <div className="flex items-start space-x-3.5 bg-[#1E3228] p-4 rounded-xl border border-[#3D5E4C]/30">
+            <div className="w-10 h-10 rounded-lg bg-[#536B50] flex items-center justify-center text-white shrink-0">
+              <HeartHandshake className="w-5 h-5 text-[#E6EDE2]" />
             </div>
             <div>
-              <h4 className="text-white font-semibold text-sm font-serif">24/7 Concierge Support</h4>
-              <p className="text-sage-400 text-xs mt-1">
-                Dedicated assistance with Indian e-visas, airport transfers, and dietary customization.
+              <h4 className="text-white font-semibold text-sm font-serif">Pre-Arrival Concierge</h4>
+              <p className="text-[#A5B89A] text-xs mt-1">
+                Assistance with Indian e-visas, airport transfers from Dehradun (DED), and dietary plans.
               </p>
             </div>
           </div>
+
         </div>
 
-        {/* Main Footer Links */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 py-12 border-b border-sage-800/80">
+        {/* Main Footer Links Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 py-4 border-b border-[#3D5E4C]/40 text-xs">
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sage-700 to-sage-900 text-gold-400 flex items-center justify-center shadow">
-                <Sparkles className="w-4 h-4" />
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-xl bg-[#536B50] text-white flex items-center justify-center">
+                <Compass className="w-5 h-5 text-[#E6EDE2]" />
               </div>
-              <span className="font-serif font-bold text-2xl text-white tracking-tight">
-                {brandName}
+              <span className="font-serif font-bold text-2xl text-white">
+                YogaConnect <span className="text-[#DCCDB5] font-normal italic">India</span>
               </span>
             </div>
-
-            <p className="text-sage-300 text-xs leading-relaxed max-w-sm">
-              The premium, high-converting marketplace for authentic yoga retreats, teacher training courses (TTC), meditation ashrams, and Ayurveda programs across India. Connecting international seekers with verified spiritual sanctuaries.
+            <p className="text-[#A5B89A] leading-relaxed max-w-sm">
+              The curated discovery marketplace connecting Indian and international practitioners with verified yoga ashrams, master teachers, and transformative retreats across Uttarakhand.
             </p>
-
-            {/* Payment Systems Showcase */}
             <div className="pt-2">
-              <span className="text-sage-400 text-[11px] font-semibold uppercase tracking-wider block mb-2">
-                Supported International Payment Gateways
-              </span>
-              <div className="flex flex-wrap items-center gap-2">
-                {['Stripe', 'PayPal', 'Wise', 'Apple Pay', 'Google Pay', 'Visa / Mastercard'].map(pay => (
-                  <span 
-                    key={pay}
-                    className="bg-sage-900 text-sage-300 text-[10px] font-medium px-2.5 py-1 rounded border border-sage-800 flex items-center space-x-1"
-                  >
-                    <CreditCard className="w-3 h-3 text-gold-400" />
-                    <span>{pay}</span>
-                  </span>
-                ))}
-              </div>
+              <button
+                onClick={() => setIsAddCentreOpen(true)}
+                className="inline-flex items-center space-x-2 border border-[#A5B89A] hover:bg-[#536B50] hover:border-[#536B50] text-[#F7F5EE] px-4 py-2 rounded-lg transition-colors"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>List Your Centre on Platform</span>
+              </button>
             </div>
           </div>
 
-          {/* Destinations Column */}
-          <div>
-            <h4 className="text-white font-serif font-semibold text-sm mb-4">Popular Destinations</h4>
-            <ul className="space-y-2 text-xs text-sage-300">
-              {['Rishikesh', 'Goa', 'Kerala', 'Dharamshala', 'Mysore', 'Haridwar', 'Dehradun', 'Pondicherry'].map(dest => (
-                <li key={dest}>
-                  <button 
-                    onClick={() => {
-                      setSelectedDestinationSlug(dest.toLowerCase());
-                      setActiveView('destinations');
-                    }}
-                    className="hover:text-gold-400 transition"
-                  >
-                    {dest} Retreats
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Programs Column */}
-          <div>
-            <h4 className="text-white font-serif font-semibold text-sm mb-4">Certifications & Programs</h4>
-            <ul className="space-y-2 text-xs text-sage-300">
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">200 Hour Yoga TTC</button></li>
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">300 Hour Yoga TTC</button></li>
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">500 Hour Advanced TTC</button></li>
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">Panchakarma Ayurveda Detox</button></li>
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">Sound Healing Certification</button></li>
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">Silent Meditation Retreats</button></li>
-              <li><button onClick={() => setActiveView('retreats')} className="hover:text-gold-400">Prenatal & Breathwork</button></li>
-            </ul>
-          </div>
-
-          {/* Platform & Admin Tools */}
-          <div>
-            <h4 className="text-white font-serif font-semibold text-sm mb-4">Platform & SEO</h4>
-            <ul className="space-y-2 text-xs text-sage-300">
-              <li><button onClick={() => setActiveView('blog')} className="hover:text-gold-400">Wellness Journal & Blog</button></li>
-              <li><button onClick={() => setActiveView('user-dashboard')} className="hover:text-gold-400">Traveler Dashboard</button></li>
-              <li><button onClick={() => setActiveView('centre-dashboard')} className="hover:text-gold-400">Partner Ashram Portal</button></li>
-              <li><button onClick={() => setActiveView('admin-dashboard')} className="hover:text-gold-400 text-gold-400 font-semibold">Admin Control Panel</button></li>
-              <li className="pt-2">
-                <button 
-                  onClick={() => setIsSchemaModalOpen(true)}
-                  className="flex items-center space-x-1.5 bg-sage-900 text-gold-400 px-2.5 py-1.5 rounded border border-sage-700 text-[11px] hover:bg-sage-800 transition"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Inspect SEO Schema & Sitemap</span>
+          {/* Destinations */}
+          <div className="space-y-3">
+            <h5 className="font-serif font-bold text-sm text-white uppercase tracking-wider">
+              Uttarakhand
+            </h5>
+            <ul className="space-y-2 text-[#A5B89A]">
+              <li>
+                <button onClick={() => handleDestinationClick('Rishikesh')} className="hover:text-white transition">
+                  Rishikesh (Ganges Foothills)
                 </button>
+              </li>
+              <li>
+                <button onClick={() => handleDestinationClick('Uttarkashi')} className="hover:text-white transition">
+                  Uttarkashi (High Himalayas)
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleDestinationClick('Dehradun')} className="hover:text-white transition">
+                  Dehradun & Mussoorie
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleDestinationClick('Haridwar')} className="hover:text-white transition">
+                  Haridwar (Ancient Ghats)
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleDestinationClick('Nainital')} className="hover:text-white transition">
+                  Nainital & Almora (Kumaon)
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Programs & Styles */}
+          <div className="space-y-3">
+            <h5 className="font-serif font-bold text-sm text-white uppercase tracking-wider">
+              Retreat Programs
+            </h5>
+            <ul className="space-y-2 text-[#A5B89A]">
+              <li>
+                <button onClick={() => handleCategoryClick('200h-ttc')} className="hover:text-white transition">
+                  200-Hour Yoga TTC
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleCategoryClick('300h-ttc')} className="hover:text-white transition">
+                  300-Hour Advanced TTC
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleCategoryClick('ayurveda')} className="hover:text-white transition">
+                  Ayurvedic Panchakarma
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleCategoryClick('meditation')} className="hover:text-white transition">
+                  Silent Meditation (Mauna)
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleCategoryClick('breathwork')} className="hover:text-white transition">
+                  Himalayan Breathwork & Kriya
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support & Legal */}
+          <div className="space-y-3">
+            <h5 className="font-serif font-bold text-sm text-white uppercase tracking-wider">
+              Traveler Trust
+            </h5>
+            <ul className="space-y-2 text-[#A5B89A]">
+              <li>
+                <button onClick={() => setActiveView('support')} className="hover:text-white transition">
+                  24/7 Concierge & Chat
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setActiveView('blog')} className="hover:text-white transition">
+                  Journal & Visa Guides
+                </button>
+              </li>
+              <li>
+                <span className="text-[#A5B89A]">100% Escrow Protection</span>
+              </li>
+              <li>
+                <span className="text-[#A5B89A]">Yoga Alliance USA RYS</span>
+              </li>
+              <li>
+                <span className="text-[#A5B89A]">Strict Zero-Spam Policy</span>
               </li>
             </ul>
           </div>
 
         </div>
 
-        {/* Bottom copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-sage-500 gap-4">
-          <p>© 2026 {brandName}. All rights reserved. Operating in compliance with international privacy & escrow booking standards.</p>
-          <div className="flex items-center space-x-4">
-            <span className="hover:text-sage-400 cursor-pointer">Privacy Policy</span>
-            <span>•</span>
-            <span className="hover:text-sage-400 cursor-pointer">Terms of Service</span>
-            <span>•</span>
-            <span className="hover:text-sage-400 cursor-pointer">Yoga Alliance Partner Agreement</span>
-          </div>
+        {/* Bottom Copyright */}
+        <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-[#A5B89A] gap-4">
+          <p>© {new Date().getFullYear()} YogaConnect India. All rights reserved.</p>
+          <p className="flex items-center space-x-2">
+            <span>Dehradun • Rishikesh • Uttarkashi • Nainital</span>
+          </p>
         </div>
 
       </div>

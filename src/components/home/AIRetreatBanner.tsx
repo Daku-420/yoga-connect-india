@@ -1,44 +1,69 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Sparkles, ArrowRight, Compass, ShieldCheck } from 'lucide-react';
+import { Sparkles, ArrowRight, Building2, Compass, ShieldCheck } from 'lucide-react';
 
 export const AIRetreatBanner: React.FC = () => {
-  const { setIsAIQuizModalOpen } = useApp();
+  const { setIsAIQuizModalOpen, setIsAddCentreOpen } = useApp();
 
   return (
-    <section className="py-16 bg-gradient-to-r from-terracotta-700 via-terracotta-600 to-sage-900 text-white relative overflow-hidden">
-      {/* Decorative Orbs */}
-      <div className="absolute -top-10 -left-10 w-60 h-60 bg-gold-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-10 -right-10 w-60 h-60 bg-sage-500/20 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+    <section className="py-20 bg-[#F7F5EE] border-b border-[#E2E5DD]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Left Copy */}
-        <div className="space-y-3 max-w-2xl text-center md:text-left">
-          <div className="inline-flex items-center space-x-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-gold-300 text-xs font-semibold border border-white/20">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI-POWERED MATCHMAKER ENGINE</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+          
+          {/* Card 1: AI Retreat Matchmaker */}
+          <div className="bg-white rounded-2xl p-8 sm:p-10 border border-[#E2E5DD] shadow-sm flex flex-col justify-between space-y-6">
+            <div className="space-y-3">
+              <div className="inline-flex items-center space-x-2 bg-[#E6EDE2] text-[#263D32] px-3 py-1 rounded-full text-xs font-semibold">
+                <Sparkles className="w-3.5 h-3.5 text-[#536B50]" />
+                <span>AI Retreat Matchmaker</span>
+              </div>
+              <h3 className="font-serif font-bold text-2xl sm:text-3xl text-[#263D32]">
+                Unsure which retreat fits your practice goals?
+              </h3>
+              <p className="text-[#59665C] text-sm leading-relaxed">
+                Answer 3 quick questions about your experience level, preferred Himalayan scenery (high mountain silence or sacred riverbanks), and desired certification. Our quiz instantly recommends your ideal ashram.
+              </p>
+            </div>
+
+            <div>
+              <button
+                onClick={() => setIsAIQuizModalOpen(true)}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-6 py-3.5 rounded-xl transition-all shadow-sm flex items-center space-x-2"
+              >
+                <Compass className="w-4 h-4" />
+                <span>Take the 1-Minute Matchmaker Quiz</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          <h2 className="font-serif font-bold text-3xl sm:text-4xl text-sand-50">
-            Unsure Which Indian Yoga Retreat Fits Your Goals?
-          </h2>
+          {/* Card 2: Dedicated CTA Inviting Yoga Centres to Join Platform */}
+          <div className="bg-[#263D32] text-white rounded-2xl p-8 sm:p-10 border border-[#3D5E4C]/50 shadow-sm flex flex-col justify-between space-y-6 relative overflow-hidden">
+            <div className="space-y-3 relative z-10">
+              <div className="inline-flex items-center space-x-2 bg-white/10 text-[#A5B89A] px-3 py-1 rounded-full text-xs font-semibold">
+                <Building2 className="w-3.5 h-3.5 text-[#DCCDB5]" />
+                <span>For Centre Owners & Ashrams</span>
+              </div>
+              <h3 className="font-serif font-bold text-2xl sm:text-3xl text-[#F7F5EE]">
+                List Your Yoga Centre or Ashram on YogaConnect India
+              </h3>
+              <p className="text-[#A5B89A] text-sm leading-relaxed">
+                Connect with dedicated Indian and international practitioners seeking authentic Himalayan yoga, RYS teacher training, and Ayurvedic healing retreats. Zero listing fees, verified listings, and secure escrow handling.
+              </p>
+            </div>
 
-          <p className="text-sand-100 text-sm sm:text-base font-sans font-light leading-relaxed">
-            Answer 3 quick questions about your travel intent, preferred scenery (mountains, ocean, rivers), duration, and budget. Our AI Matchmaker will instantly score and curate top retreats for you.
-          </p>
-        </div>
+            <div className="relative z-10 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setIsAddCentreOpen(true)}
+                className="bg-white text-[#263D32] hover:bg-[#F7F5EE] text-xs font-semibold px-6 py-3.5 rounded-xl transition-all shadow-sm flex items-center space-x-2"
+              >
+                <span>Submit Your Centre for Verification</span>
+                <ArrowRight className="w-4 h-4 text-[#536B50]" />
+              </button>
+            </div>
+          </div>
 
-        {/* Right CTA Button */}
-        <div className="shrink-0">
-          <button
-            onClick={() => setIsAIQuizModalOpen(true)}
-            className="bg-white hover:bg-sand-50 text-sage-950 font-serif font-bold px-8 py-4 rounded-xl text-base shadow-2xl hover:shadow-gold-500/20 transition transform hover:-translate-y-0.5 flex items-center space-x-3 border border-gold-400/50"
-          >
-            <Compass className="w-5 h-5 text-terracotta-600 animate-spin-slow" />
-            <span>Start AI Retreat Quiz</span>
-            <ArrowRight className="w-5 h-5 text-sage-900" />
-          </button>
         </div>
 
       </div>

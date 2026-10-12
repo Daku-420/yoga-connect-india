@@ -36,12 +36,12 @@ export const BlogSection: React.FC = () => {
     const relatedCentres = centres.filter(c => selectedArticle.relatedCentreIds.includes(c.id));
 
     return (
-      <div className="py-12 bg-sand-50 min-h-screen">
+      <div className="py-12 bg-[#F7F5EE] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
           <button
             onClick={() => setActiveView('blog')}
-            className="inline-flex items-center space-x-2 text-xs font-semibold text-sage-800 hover:text-terracotta-600 transition"
+            className="inline-flex items-center space-x-2 text-xs font-semibold text-[#536B50] hover:text-[#263D32] transition"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Journal Articles</span>
@@ -49,30 +49,30 @@ export const BlogSection: React.FC = () => {
 
           {/* Article Header */}
           <div className="space-y-4">
-            <span className="bg-terracotta-100 text-terracotta-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="bg-[#E6EDE2] text-[#263D32] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-[#A5B89A]/40">
               {selectedArticle.category}
             </span>
 
-            <h1 className="font-serif font-bold text-3xl sm:text-5xl text-sage-950 leading-tight">
+            <h1 className="font-serif font-bold text-3xl sm:text-5xl text-[#263D32] leading-tight">
               {selectedArticle.title}
             </h1>
 
-            <div className="flex items-center justify-between border-y border-sand-300 py-4 text-xs text-sage-600">
+            <div className="flex items-center justify-between border-y border-[#E2E5DD] py-4 text-xs text-[#59665C]">
               <div className="flex items-center space-x-3">
                 <img 
                   src={selectedArticle.authorAvatar} 
                   alt={selectedArticle.authorName} 
-                  className="w-10 h-10 rounded-full object-cover border-2 border-gold-400"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-[#DCCDB5]"
                 />
                 <div>
-                  <span className="font-bold text-sage-950 block">{selectedArticle.authorName}</span>
+                  <span className="font-bold text-[#252C27] block">{selectedArticle.authorName}</span>
                   <span>{selectedArticle.authorRole}</span>
                 </div>
               </div>
 
               <div className="flex items-center space-x-3">
                 <span className="flex items-center space-x-1">
-                  <Clock className="w-3.5 h-3.5 text-terracotta-500" />
+                  <Clock className="w-3.5 h-3.5 text-[#536B50]" />
                   <span>{selectedArticle.readTimeMinutes} min read</span>
                 </span>
                 <span>•</span>
@@ -82,25 +82,25 @@ export const BlogSection: React.FC = () => {
           </div>
 
           {/* Cover Image */}
-          <div className="h-96 rounded-3xl overflow-hidden shadow-luxury border border-sand-300">
+          <div className="h-96 rounded-2xl overflow-hidden shadow-sm border border-[#E2E5DD]">
             <img src={selectedArticle.coverImage} alt={selectedArticle.title} className="w-full h-full object-cover" />
           </div>
 
           {/* Main Article Body */}
-          <div className="bg-white p-8 sm:p-12 rounded-3xl border border-sand-300 shadow-luxury space-y-6 text-sage-900 leading-relaxed font-sans font-light text-base">
-            <p className="text-lg font-serif italic text-sage-800 border-l-4 border-terracotta-500 pl-4 py-1 bg-sand-50 rounded-r-xl">
+          <div className="bg-white p-8 sm:p-12 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6 text-[#252C27] leading-relaxed font-sans font-light text-base">
+            <p className="text-lg font-serif italic text-[#263D32] border-l-4 border-[#536B50] pl-4 py-2 bg-[#E6EDE2]/50 rounded-r-xl">
               "{selectedArticle.excerpt}"
             </p>
 
-            <div className="prose max-w-none text-sm space-y-4 whitespace-pre-line">
+            <div className="prose max-w-none text-sm space-y-4 whitespace-pre-line text-[#252C27]/90 leading-relaxed">
               {selectedArticle.content}
             </div>
 
             {/* SEO Keywords tags */}
-            <div className="pt-6 border-t border-sand-200 flex flex-wrap gap-2 text-xs">
-              <span className="font-semibold text-sage-500">Topics:</span>
+            <div className="pt-6 border-t border-[#E2E5DD] flex flex-wrap gap-2 text-xs">
+              <span className="font-semibold text-[#59665C]">Topics:</span>
               {selectedArticle.seoKeywords.map((kw, i) => (
-                <span key={i} className="bg-sand-100 text-sage-800 text-[11px] font-medium px-2.5 py-1 rounded-md">
+                <span key={i} className="bg-[#F7F5EE] text-[#59665C] border border-[#E2E5DD] text-[11px] font-medium px-2.5 py-1 rounded-md">
                   #{kw}
                 </span>
               ))}
@@ -109,18 +109,18 @@ export const BlogSection: React.FC = () => {
 
           {/* Related Retreats Recommendation Widget */}
           {relatedCentres.length > 0 && (
-            <div className="bg-sage-900 text-white p-8 rounded-3xl border border-sage-800 space-y-4 shadow-xl">
-              <div className="flex items-center space-x-2 text-gold-400 font-semibold text-xs">
-                <Sparkles className="w-4 h-4" />
+            <div className="bg-[#263D32] text-white p-8 rounded-2xl border border-[#344C3F] space-y-4 shadow-md">
+              <div className="flex items-center space-x-2 text-[#DCCDB5] font-semibold text-xs tracking-wider uppercase">
+                <Sparkles className="w-4 h-4 text-[#A5B89A]" />
                 <span>RECOMMENDED RETREATS FOR THIS ARTICLE</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {relatedCentres.map((centre) => (
-                  <div key={centre.id} className="bg-sage-950 p-4 rounded-2xl border border-sage-800 flex items-center justify-between">
+                  <div key={centre.id} className="bg-[#1C2E25] p-4 rounded-xl border border-white/10 flex items-center justify-between">
                     <div>
                       <h4 className="font-serif font-bold text-base text-white">{centre.name}</h4>
-                      <span className="text-xs text-sage-300 block">{centre.city}</span>
+                      <span className="text-xs text-[#A5B89A] block">{centre.city}</span>
                     </div>
 
                     <button
@@ -128,9 +128,9 @@ export const BlogSection: React.FC = () => {
                         setSelectedCentreId(centre.id);
                         setActiveView('centre-detail');
                       }}
-                      className="bg-terracotta-600 text-white font-medium text-xs px-3 py-2 rounded-lg"
+                      className="bg-[#536B50] hover:bg-[#40563E] text-white font-medium text-xs px-3.5 py-2 rounded-lg transition"
                     >
-                      View Ashram
+                      View Centre
                     </button>
                   </div>
                 ))}
@@ -145,35 +145,35 @@ export const BlogSection: React.FC = () => {
 
   // Blog Hub Grid View
   return (
-    <div className="py-12 bg-sand-50 min-h-screen">
+    <div className="py-12 bg-[#F7F5EE] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header */}
-        <div className="bg-sage-950 text-white rounded-3xl p-8 sm:p-10 shadow-2xl space-y-4 border border-sage-800">
-          <div className="inline-flex items-center space-x-2 bg-sage-800/80 px-3 py-1 rounded-full text-gold-400 text-xs font-semibold">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Wellness & Travel Journal</span>
+        <div className="bg-[#263D32] text-white rounded-2xl p-8 sm:p-10 shadow-lg space-y-4 border border-[#344C3F]">
+          <div className="inline-flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full text-[#DCCDB5] text-xs font-medium">
+            <BookOpen className="w-3.5 h-3.5 text-[#A5B89A]" />
+            <span>Uttarakhand Wellness & Travel Journal</span>
           </div>
 
-          <h1 className="font-serif font-bold text-3xl sm:text-5xl text-sand-50">
-            Authentic Indian Yoga & Travel Guides
+          <h1 className="font-serif font-bold text-3xl sm:text-5xl text-white">
+            Authentic Himalayan Yoga & Travel Guides
           </h1>
 
-          <p className="text-sage-300 text-sm sm:text-base max-w-2xl font-light">
-            In-depth advice on 200h TTC school accreditation, Ayurvedic Panchakarma detox preparation, Himalayan packing lists, and e-visas.
+          <p className="text-[#A5B89A] text-sm sm:text-base max-w-2xl font-light">
+            In-depth guides on accredited TTC schools in Rishikesh, Ayurvedic Panchakarma preparation, high-altitude ashram etiquette, and travel logistics across Uttarakhand.
           </p>
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center space-x-2 border-b border-sand-300 pb-4 overflow-x-auto text-xs font-semibold">
+        <div className="flex items-center space-x-2 border-b border-[#E2E5DD] pb-4 overflow-x-auto text-xs font-semibold">
           {['all', 'Teacher Training', 'Ayurveda', 'Retreat Guides', 'Yoga Philosophy'].map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-2 rounded-full transition whitespace-nowrap ${
                 activeCategory.toLowerCase() === cat.toLowerCase()
-                  ? 'bg-sage-900 text-white shadow'
-                  : 'bg-sand-200 text-sage-800 hover:bg-sand-300'
+                  ? 'bg-[#263D32] text-white shadow-sm'
+                  : 'bg-white border border-[#E2E5DD] text-[#59665C] hover:bg-[#E6EDE2] hover:text-[#263D32]'
               }`}
             >
               {cat === 'all' ? 'All Articles' : cat}
@@ -190,7 +190,7 @@ export const BlogSection: React.FC = () => {
                 setSelectedBlogSlug(article.slug);
                 setActiveView('blog-detail');
               }}
-              className="bg-white rounded-2xl overflow-hidden border border-sand-300 shadow-luxury hover:shadow-2xl transition duration-300 flex flex-col cursor-pointer group"
+              className="bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] shadow-sm hover:shadow-md hover:border-[#A5B89A] transition duration-300 flex flex-col cursor-pointer group"
             >
               <div className="relative h-52 overflow-hidden">
                 <img 
@@ -198,42 +198,42 @@ export const BlogSection: React.FC = () => {
                   alt={article.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute top-3 left-3 bg-sage-900/90 text-gold-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+                <div className="absolute top-3 left-3 bg-[#263D32]/90 text-[#DCCDB5] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
                   {article.category}
                 </div>
               </div>
 
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-xs text-sage-500">
+                  <div className="flex items-center space-x-2 text-xs text-[#59665C]">
                     <span>{article.publishedDate}</span>
                     <span>•</span>
                     <span className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3 text-terracotta-500" />
+                      <Clock className="w-3 h-3 text-[#536B50]" />
                       <span>{article.readTimeMinutes} min read</span>
                     </span>
                   </div>
 
-                  <h3 className="font-serif font-bold text-xl text-sage-950 group-hover:text-terracotta-600 transition leading-snug">
+                  <h3 className="font-serif font-bold text-xl text-[#263D32] group-hover:text-[#536B50] transition leading-snug">
                     {article.title}
                   </h3>
 
-                  <p className="text-xs text-sage-600 line-clamp-3 leading-relaxed">
+                  <p className="text-xs text-[#59665C] line-clamp-3 leading-relaxed">
                     {article.excerpt}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-sand-200 flex items-center justify-between">
+                <div className="pt-4 border-t border-[#E2E5DD] flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <img 
                       src={article.authorAvatar} 
                       alt={article.authorName} 
                       className="w-7 h-7 rounded-full object-cover"
                     />
-                    <span className="text-xs text-sage-800 font-medium">{article.authorName}</span>
+                    <span className="text-xs text-[#252C27] font-medium">{article.authorName}</span>
                   </div>
 
-                  <span className="text-xs font-semibold text-terracotta-600 group-hover:translate-x-0.5 transition-transform">
+                  <span className="text-xs font-semibold text-[#536B50] group-hover:text-[#40563E] group-hover:translate-x-0.5 transition-transform">
                     Read Article →
                   </span>
                 </div>

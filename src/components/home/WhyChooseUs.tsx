@@ -7,106 +7,131 @@ import {
   CheckCircle2, 
   CreditCard,
   Building2,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 export const WhyChooseUs: React.FC = () => {
-  const benefits = [
+  const steps = [
+    {
+      num: '01',
+      title: 'Discover & Compare Lineages',
+      description: 'Explore verified Himalayan ashrams and retreats in Rishikesh, Uttarkashi, and Dehradun with authentic syllabi and transparent pricing.'
+    },
+    {
+      num: '02',
+      title: 'Submit Structured Enquiry',
+      description: 'Your contact details stay strictly private with our Platform Admin. Ashrams never receive your direct email or phone until booking approval.'
+    },
+    {
+      num: '03',
+      title: '100% Escrow Lead Protection',
+      description: 'Our admin validates course seat availability, clarifies dietary and airport transfer needs, and safeguards your deposit in secure escrow.'
+    }
+  ];
+
+  const trustPoints = [
     {
       icon: ShieldCheck,
-      title: '100% Admin Escrow Booking Control',
-      description: 'Your inquiry and contact details go strictly to our Platform Admin. Yoga centres never receive customer emails or numbers directly until the booking is confirmed.'
+      title: 'Admin Escrow Lead Protection',
+      description: 'Zero spam. Inquiries are handled with complete confidentiality until you choose to finalize your stay.'
     },
     {
       icon: Award,
-      title: 'Yoga Alliance USA Certified Ashrams',
-      description: 'Every listed school holds verified RYS 200, 300, or 500 accreditation with traditional lineage masters.'
+      title: 'Yoga Alliance USA RYS Verification',
+      description: 'Every listed teacher training academy holds verified RYS 200, 300, or 500 accreditation.'
     },
     {
       icon: Lock,
-      title: 'Best Price & Transparent Guarantee',
-      description: 'Zero hidden booking fees. Direct ashram prices rendered instantly in your local currency (USD, EUR, GBP, AUD, CAD, INR).'
-    },
-    {
-      icon: Headphones,
-      title: '24/7 International Traveler Support',
-      description: 'Dedicated assistance with Indian e-visas, airport private transfers from Dehradun/Goa/Trivandrum, and custom dietary needs.'
-    },
-    {
-      icon: CreditCard,
-      title: 'Multiple Global Payment Methods',
-      description: 'Full support for Stripe, PayPal, Wise transfers, Apple Pay, Google Pay, and international credit cards.'
+      title: 'Transparent Multi-Currency Rates',
+      description: 'Direct ashram rates converted transparently in USD, EUR, GBP, AUD, CAD, and INR with zero hidden fees.'
     },
     {
       icon: Building2,
-      title: 'Verified Physical Facility Inspection',
-      description: 'Our team personally inspects accommodation hygiene, organic sattvic kitchen standards, and yoga shala acoustics.'
+      title: 'Physical Shala & Kitchen Inspections',
+      description: 'Our Uttarakhand team personally verifies accommodation cleanliness, sattvic diet purity, and shala acoustics.'
     }
   ];
 
   return (
-    <section className="py-20 bg-sage-950 text-white relative overflow-hidden">
-      {/* Background Subtle Gradient */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-sage-800/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-terracotta-900/20 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section className="py-20 bg-[#263D32] text-[#F7F5EE] relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-          <div className="inline-flex items-center space-x-2 bg-sage-900/80 px-3 py-1 rounded-full border border-sage-700 text-gold-400 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Why Book Through YogaConnect India</span>
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-4">
+          <div className="inline-flex items-center space-x-2 bg-[#E6EDE2]/10 px-3.5 py-1 rounded-full text-[#A5B89A] text-xs font-semibold border border-white/10">
+            <Sparkles className="w-3.5 h-3.5 text-[#DCCDB5]" />
+            <span>How Discovery & Enquiries Work</span>
           </div>
-          <h2 className="font-serif font-bold text-3xl sm:text-5xl text-sand-50">
-            The World-Class Standard for Indian Yoga Travel
+          <h2 className="font-serif font-bold text-3xl sm:text-5xl text-[#F7F5EE]">
+            A Trustworthy Bridge to Authentic Indian Yoga
           </h2>
-          <p className="text-sage-300 text-sm sm:text-base leading-relaxed font-sans">
-            We bridge the gap between traditional Indian yoga ashrams and international travelers, providing a secure, transparent, and luxury booking experience.
+          <p className="text-[#A5B89A] text-sm sm:text-base leading-relaxed font-sans">
+            We provide international and Indian travelers with clarity, verified safety, and complete escrow booking security.
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {benefits.map((b, i) => {
-            const Icon = b.icon;
+        {/* 3-Step Process Column */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {steps.map((step, idx) => (
+            <div 
+              key={idx}
+              className="bg-[#1E3228] p-7 rounded-2xl border border-[#3D5E4C]/40 space-y-3 relative"
+            >
+              <span className="font-serif font-bold text-3xl text-[#A5B89A]/40 block">
+                {step.num}
+              </span>
+              <h3 className="font-serif font-bold text-xl text-white">
+                {step.title}
+              </h3>
+              <p className="text-[#A5B89A] text-xs leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Trust Points Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+          {trustPoints.map((item, i) => {
+            const Icon = item.icon;
             return (
               <div 
                 key={i}
-                className="bg-sage-900/50 backdrop-blur-md p-8 rounded-2xl border border-sage-800 hover:border-gold-500/40 transition-all duration-300 group"
+                className="bg-[#1E3228]/50 p-6 rounded-xl border border-[#3D5E4C]/30 space-y-2.5"
               >
-                <div className="w-12 h-12 rounded-xl bg-sage-800 group-hover:bg-terracotta-600 text-gold-400 group-hover:text-white flex items-center justify-center mb-6 transition-colors shadow">
-                  <Icon className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-lg bg-[#536B50] text-white flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-[#E6EDE2]" />
                 </div>
-                <h3 className="font-serif font-bold text-xl text-white mb-3 group-hover:text-gold-300 transition">
-                  {b.title}
-                </h3>
-                <p className="text-sage-300 text-xs leading-relaxed">
-                  {b.description}
+                <h4 className="font-serif font-bold text-base text-white">
+                  {item.title}
+                </h4>
+                <p className="text-[#A5B89A] text-xs leading-relaxed">
+                  {item.description}
                 </p>
               </div>
             );
           })}
         </div>
 
-        {/* Escrow Banner Highlight */}
-        <div className="mt-16 bg-gradient-to-r from-sage-900 via-sage-800 to-sage-900 p-8 rounded-2xl border border-gold-500/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
-          <div className="space-y-2 max-w-2xl">
-            <div className="flex items-center space-x-2 text-gold-400 font-semibold text-xs">
-              <ShieldCheck className="w-5 h-5" />
-              <span>PLATFORM ESCROW & PRIVACY STANDARD</span>
+        {/* Escrow Guarantee Highlight Callout */}
+        <div className="bg-[#1E3228] p-8 rounded-2xl border border-[#A5B89A]/30 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl text-left">
+            <div className="flex items-center space-x-2 text-[#DCCDB5] text-xs font-semibold">
+              <ShieldCheck className="w-5 h-5 text-[#A5B89A]" />
+              <span>THE UTTARAKHAND ESCROW PROMISE</span>
             </div>
-            <h4 className="font-serif font-bold text-2xl text-white">
-              Zero Direct Customer Spam — You Are Fully Protected
-            </h4>
-            <p className="text-sage-300 text-xs leading-relaxed">
-              When you submit a request, our Platform Admin reviews your goals, validates ashram seat availability, and manages payment escrow. Yoga centres never receive your direct email or phone until you approve the booking!
+            <h3 className="font-serif font-bold text-2xl text-white">
+              No Unsolicited Marketing Calls or Emails
+            </h3>
+            <p className="text-[#A5B89A] text-xs leading-relaxed">
+              When you submit an enquiry through our marketplace, only our certified wellness coordinators review your requirements. We coordinate directly with ashram admissions so you never experience spam.
             </p>
           </div>
 
           <div className="shrink-0">
-            <span className="inline-block bg-terracotta-600 text-white font-semibold px-6 py-3 rounded-xl text-xs shadow-lg">
-              100% Escrow Protected Booking
+            <span className="inline-block bg-[#536B50] text-white font-medium px-6 py-3 rounded-xl text-xs shadow-md">
+              100% Escrow Lead Security
             </span>
           </div>
         </div>

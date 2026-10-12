@@ -7,27 +7,27 @@ export const BlogPreviewSection: React.FC = () => {
   const { setSelectedBlogSlug, setActiveView } = useApp();
 
   return (
-    <section className="py-20 bg-sand-100 border-t border-sand-300">
+    <section className="py-20 bg-[#F7F5EE] border-b border-[#E2E5DD]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
+        {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
-            <div className="inline-flex items-center space-x-1.5 text-terracotta-600 text-xs font-bold uppercase tracking-wider mb-2">
-              <BookOpen className="w-4 h-4 text-terracotta-500" />
-              <span>Wellness & Travel Journal</span>
+            <div className="inline-flex items-center space-x-1.5 text-[#536B50] text-xs font-semibold uppercase tracking-wider mb-2">
+              <BookOpen className="w-4 h-4 text-[#536B50]" />
+              <span>Himalayan Wellness & Travel Journal</span>
             </div>
-            <h2 className="font-serif font-bold text-3xl sm:text-4xl text-sage-950">
-              India Yoga & Retreat Travel Guides
+            <h2 className="font-serif font-bold text-3xl sm:text-4xl text-[#263D32]">
+              Uttarakhand Yoga & Travel Guides
             </h2>
-            <p className="text-sage-700 text-sm mt-2 max-w-xl">
-              Expert advice on selecting 200h TTC schools, Indian e-visa preparation, Ayurvedic Panchakarma detox, and Himalayan spiritual packing lists.
+            <p className="text-[#59665C] text-sm mt-2 max-w-xl">
+              Practical guides on selecting 200h TTC schools in Rishikesh, Indian e-visa preparation, and Himalayan spiritual packing lists.
             </p>
           </div>
 
           <button
             onClick={() => setActiveView('blog')}
-            className="inline-flex items-center space-x-2 text-sage-900 font-semibold text-sm hover:text-terracotta-600 transition group"
+            className="inline-flex items-center space-x-2 text-[#263D32] font-semibold text-sm hover:text-[#536B50] transition group"
           >
             <span>Read All Articles</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -43,50 +43,50 @@ export const BlogPreviewSection: React.FC = () => {
                 setSelectedBlogSlug(article.slug);
                 setActiveView('blog-detail');
               }}
-              className="bg-white rounded-2xl overflow-hidden border border-sand-300 shadow-luxury hover:shadow-2xl transition duration-300 flex flex-col cursor-pointer group"
+              className="bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer group"
             >
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative aspect-[16/10] overflow-hidden bg-[#E6EDE2]">
                 <img 
                   src={article.coverImage} 
                   alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute top-3 left-3 bg-sage-900/90 text-gold-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+                <div className="absolute top-3 left-3 bg-[#263D32]/90 text-[#F7F5EE] text-[10px] font-semibold px-2.5 py-1 rounded-md backdrop-blur-md">
                   {article.category}
                 </div>
               </div>
 
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-xs text-sage-500">
+                  <div className="flex items-center space-x-2 text-xs text-[#59665C]">
                     <span>{article.publishedDate}</span>
                     <span>•</span>
                     <span className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3 text-terracotta-500" />
+                      <Clock className="w-3 h-3 text-[#536B50]" />
                       <span>{article.readTimeMinutes} min read</span>
                     </span>
                   </div>
 
-                  <h3 className="font-serif font-bold text-lg text-sage-950 group-hover:text-terracotta-600 transition leading-snug line-clamp-2">
+                  <h3 className="font-serif font-bold text-lg text-[#263D32] group-hover:text-[#536B50] transition leading-snug line-clamp-2">
                     {article.title}
                   </h3>
 
-                  <p className="text-xs text-sage-600 line-clamp-3 leading-relaxed">
+                  <p className="text-xs text-[#59665C] line-clamp-3 leading-relaxed">
                     {article.excerpt}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-sand-200 flex items-center justify-between">
+                <div className="pt-4 border-t border-[#E2E5DD] flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <img 
                       src={article.authorAvatar} 
                       alt={article.authorName} 
-                      className="w-7 h-7 rounded-full object-cover"
+                      className="w-7 h-7 rounded-full object-cover border border-[#E2E5DD]"
                     />
-                    <span className="text-xs text-sage-800 font-medium">{article.authorName}</span>
+                    <span className="text-xs text-[#252C27] font-medium">{article.authorName}</span>
                   </div>
 
-                  <span className="text-xs font-semibold text-terracotta-600 group-hover:translate-x-0.5 transition-transform">
+                  <span className="text-xs font-semibold text-[#536B50] group-hover:translate-x-0.5 transition-transform">
                     Read Article →
                   </span>
                 </div>

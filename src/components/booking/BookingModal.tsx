@@ -12,7 +12,8 @@ import {
   CreditCard, 
   ArrowRight, 
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  Info
 } from 'lucide-react';
 
 export const BookingModal: React.FC = () => {
@@ -39,10 +40,10 @@ export const BookingModal: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState(initialCourse);
   const [startDate, setStartDate] = useState(initialCourse?.upcomingDates[0] || 'Oct 1, 2026');
   const [participantsCount, setParticipantsCount] = useState(1);
-  const [roomType, setRoomType] = useState(centre?.accommodationTypes?.[0] || 'Private Room');
+  const [roomType, setRoomType] = useState(centre?.accommodationTypes?.[0] || 'Private Deluxe Ashram Room');
   const [airportPickup, setAirportPickup] = useState(true);
 
-  // Sensitive Customer Contact Data
+  // Customer Contact Details
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -62,10 +63,10 @@ export const BookingModal: React.FC = () => {
     const newReq = createBookingRequest({
       centreId: centre.id,
       centreName: centre.name,
-      courseId: selectedCourse.id,
-      courseTitle: selectedCourse.title,
+      courseId: selectedCourse ? selectedCourse.id : 'course-1',
+      courseTitle: selectedCourse ? selectedCourse.title : 'Himalayan Retreat',
       startDate,
-      durationDays: selectedCourse.durationDays,
+      durationDays: selectedCourse ? selectedCourse.durationDays : 14,
       participantsCount,
       roomType,
       airportPickup,
@@ -83,398 +84,397 @@ export const BookingModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sage-950/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-sand-50 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-sand-300 shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-[#F7F5EE] rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-[#E2E5DD] shadow-2xl flex flex-col">
         
         {/* Header */}
-        <div className="p-6 border-b border-sand-300 bg-sand-50/95 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
+        <div className="p-6 border-b border-[#E2E5DD] bg-white sticky top-0 z-10 flex items-center justify-between">
           <div>
-            <div className="flex items-center space-x-1 text-xs text-emerald-700 font-semibold mb-0.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Escrow Admin Protection Active</span>
+            <div className="flex items-center space-x-1.5 text-xs text-[#286749] font-semibold mb-0.5">
+              <ShieldCheck className="w-4 h-4 text-[#286749]" />
+              <span>100% Escrow Admin Protection Active</span>
             </div>
-            <h3 className="font-serif font-bold text-xl text-sage-950">
-              Submit Booking Request — {centre.name}
+            <h3 className="font-serif font-bold text-xl text-[#263D32]">
+              Submit Enquiry Request — {centre.name}
             </h3>
           </div>
 
           <button 
             onClick={() => setIsBookingModalOpen(false)}
-            className="p-1.5 text-sage-500 hover:text-sage-900 rounded-full hover:bg-sand-200 transition"
+            className="p-1.5 text-[#59665C] hover:text-[#263D32] rounded-full hover:bg-[#E6EDE2] transition"
+            aria-label="Close enquiry modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar (Steps 1 to 4) */}
         {step < 5 && (
-          <div className="bg-sand-200 px-6 py-2 border-b border-sand-300 flex items-center justify-between text-xs font-semibold text-sage-700">
+          <div className="bg-[#E6EDE2] px-6 py-2.5 border-b border-[#E2E5DD] flex items-center justify-between text-xs font-semibold text-[#263D32]">
             <span>Step {step} of 4: {
-              step === 1 ? 'Select Program & Batch' :
-              step === 2 ? 'Room & Transfer Addons' :
-              step === 3 ? 'Traveler Contact Info' : 'Payment Choice'
+              step === 1 ? 'Program & Batch Dates' :
+              step === 2 ? 'Room & Airport Transfer' :
+              step === 3 ? 'Traveler Contact Info' : 'Deposit & Payment Method'
             }</span>
-            <div className="flex space-x-1">
+            <div className="flex space-x-1.5">
               {[1, 2, 3, 4].map(s => (
-                <div key={s} className={`w-6 h-1.5 rounded-full ${step >= s ? 'bg-terracotta-600' : 'bg-sand-300'}`} />
+                <div key={s} className={`w-6 h-1.5 rounded-full transition-colors ${step >= s ? 'bg-[#536B50]' : 'bg-[#D4E0CE]'}`} />
               ))}
             </div>
           </div>
         )}
 
-        {/* Body Content */}
-        <div className="p-6 flex-1 text-sm text-sage-900">
-          
-          {/* STEP 1: Select Course & Date */}
-          {step === 1 && (
-            <div className="space-y-6">
+        {/* Step 1: Program & Batch Selection */}
+        {step === 1 && (
+          <div className="p-6 sm:p-8 space-y-6 flex-1 text-sm text-[#252C27]">
+            <div className="space-y-3">
+              <label className="font-semibold text-[#263D32] text-xs uppercase tracking-wider block">
+                Select Retreat or Teacher Training
+              </label>
               <div className="space-y-2">
-                <label className="font-semibold text-sage-800 text-xs uppercase tracking-wider block">
-                  Select Course / Program
-                </label>
-                <div className="space-y-3">
-                  {centreCourses.map(c => (
-                    <div
-                      key={c.id}
-                      onClick={() => setSelectedCourse(c)}
-                      className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
-                        selectedCourse.id === c.id 
-                          ? 'border-terracotta-600 bg-white shadow-md ring-2 ring-terracotta-500/20' 
-                          : 'border-sand-300 bg-sand-100 hover:bg-white'
-                      }`}
-                    >
-                      <div>
-                        <h4 className="font-serif font-bold text-base text-sage-950">{c.title}</h4>
-                        <span className="text-xs text-sage-600">{c.durationDays} Days • {c.certification}</span>
-                      </div>
-                      <span className="font-serif font-bold text-lg text-terracotta-600">
-                        {formatPrice(c.priceUSD)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="font-semibold text-sage-800 text-xs uppercase tracking-wider block">
-                  Select Preferred Start Date Intake
-                </label>
-                <select
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-white border border-sand-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-sage-500"
-                >
-                  {selectedCourse.upcomingDates.map((d, idx) => (
-                    <option key={idx} value={d}>{d}</option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-sage-900 hover:bg-sage-800 text-white font-medium py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2"
-              >
-                <span>Continue to Room & Participants</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-
-          {/* STEP 2: Room & Participants */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="font-semibold text-sage-800 text-xs uppercase tracking-wider block">
-                  Number of Travelers / Participants
-                </label>
-                <div className="flex items-center space-x-3 bg-white p-3 rounded-xl border border-sand-300">
-                  <Users className="w-5 h-5 text-terracotta-600" />
-                  <select
-                    value={participantsCount}
-                    onChange={(e) => setParticipantsCount(Number(e.target.value))}
-                    className="w-full bg-transparent text-sm font-semibold focus:outline-none"
+                {centreCourses.map(course => (
+                  <div 
+                    key={course.id}
+                    onClick={() => {
+                      setSelectedCourse(course);
+                      setStartDate(course.upcomingDates[0] || 'Oct 1, 2026');
+                    }}
+                    className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                      selectedCourse?.id === course.id
+                        ? 'bg-white border-[#536B50] ring-1 ring-[#536B50] shadow-sm'
+                        : 'bg-white border-[#E2E5DD] hover:bg-[#F7F5EE]'
+                    }`}
                   >
-                    <option value={1}>1 Solo Traveler</option>
-                    <option value={2}>2 Travelers (Shared / Couple)</option>
-                    <option value={3}>3 Travelers Group</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="font-semibold text-sage-800 text-xs uppercase tracking-wider block">
-                  Accommodation Preference
-                </label>
-                <select
-                  value={roomType}
-                  onChange={(e) => setRoomType(e.target.value)}
-                  className="w-full bg-white border border-sand-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-sage-500"
-                >
-                  {centre.accommodationTypes.map((room, idx) => (
-                    <option key={idx} value={room}>{room}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl border border-sand-300 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Plane className="w-5 h-5 text-emerald-600" />
-                  <div>
-                    <span className="font-bold text-sage-950 text-xs block">Private Airport Transfer Chauffeur</span>
-                    <span className="text-[11px] text-sage-600">Pick up from nearest airport directly to ashram</span>
+                    <div>
+                      <h4 className="font-serif font-bold text-base text-[#263D32]">{course.title}</h4>
+                      <p className="text-xs text-[#59665C]">{course.durationDays} Days • {course.certification}</p>
+                    </div>
+                    <span className="font-serif font-bold text-lg text-[#263D32]">
+                      {formatPrice(course.priceUSD)}
+                    </span>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Batch Dates */}
+            <div className="space-y-2">
+              <label className="font-semibold text-[#263D32] text-xs uppercase tracking-wider block">
+                Select Starting Batch Date
+              </label>
+              <select
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full bg-white border border-[#E2E5DD] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#536B50] focus:outline-none"
+              >
+                {selectedCourse?.upcomingDates.map((date, i) => (
+                  <option key={i} value={date}>{date}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Participants */}
+            <div className="space-y-2">
+              <label className="font-semibold text-[#263D32] text-xs uppercase tracking-wider block">
+                Number of Travelers / Students
+              </label>
+              <div className="flex items-center space-x-3">
+                {[1, 2, 3, 4].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setParticipantsCount(n)}
+                    className={`w-12 h-10 rounded-xl border text-sm font-semibold transition ${
+                      participantsCount === n
+                        ? 'bg-[#536B50] text-white border-[#536B50]'
+                        : 'bg-white text-[#252C27] border-[#E2E5DD] hover:bg-[#E6EDE2]'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Room & Transfer */}
+        {step === 2 && (
+          <div className="p-6 sm:p-8 space-y-6 flex-1 text-sm text-[#252C27]">
+            <div className="space-y-3">
+              <label className="font-semibold text-[#263D32] text-xs uppercase tracking-wider block">
+                Himalayan Accommodation Type
+              </label>
+              <div className="space-y-2">
+                {centre.accommodationTypes.map((type, i) => (
+                  <div 
+                    key={i}
+                    onClick={() => setRoomType(type)}
+                    className={`p-4 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                      roomType === type
+                        ? 'bg-white border-[#536B50] ring-1 ring-[#536B50] shadow-sm'
+                        : 'bg-white border-[#E2E5DD] hover:bg-[#F7F5EE]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Home className="w-5 h-5 text-[#536B50]" />
+                      <span className="font-medium text-sm text-[#252C27]">{type}</span>
+                    </div>
+                    <span className="text-xs text-[#59665C]">Included in tuition</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Airport Pickup Option */}
+            <div className="p-5 bg-white rounded-xl border border-[#E2E5DD] space-y-2">
+              <label className="flex items-start space-x-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={airportPickup}
                   onChange={(e) => setAirportPickup(e.target.checked)}
-                  className="w-5 h-5 text-terracotta-600 rounded"
+                  className="rounded text-[#536B50] focus:ring-[#536B50] w-4 h-4 mt-0.5"
+                />
+                <div>
+                  <span className="font-semibold text-sm text-[#263D32] block">
+                    Include Airport Private Transfer (Dehradun DED)
+                  </span>
+                  <p className="text-xs text-[#59665C] mt-0.5">
+                    Our verified ashram driver meets you with a nameboard at Dehradun Jolly Grant Airport or Haridwar railway terminal.
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Traveler Contact Information */}
+        {step === 3 && (
+          <div className="p-6 sm:p-8 space-y-4 flex-1 text-sm text-[#252C27]">
+            <div className="p-4 bg-[#E6EDE2] rounded-xl border border-[#D4E0CE] text-xs text-[#263D32] flex items-start space-x-2">
+              <ShieldCheck className="w-4 h-4 text-[#286749] shrink-0 mt-0.5" />
+              <span>
+                <strong>Confidential Lead Protection:</strong> Your contact details are stored securely and reviewed exclusively by the Platform Admin. Yoga ashrams do not receive your email/phone directly.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#263D32] block">Full Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Eleanor Vance" 
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full bg-white border border-[#E2E5DD] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#536B50] focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setStep(1)}
-                  className="bg-sand-200 hover:bg-sand-300 text-sage-800 font-medium px-4 py-3 rounded-xl text-sm"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setStep(3)}
-                  className="w-full bg-sage-900 hover:bg-sage-800 text-white font-medium py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2"
-                >
-                  <span>Continue to Contact Info</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#263D32] block">Email Address *</label>
+                <input 
+                  type="email" 
+                  required
+                  placeholder="e.g. eleanor@example.com" 
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  className="w-full bg-white border border-[#E2E5DD] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#536B50] focus:outline-none"
+                />
               </div>
             </div>
-          )}
 
-          {/* STEP 3: Traveler Contact Info */}
-          {step === 3 && (
-            <div className="space-y-6">
-              
-              {/* Privacy Warning Box */}
-              <div className="bg-emerald-950 text-emerald-100 p-4 rounded-xl text-xs space-y-1 border border-emerald-800">
-                <div className="flex items-center space-x-1.5 text-gold-400 font-bold">
-                  <Lock className="w-4 h-4" />
-                  <span>PRIVACY GUARANTEE: ADMIN ESCROW</span>
-                </div>
-                <p className="text-emerald-200 leading-relaxed">
-                  Your full name, email, and phone number are sent **ONLY to Platform Admin**. The yoga centre will not receive your contact details until you approve the booking!
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-sage-800">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Emma Watson-Smith"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full bg-white border border-sand-300 rounded-lg p-2.5 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-sage-800">Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="emma@example.com"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full bg-white border border-sand-300 rounded-lg p-2.5 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-sage-800">WhatsApp / Phone *</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+1 (555) 019-2831"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full bg-white border border-sand-300 rounded-lg p-2.5 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-sage-800">Country of Origin *</label>
-                  <select
-                    value={customerCountry}
-                    onChange={(e) => setCustomerCountry(e.target.value)}
-                    className="w-full bg-white border border-sand-300 rounded-lg p-2.5 text-sm"
-                  >
-                    <option value="United States">United States</option>
-                    <option value="Canada">Canada</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Germany">Germany</option>
-                    <option value="Australia">Australia</option>
-                    <option value="France">France</option>
-                    <option value="Switzerland">Switzerland</option>
-                    <option value="Other">Other International Country</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-sage-800">Special Dietary or Medical Requests (Optional)</label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Vegan sattvic meal preference, gluten allergy, ground floor room..."
-                  value={specialRequests}
-                  onChange={(e) => setSpecialRequests(e.target.value)}
-                  className="w-full bg-white border border-sand-300 rounded-lg p-2.5 text-sm"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#263D32] block">WhatsApp / Phone *</label>
+                <input 
+                  type="tel" 
+                  required
+                  placeholder="+1 (555) 0192" 
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="w-full bg-white border border-[#E2E5DD] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#536B50] focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setStep(2)}
-                  className="bg-sand-200 hover:bg-sand-300 text-sage-800 font-medium px-4 py-3 rounded-xl text-sm"
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#263D32] block">Country of Residence *</label>
+                <select
+                  value={customerCountry}
+                  onChange={(e) => setCustomerCountry(e.target.value)}
+                  className="w-full bg-white border border-[#E2E5DD] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#536B50] focus:outline-none"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setStep(4)}
-                  className="w-full bg-sage-900 hover:bg-sage-800 text-white font-medium py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2"
-                >
-                  <span>Proceed to Payment Overview</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                  <option value="United States">United States</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="Germany">Germany</option>
+                  <option value="India">India</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Canada">Canada</option>
+                  <option value="France">France</option>
+                </select>
               </div>
             </div>
-          )}
 
-          {/* STEP 4: Payment Breakdown & Gateways */}
-          {step === 4 && (
-            <form onSubmit={handleSubmitBooking} className="space-y-6">
-              
-              {/* Order Summary */}
-              <div className="bg-white p-4 rounded-xl border border-sand-300 space-y-2">
-                <h4 className="font-serif font-bold text-base text-sage-950">Booking Summary</h4>
-                <div className="text-xs space-y-1 text-sage-700">
-                  <div className="flex justify-between"><span>Course:</span><span className="font-bold text-sage-900">{selectedCourse.title}</span></div>
-                  <div className="flex justify-between"><span>Intake Start Date:</span><span className="font-bold text-sage-900">{startDate}</span></div>
-                  <div className="flex justify-between"><span>Duration:</span><span>{selectedCourse.durationDays} Days</span></div>
-                  <div className="flex justify-between"><span>Room:</span><span>{roomType}</span></div>
-                  <div className="flex justify-between"><span>Travelers:</span><span>{participantsCount} Person</span></div>
-                  <div className="flex justify-between pt-2 border-t text-sm font-bold text-sage-950">
-                    <span>Total Package Amount ({currency}):</span>
-                    <span className="text-terracotta-600 font-serif text-xl">{formatPrice(totalPackageUSD)}</span>
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#263D32] block">Special Dietary or Practice Requests (Optional)</label>
+              <textarea 
+                rows={3}
+                placeholder="Mention any food allergies, injuries, or Indian visa questions..." 
+                value={specialRequests}
+                onChange={(e) => setSpecialRequests(e.target.value)}
+                className="w-full bg-white border border-[#E2E5DD] rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#536B50] focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
 
-              {/* Payment Method Selector */}
-              <div className="space-y-2">
-                <label className="font-semibold text-sage-800 text-xs uppercase tracking-wider block">
-                  Select International Payment Method
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                  {[
-                    { id: 'stripe', name: 'Stripe Credit Card' },
-                    { id: 'paypal', name: 'PayPal' },
-                    { id: 'wise', name: 'Wise Bank Transfer' },
-                    { id: 'applepay', name: 'Apple Pay' },
-                    { id: 'card', name: 'Debit Card' },
-                  ].map(pm => (
-                    <button
-                      key={pm.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(pm.id as any)}
-                      className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-1.5 transition ${
-                        paymentMethod === pm.id 
-                          ? 'border-terracotta-600 bg-white text-terracotta-600 shadow ring-2 ring-terracotta-500/20' 
-                          : 'border-sand-300 bg-sand-100 text-sage-800 hover:bg-white'
-                      }`}
-                    >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>{pm.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className="bg-sand-200 hover:bg-sand-300 text-sage-800 font-medium px-4 py-3 rounded-xl text-sm"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-terracotta-600 to-terracotta-700 hover:from-terracotta-500 hover:to-terracotta-600 text-white font-serif font-bold py-3.5 rounded-xl text-base shadow-xl transition flex items-center justify-center space-x-2"
-                >
-                  <Lock className="w-4 h-4" />
-                  <span>Submit Request ({formatPrice(totalPackageUSD)})</span>
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* STEP 5: Success Confirmation */}
-          {step === 5 && (
-            <div className="text-center py-8 space-y-6 animate-fade-in">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-lg">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-xs uppercase font-bold tracking-widest text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
-                  Booking Request Received by Admin
+        {/* Step 4: Payment Method Choice */}
+        {step === 4 && (
+          <div className="p-6 sm:p-8 space-y-6 flex-1 text-sm text-[#252C27]">
+            <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] space-y-2">
+              <div className="flex justify-between items-baseline text-xs text-[#59665C]">
+                <span>Total Package Tuition & Stay ({participantsCount} Guest{participantsCount > 1 ? 's' : ''})</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32]">
+                  {formatPrice(totalPackageUSD)}
                 </span>
-                <h3 className="font-serif font-bold text-3xl text-sage-950">
-                  Request Confirmed!
-                </h3>
-                <p className="text-sage-700 text-sm max-w-md mx-auto">
-                  Your reference ID is <strong className="font-mono text-terracotta-600 bg-sand-200 px-2 py-0.5 rounded text-base">{createdRef}</strong>.
-                </p>
               </div>
+              <p className="text-[11px] text-[#59665C]">
+                Payment will be processed via secure Admin Escrow upon availability confirmation.
+              </p>
+            </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-sand-300 text-left text-xs space-y-2 max-w-md mx-auto shadow-sm">
-                <h4 className="font-serif font-bold text-sm text-sage-950">Next Steps:</h4>
-                <ol className="list-decimal list-inside space-y-1 text-sage-700">
-                  <li>Our Platform Concierge will review seat availability with {centre.name}.</li>
-                  <li>Your contact details remain masked from the ashram until you approve final seat assignment.</li>
-                  <li>You will receive an email notification to complete deposit payment.</li>
-                </ol>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => {
-                    setIsBookingModalOpen(false);
-                    setUserRole('user');
-                    setActiveView('user-dashboard');
-                  }}
-                  className="bg-sage-900 text-white font-medium px-6 py-3 rounded-xl text-xs shadow"
-                >
-                  Track in Traveler Dashboard
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsBookingModalOpen(false);
-                    setUserRole('admin');
-                    setActiveView('admin-dashboard');
-                  }}
-                  className="bg-purple-900 text-gold-400 font-medium px-6 py-3 rounded-xl text-xs shadow flex items-center justify-center space-x-1.5 ring-2 ring-gold-400/50"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Inspect in Admin Control Panel</span>
-                </button>
+            <div className="space-y-3">
+              <label className="font-semibold text-[#263D32] text-xs uppercase tracking-wider block">
+                Preferred Secure Payment Method
+              </label>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { id: 'stripe', label: 'Credit / Debit Card (Stripe)', desc: 'Visa, Mastercard, Amex' },
+                  { id: 'paypal', label: 'PayPal Global', desc: 'Instant buyer protection' },
+                  { id: 'wise', label: 'Wise Bank Transfer', desc: 'Zero conversion fee transfer' },
+                  { id: 'applepay', label: 'Apple Pay / Google Pay', desc: 'One-touch biometric checkout' },
+                ].map(p => (
+                  <div
+                    key={p.id}
+                    onClick={() => setPaymentMethod(p.id as any)}
+                    className={`p-4 rounded-xl border cursor-pointer transition ${
+                      paymentMethod === p.id
+                        ? 'bg-white border-[#536B50] ring-1 ring-[#536B50]'
+                        : 'bg-white border-[#E2E5DD] hover:bg-[#F7F5EE]'
+                    }`}
+                  >
+                    <span className="font-semibold text-xs text-[#263D32] block">{p.label}</span>
+                    <span className="text-[11px] text-[#59665C] block mt-0.5">{p.desc}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
 
-        </div>
+            <div className="p-4 bg-[#E6EDE2] rounded-xl border border-[#D4E0CE] text-xs text-[#263D32] space-y-1">
+              <div className="flex items-center space-x-1.5 font-semibold">
+                <ShieldCheck className="w-4 h-4 text-[#286749]" />
+                <span>Notice Regarding Confirmation:</span>
+              </div>
+              <p className="text-[11px] text-[#59665C] leading-relaxed">
+                Submitting this request does not charge your card immediately. It creates a verified escrow reservation request that is confirmed after ashram seat verification within 24 hours.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Confirmation Success Screen */}
+        {step === 5 && (
+          <div className="p-8 sm:p-12 text-center space-y-6 flex-1 flex flex-col justify-center items-center">
+            <div className="w-16 h-16 rounded-full bg-[#E6EDE2] text-[#286749] flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2 max-w-md">
+              <h3 className="font-serif font-bold text-2xl sm:text-3xl text-[#263D32]">
+                Enquiry Request Received
+              </h3>
+              <p className="text-xs text-[#59665C] leading-relaxed">
+                Your reservation reference code is <strong className="text-[#263D32] font-mono">{createdRef}</strong>. Our Platform Admin team has received your details and is validating seat availability with the ashram admissions coordinator.
+              </p>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] max-w-md w-full text-left space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-[#59665C]">Centre:</span>
+                <span className="font-semibold text-[#263D32]">{centre.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#59665C]">Start Date:</span>
+                <span className="font-semibold text-[#263D32]">{startDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#59665C]">Estimated Total:</span>
+                <span className="font-semibold text-[#263D32]">{formatPrice(totalPackageUSD)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#59665C]">Escrow Protection:</span>
+                <span className="font-semibold text-[#286749]">Active</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  setUserRole('user');
+                  setActiveView('user-dashboard');
+                  setIsBookingModalOpen(false);
+                }}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-6 py-3 rounded-xl shadow-sm transition"
+              >
+                View in Traveler Portal
+              </button>
+
+              <button
+                onClick={() => setIsBookingModalOpen(false)}
+                className="bg-white hover:bg-[#E6EDE2] text-[#263D32] border border-[#E2E5DD] text-xs font-semibold px-6 py-3 rounded-xl transition"
+              >
+                Close & Return Home
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Footer Controls */}
+        {step < 5 && (
+          <div className="p-6 border-t border-[#E2E5DD] bg-white sticky bottom-0 z-10 flex items-center justify-between">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={() => setStep(s => s - 1)}
+                className="text-xs font-semibold text-[#59665C] hover:text-[#263D32] flex items-center space-x-1"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back</span>
+              </button>
+            ) : <div />}
+
+            {step < 4 ? (
+              <button
+                type="button"
+                onClick={() => setStep(s => s + 1)}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-6 py-3 rounded-xl transition flex items-center space-x-1.5 shadow-sm"
+              >
+                <span>Continue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmitBooking}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-7 py-3 rounded-xl transition flex items-center space-x-1.5 shadow-sm"
+              >
+                <span>Submit Protected Enquiry</span>
+                <CheckCircle2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
 
       </div>
     </div>

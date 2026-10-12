@@ -113,7 +113,7 @@ export const AdminDashboard: React.FC = () => {
 
           <div className="bg-sage-900/60 p-5 rounded-2xl border border-sage-800 space-y-1">
             <span className="text-[10px] uppercase font-bold text-sage-400 block">Escrow Lead Pipeline</span>
-            <span className="font-serif font-bold text-2xl text-terracotta-400">{bookings.length} Active Leads</span>
+            <span className="font-serif font-bold text-2xl text-[#A5B89A]">{bookings.length} Active Leads</span>
           </div>
         </div>
 
@@ -168,7 +168,7 @@ export const AdminDashboard: React.FC = () => {
                           {b.referenceCode}
                         </span>
                         <span className="text-xs font-serif font-bold text-white">{b.courseTitle}</span>
-                        <span className="text-xs text-terracotta-400">({b.centreName})</span>
+                        <span className="text-xs text-[#A5B89A]">({b.centreName})</span>
                       </div>
 
                       {/* Action Status Controls */}
@@ -196,7 +196,7 @@ export const AdminDashboard: React.FC = () => {
                             onClick={() => toggleMask(b.id)}
                             className="bg-sage-800 hover:bg-sage-700 text-sage-200 text-[11px] px-2.5 py-0.5 rounded flex items-center space-x-1"
                           >
-                            {isUnmasked ? <EyeOff className="w-3 h-3 text-terracotta-400" /> : <Eye className="w-3 h-3 text-gold-400" />}
+                            {isUnmasked ? <EyeOff className="w-3 h-3 text-[#DCCDB5]" /> : <Eye className="w-3 h-3 text-gold-400" />}
                             <span>{isUnmasked ? 'Mask Details' : 'Reveal Contact Info'}</span>
                           </button>
                         </div>

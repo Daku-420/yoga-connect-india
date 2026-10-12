@@ -15,9 +15,11 @@ import {
   UserCheck, 
   HelpCircle, 
   FileText, 
-  Video, 
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Lock,
+  Mail,
+  Compass
 } from 'lucide-react';
 
 export const CentreDetailPage: React.FC = () => {
@@ -40,16 +42,16 @@ export const CentreDetailPage: React.FC = () => {
 
   if (!centre) {
     return (
-      <div className="bg-sand-50 min-h-screen py-20 px-4 text-center">
-        <div className="max-w-md mx-auto bg-white p-8 rounded-3xl border border-sand-300 shadow-luxury space-y-4">
+      <div className="bg-[#F7F5EE] min-h-screen py-20 px-4 text-center">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-4">
           <div className="text-4xl">🧘‍♂️</div>
-          <h2 className="font-serif font-bold text-2xl text-sage-950">No Registered Yoga Centre Selected</h2>
-          <p className="text-xs text-sage-600">There are currently no registered yoga centres available to view.</p>
+          <h2 className="font-serif font-bold text-2xl text-[#263D32]">No Centre Selected</h2>
+          <p className="text-xs text-[#59665C]">Please return to the retreat discovery directory.</p>
           <button 
-            onClick={() => setActiveView('home')}
-            className="bg-sage-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow"
+            onClick={() => setActiveView('retreats')}
+            className="bg-[#536B50] text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-sm hover:bg-[#40563E] transition"
           >
-            Return to Home
+            Explore Directory
           </button>
         </div>
       </div>
@@ -60,36 +62,36 @@ export const CentreDetailPage: React.FC = () => {
   const isWishlisted = wishlist.includes(centre.id);
 
   return (
-    <div className="bg-sand-50 min-h-screen pb-20">
+    <div className="bg-[#F7F5EE] min-h-screen pb-20">
       
-      {/* Top Back Navigation Bar */}
-      <div className="bg-sand-100 border-b border-sand-300 py-3 px-4 sm:px-8">
+      {/* Top Breadcrumb Navigation Bar */}
+      <div className="bg-white border-b border-[#E2E5DD] py-3.5 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             onClick={() => setActiveView('retreats')}
-            className="inline-flex items-center space-x-2 text-xs font-semibold text-sage-800 hover:text-terracotta-600 transition"
+            className="inline-flex items-center space-x-2 text-xs font-semibold text-[#59665C] hover:text-[#263D32] transition"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to All Retreats</span>
+            <ArrowLeft className="w-4 h-4 text-[#536B50]" />
+            <span>Back to All Uttarakhand Retreats</span>
           </button>
 
           <div className="flex items-center space-x-3 text-xs">
             <button 
               onClick={() => toggleWishlist(centre.id)}
-              className="flex items-center space-x-1 text-sage-700 hover:text-terracotta-600"
+              className="flex items-center space-x-1.5 text-[#59665C] hover:text-[#263D32] transition"
             >
-              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-terracotta-500 text-terracotta-500' : ''}`} />
-              <span>{isWishlisted ? 'Saved to Wishlist' : 'Save to Wishlist'}</span>
+              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#B42318] text-[#B42318]' : ''}`} />
+              <span>{isWishlisted ? 'Saved in Wishlist' : 'Save to Wishlist'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Hero Image Gallery Section */}
+      {/* Editorial Photo Gallery Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 h-[450px] rounded-3xl overflow-hidden shadow-luxury border border-sand-300 relative">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 h-[420px] rounded-2xl overflow-hidden shadow-sm border border-[#E2E5DD] relative bg-[#E6EDE2]">
           
-          {/* Main Large Cover */}
+          {/* Main Large Photo */}
           <div className="md:col-span-2 relative h-full">
             <img 
               src={centre.coverImage} 
@@ -97,10 +99,10 @@ export const CentreDetailPage: React.FC = () => {
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-4 left-4 text-white">
-              <span className="bg-emerald-800/90 text-emerald-100 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-500/40 inline-flex items-center space-x-1 mb-2">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                <span>Admin Escrow Verified Sanctuary</span>
+            <div className="absolute bottom-5 left-5 text-white">
+              <span className="bg-[#263D32]/90 backdrop-blur-md text-[#F7F5EE] text-[10px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/50 inline-flex items-center space-x-1 mb-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#A5B89A]" />
+                <span>100% Escrow Protected Sanctuary</span>
               </span>
               <h1 className="font-serif font-bold text-2xl sm:text-3xl text-white">
                 {centre.name}
@@ -108,13 +110,13 @@ export const CentreDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Secondary Photo Grid */}
+          {/* Secondary Photo Tiles */}
           <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-3 h-full">
             {centre.galleryImages.slice(0, 4).map((img, idx) => (
-              <div key={idx} className="relative h-full overflow-hidden">
+              <div key={idx} className="relative h-full overflow-hidden bg-[#263D32]/10">
                 <img 
                   src={img} 
-                  alt="Gallery" 
+                  alt={`${centre.name} gallery ${idx + 1}`} 
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
                 />
               </div>
@@ -124,39 +126,44 @@ export const CentreDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Title & Sticky Quick Book Bar */}
+      {/* Summary Header & Sticky Action Card */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="bg-white rounded-2xl p-6 shadow-luxury border border-sand-300 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-xs text-sage-600 font-medium">
-              <MapPin className="w-4 h-4 text-terracotta-500" />
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-[#E2E5DD] flex flex-col md:flex-row md:items-center justify-between gap-6">
+          
+          <div className="space-y-2.5 max-w-2xl">
+            <div className="flex items-center space-x-2 text-xs text-[#59665C]">
+              <MapPin className="w-4 h-4 text-[#536B50]" />
               <span>{centre.location}</span>
               <span>•</span>
-              <div className="flex items-center text-gold-500 font-bold">
-                <Star className="w-4 h-4 fill-current mr-1" />
-                <span>{centre.rating} ({centre.reviewCount} Reviews)</span>
+              <div className="flex items-center text-[#263D32] font-semibold">
+                <Star className="w-4 h-4 text-[#536B50] fill-current mr-1" />
+                <span>{centre.rating} ({centre.reviewCount} Verified Reviews)</span>
               </div>
             </div>
 
-            <h2 className="font-serif font-bold text-2xl sm:text-3xl text-sage-950">
+            <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#263D32]">
               {centre.name}
             </h2>
 
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="bg-sage-100 text-sage-800 text-xs font-semibold px-2.5 py-1 rounded-md flex items-center space-x-1">
-                <Award className="w-3.5 h-3.5 text-gold-600" />
+              <span className="bg-[#E6EDE2] text-[#263D32] text-xs font-semibold px-3 py-1 rounded-md flex items-center space-x-1.5">
+                <Award className="w-3.5 h-3.5 text-[#536B50]" />
                 <span>{centre.certification}</span>
               </span>
-              <span className="bg-sand-100 text-sage-700 text-xs font-medium px-2.5 py-1 rounded-md">
+              <span className="bg-[#F7F5EE] text-[#59665C] text-xs font-medium px-3 py-1 rounded-md border border-[#E2E5DD]">
                 Languages: {centre.languages.join(', ')}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 shrink-0 bg-sand-50 p-4 rounded-xl border border-sand-200">
+          {/* Pricing & Booking CTA */}
+          <div className="flex items-center space-x-5 shrink-0 bg-[#F7F5EE] p-5 rounded-xl border border-[#E2E5DD]">
             <div>
-              <span className="text-[10px] uppercase font-semibold text-sage-500 block">Starting From</span>
-              <span className="font-serif font-bold text-2xl text-sage-950">{formatPrice(centre.startingPriceUSD)}</span>
+              <span className="text-[10px] uppercase font-semibold text-[#59665C] block">Starting From</span>
+              <span className="font-serif font-bold text-2xl text-[#263D32]">
+                {formatPrice(centre.startingPriceUSD)}
+              </span>
+              <span className="text-[11px] text-[#59665C] block">/ package tuition & stay</span>
             </div>
 
             <button
@@ -164,34 +171,35 @@ export const CentreDetailPage: React.FC = () => {
                 setSelectedCourseId(centreCourses[0]?.id || null);
                 setIsBookingModalOpen(true);
               }}
-              className="bg-terracotta-600 hover:bg-terracotta-700 text-white font-medium px-6 py-3 rounded-xl text-sm shadow-md transition flex items-center space-x-2"
+              className="bg-[#536B50] hover:bg-[#40563E] text-white font-medium px-6 py-3.5 rounded-xl text-sm shadow-sm transition flex items-center space-x-2"
             >
-              <span>Submit Booking Request</span>
+              <span>Submit Enquiry</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
+
         </div>
       </div>
 
-      {/* Tabs Header */}
+      {/* Tabs Navigation Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="border-b border-sand-300 flex overflow-x-auto space-x-6 text-sm font-medium text-sage-700 no-scrollbar">
+        <div className="border-b border-[#E2E5DD] flex overflow-x-auto space-x-6 text-sm font-medium text-[#59665C] no-scrollbar">
           {[
-            { id: 'overview', label: 'Overview & Story' },
-            { id: 'courses', label: `Courses (${centreCourses.length})` },
-            { id: 'stay', label: 'Accommodation & Food' },
+            { id: 'overview', label: 'Overview & Heritage' },
+            { id: 'courses', label: `Courses & Retreats (${centreCourses.length})` },
+            { id: 'stay', label: 'Stay & Sattvic Dining' },
             { id: 'teachers', label: `Teachers (${centre.teachers.length})` },
-            { id: 'facilities', label: 'Facilities & Location' },
+            { id: 'facilities', label: 'Facilities' },
             { id: 'reviews', label: `Reviews (${centre.reviewCount})` },
             { id: 'policies', label: 'Policies & FAQs' },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-3 transition border-b-2 font-semibold whitespace-nowrap ${
+              className={`py-3.5 transition border-b-2 font-medium whitespace-nowrap text-sm ${
                 activeTab === tab.id
-                  ? 'border-terracotta-600 text-terracotta-600'
-                  : 'border-transparent text-sage-700 hover:text-sage-950'
+                  ? 'border-[#536B50] text-[#536B50] font-semibold'
+                  : 'border-transparent text-[#59665C] hover:text-[#263D32]'
               }`}
             >
               {tab.label}
@@ -200,247 +208,316 @@ export const CentreDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tab Content Section */}
+      {/* Main Content Column + Right Booking Panel */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        
-        {/* Tab 1: Overview */}
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6 bg-white p-8 rounded-2xl border border-sand-300 shadow-sm">
-              <h3 className="font-serif font-bold text-2xl text-sage-950">About {centre.name}</h3>
-              <p className="text-sage-800 text-sm leading-relaxed whitespace-pre-line font-sans">
-                {centre.description}
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          
+          {/* Main Left Content (2 Cols) */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Tab: Overview */}
+            {activeTab === 'overview' && (
+              <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
+                <div>
+                  <h3 className="font-serif font-bold text-2xl text-[#263D32] mb-3">About {centre.name}</h3>
+                  <p className="text-[#252C27] text-sm leading-relaxed whitespace-pre-line font-sans">
+                    {centre.description}
+                  </p>
+                </div>
 
-              <div className="pt-4 border-t border-sand-200">
-                <h4 className="font-serif font-bold text-lg text-sage-950 mb-2">Heritage & Lineage</h4>
-                <p className="text-sage-700 text-sm leading-relaxed font-sans">
-                  {centre.history}
-                </p>
-              </div>
-            </div>
+                <div className="pt-6 border-t border-[#E2E5DD]">
+                  <h4 className="font-serif font-bold text-lg text-[#263D32] mb-2">Lineage & Spiritual History</h4>
+                  <p className="text-[#59665C] text-sm leading-relaxed font-sans">
+                    {centre.history}
+                  </p>
+                </div>
 
-            {/* Right Quick Summary Card */}
-            <div className="space-y-6">
-              <div className="bg-sage-900 text-white p-6 rounded-2xl border border-sage-800 space-y-4 shadow-xl">
-                <h4 className="font-serif font-bold text-lg text-gold-400">Ashram Highlights</h4>
-                <ul className="space-y-2 text-xs text-sage-200">
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
-                    <span>Yoga Alliance USA RYS Registered School</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
-                    <span>Daily Organic Sattvic Vegetarian Dining</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
-                    <span>Private Airport Chauffeur Transfers</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
-                    <span>100% Escrow Lead Customer Protection</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Courses Offered */}
-        {activeTab === 'courses' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-2xl text-sage-950">Available Courses & Intakes</h3>
-              <span className="text-xs text-sage-600">Select any course to view daily timetable & syllabus</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {centreCourses.map(crs => (
-                <div key={crs.id} className="bg-white rounded-2xl border border-sand-300 p-6 shadow-luxury flex flex-col justify-between space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-start">
-                      <span className="bg-sand-100 text-terracotta-600 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
-                        {crs.category}
+                {/* Nearby Attractions */}
+                <div className="pt-6 border-t border-[#E2E5DD]">
+                  <h4 className="font-serif font-bold text-lg text-[#263D32] mb-3">Nearby Himalayan Sites</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {centre.nearbyAttractions.map((site, i) => (
+                      <span key={i} className="bg-[#F7F5EE] border border-[#E2E5DD] text-[#263D32] text-xs px-3 py-1.5 rounded-lg flex items-center space-x-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#536B50]" />
+                        <span>{site}</span>
                       </span>
-                      <span className="font-serif font-bold text-xl text-sage-950">{formatPrice(crs.priceUSD)}</span>
-                    </div>
-
-                    <h4 className="font-serif font-bold text-xl text-sage-950 leading-snug">{crs.title}</h4>
-                    <p className="text-xs text-sage-600 line-clamp-2">{crs.subtitle}</p>
-
-                    <div className="pt-2 flex items-center space-x-4 text-xs text-sage-700 font-medium">
-                      <span className="flex items-center space-x-1">
-                        <Clock className="w-3.5 h-3.5 text-terracotta-500" />
-                        <span>{crs.durationDays} Days</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <Award className="w-3.5 h-3.5 text-gold-600" />
-                        <span>{crs.certification}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-sand-200 flex items-center space-x-3">
-                    <button
-                      onClick={() => {
-                        setSelectedCourseId(crs.id);
-                        setIsCourseDrawerOpen(true);
-                      }}
-                      className="bg-sand-100 hover:bg-sand-200 text-sage-900 text-xs font-semibold px-4 py-2.5 rounded-xl transition flex-1"
-                    >
-                      View Syllabus & Schedule
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedCourseId(crs.id);
-                        setIsBookingModalOpen(true);
-                      }}
-                      className="bg-terracotta-600 hover:bg-terracotta-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow transition flex-1"
-                    >
-                      Request Booking
-                    </button>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Accommodation & Food */}
-        {activeTab === 'stay' && (
-          <div className="space-y-8 bg-white p-8 rounded-2xl border border-sand-300 shadow-sm">
-            <div className="space-y-4">
-              <h3 className="font-serif font-bold text-2xl text-sage-950 flex items-center space-x-2">
-                <Home className="w-5 h-5 text-terracotta-600" />
-                <span>Accommodation Types</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {centre.accommodationTypes.map((room, i) => (
-                  <div key={i} className="bg-sand-50 p-4 rounded-xl border border-sand-300 text-xs space-y-1">
-                    <span className="font-bold text-sage-950 text-sm block">{room}</span>
-                    <p className="text-sage-600">Air conditioning/heating, private attached bathroom, high-speed Wi-Fi, mountain/garden view balconies.</p>
-                  </div>
-                ))}
               </div>
-            </div>
+            )}
 
-            <div className="space-y-4 pt-6 border-t border-sand-200">
-              <h3 className="font-serif font-bold text-2xl text-sage-950 flex items-center space-x-2">
-                <Utensils className="w-5 h-5 text-emerald-600" />
-                <span>Sattvic Dining & Nutrition</span>
-              </h3>
-              <p className="text-xs text-sage-700 leading-relaxed max-w-3xl font-sans">
-                Our kitchen serves 3 organic vegetarian and vegan meals daily, prepared according to Ayurvedic nutritional principles. All dishes are non-spicy, easily digestible, and customized for dietary allergies (gluten-free, nut-free, dairy-free).
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Teachers */}
-        {activeTab === 'teachers' && (
-          <div className="space-y-6">
-            <h3 className="font-serif font-bold text-2xl text-sage-950">Guru & Faculty Team</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {centre.teachers.map((t) => (
-                <div key={t.id} className="bg-white p-6 rounded-2xl border border-sand-300 shadow-sm flex items-start space-x-4">
-                  <img src={t.photo} alt={t.name} className="w-20 h-20 rounded-full object-cover border-2 border-gold-400 shrink-0" />
-                  <div className="space-y-1 text-xs">
-                    <h4 className="font-serif font-bold text-lg text-sage-950">{t.name}</h4>
-                    <span className="text-terracotta-600 font-semibold block">{t.title} ({t.experienceYears} Years Exp)</span>
-                    <p className="text-sage-600">{t.bio}</p>
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {t.specialties.map((s, idx) => (
-                        <span key={idx} className="bg-sand-100 text-sage-800 text-[10px] font-medium px-2 py-0.5 rounded">
-                          {s}
+            {/* Tab: Courses & Retreats */}
+            {activeTab === 'courses' && (
+              <div className="space-y-6">
+                <h3 className="font-serif font-bold text-2xl text-[#263D32]">Offered Retreats & Certifications</h3>
+                {centreCourses.map(course => (
+                  <div key={course.id} className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div>
+                        <span className="bg-[#E6EDE2] text-[#263D32] text-[11px] font-semibold px-2.5 py-0.5 rounded-full mb-2 inline-block">
+                          {course.certification}
                         </span>
-                      ))}
+                        <h4 className="font-serif font-bold text-xl text-[#263D32]">{course.title}</h4>
+                        <p className="text-xs text-[#59665C] mt-1">{course.subtitle}</p>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="font-serif font-bold text-2xl text-[#263D32]">
+                          {formatPrice(course.priceUSD)}
+                        </span>
+                        <span className="text-xs text-[#59665C] block">{course.durationDays} Days Duration</span>
+                      </div>
+                    </div>
+
+                    {/* Syllabus snippet */}
+                    <div className="bg-[#F7F5EE] p-4 rounded-xl border border-[#E2E5DD] space-y-1.5">
+                      <span className="text-xs font-semibold text-[#263D32] block">Course Modules:</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#59665C]">
+                        {course.syllabus.map((mod, idx) => (
+                          <div key={idx} className="flex items-center space-x-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#536B50] shrink-0" />
+                            <span className="truncate">{mod}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between">
+                      <div className="text-xs text-[#59665C]">
+                        Upcoming Batches: <strong className="text-[#252C27]">{course.upcomingDates.join(', ')}</strong>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedCourseId(course.id);
+                            setIsCourseDrawerOpen(true);
+                          }}
+                          className="bg-[#E6EDE2] hover:bg-[#D4E0CE] text-[#263D32] text-xs font-semibold px-3.5 py-2 rounded-lg transition"
+                        >
+                          View Daily Schedule
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedCourseId(course.id);
+                            setIsBookingModalOpen(true);
+                          }}
+                          className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2 rounded-lg transition shadow-sm"
+                        >
+                          Enquire Program
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 5: Facilities & Map */}
-        {activeTab === 'facilities' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-2xl border border-sand-300 space-y-4">
-              <h3 className="font-serif font-bold text-xl text-sage-950">Ashram Facilities & Amenities</h3>
-              <ul className="grid grid-cols-2 gap-2 text-xs text-sage-800">
-                {centre.facilities.map((fac, i) => (
-                  <li key={i} className="flex items-center space-x-2 bg-sand-50 p-2.5 rounded-lg border border-sand-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{fac}</span>
-                  </li>
                 ))}
-              </ul>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-sand-300 space-y-4">
-              <h3 className="font-serif font-bold text-xl text-sage-950">Location & Nearby Attractions</h3>
-              <p className="text-xs text-sage-600">{centre.location}</p>
-              <div className="bg-sage-900 text-white h-48 rounded-xl flex flex-col items-center justify-center space-y-2 p-4 text-center">
-                <MapPin className="w-8 h-8 text-gold-400" />
-                <span className="font-serif font-bold text-base">Interactive Map Coordinates</span>
-                <span className="text-xs text-sage-300 font-mono">Lat: {centre.mapCoords.lat}, Lng: {centre.mapCoords.lng}</span>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Tab 6: Reviews */}
-        {activeTab === 'reviews' && (
-          <div className="space-y-6 bg-white p-8 rounded-2xl border border-sand-300">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-2xl text-sage-950">Verified Student Reviews</h3>
-              <div className="flex items-center space-x-1 text-gold-500 font-bold text-base">
-                <Star className="w-5 h-5 fill-current" />
-                <span>{centre.rating} out of 5.0</span>
+            {/* Tab: Stay & Food */}
+            {activeTab === 'stay' && (
+              <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
+                <div>
+                  <h3 className="font-serif font-bold text-2xl text-[#263D32] mb-2 flex items-center space-x-2">
+                    <Home className="w-5 h-5 text-[#536B50]" />
+                    <span>Himalayan Accommodations</span>
+                  </h3>
+                  <p className="text-sm text-[#59665C]">Rooms designed for quietude, natural airflow, and mountain contemplation.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    {centre.accommodationTypes.map((room, i) => (
+                      <div key={i} className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]">
+                        <h4 className="font-serif font-bold text-base text-[#263D32]">{room}</h4>
+                        <p className="text-xs text-[#59665C] mt-1">Clean linens, private or attached bath, warm blankets, natural Himalayan spring water.</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-[#E2E5DD]">
+                  <h3 className="font-serif font-bold text-2xl text-[#263D32] mb-2 flex items-center space-x-2">
+                    <Utensils className="w-5 h-5 text-[#536B50]" />
+                    <span>Sattvic Organic Dining</span>
+                  </h3>
+                  <p className="text-sm text-[#59665C] leading-relaxed">
+                    Meals are prepared fresh three times daily following Ayurvedic and yogic nutritional principles. Pure vegetarian ingredients sourced from local organic Himalayan farmers, free from garlic, heavy oils, or processed preservatives to support deep meditative practice.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="divide-y divide-sand-200">
-              <div className="py-4 space-y-2 text-xs">
+            {/* Tab: Teachers */}
+            {activeTab === 'teachers' && (
+              <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
+                <h3 className="font-serif font-bold text-2xl text-[#263D32]">Master Teachers & Resident Acharyas</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {centre.teachers.map(teacher => (
+                    <div key={teacher.id} className="p-5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] flex items-start space-x-4">
+                      <img 
+                        src={teacher.photo} 
+                        alt={teacher.name} 
+                        className="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#E2E5DD]"
+                      />
+                      <div className="space-y-1">
+                        <h4 className="font-serif font-bold text-base text-[#263D32]">{teacher.name}</h4>
+                        <p className="text-xs text-[#536B50] font-medium">{teacher.title}</p>
+                        <p className="text-[11px] text-[#59665C] leading-relaxed">{teacher.bio}</p>
+                        <span className="text-[10px] text-[#59665C] font-semibold block pt-1">
+                          {teacher.experienceYears}+ years experience
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab: Facilities */}
+            {activeTab === 'facilities' && (
+              <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
+                <h3 className="font-serif font-bold text-2xl text-[#263D32]">Campus Amenities & Facilities</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {centre.facilities.map((fac, i) => (
+                    <div key={i} className="flex items-center space-x-2.5 p-3.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] text-sm text-[#263D32]">
+                      <CheckCircle2 className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span>{fac}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab: Reviews */}
+            {activeTab === 'reviews' && (
+              <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-sage-950">Emma Watson-Smith 🇺🇸</span>
-                  <span className="text-sage-500">Verified Graduate • July 2026</span>
+                  <h3 className="font-serif font-bold text-2xl text-[#263D32]">Verified Reviews</h3>
+                  <div className="flex items-center space-x-1 text-[#536B50] font-bold text-base">
+                    <Star className="w-5 h-5 fill-current" />
+                    <span>{centre.rating} out of 5</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-1 text-gold-400">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-current" />)}
+                <p className="text-xs text-[#59665C]">Reviews are collected exclusively from practitioners who completed authenticated bookings through the escrow system.</p>
+
+                <div className="space-y-4 pt-2">
+                  <div className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <strong className="text-[#263D32]">Sarah Jenkins (Australia)</strong>
+                      <span className="text-[#59665C]">October 2026</span>
+                    </div>
+                    <div className="flex text-[#536B50]">
+                      {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-current" />)}
+                    </div>
+                    <p className="text-xs text-[#252C27] leading-relaxed">
+                      "An extraordinary sanctuary. The teachers possess deep lineage wisdom and taught with genuine care. The admin escrow team organized my private pickup from Dehradun airport flawlessly."
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sage-700 italic">"Transformed my entire understanding of yoga anatomy and philosophy. The teachers are incredible!"</p>
+              </div>
+            )}
+
+            {/* Tab: Policies & FAQs */}
+            {activeTab === 'policies' && (
+              <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
+                <h3 className="font-serif font-bold text-2xl text-[#263D32]">Ashram Policies & Guidance</h3>
+                
+                <div className="space-y-3">
+                  <div className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]">
+                    <strong className="text-xs text-[#263D32] block mb-1">Cancellation & Escrow Refund Policy</strong>
+                    <p className="text-xs text-[#59665C]">{centre.policies.cancellation}</p>
+                  </div>
+                  <div className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]">
+                    <strong className="text-xs text-[#263D32] block mb-1">Visa Guidelines for International Visitors</strong>
+                    <p className="text-xs text-[#59665C]">{centre.policies.visa}</p>
+                  </div>
+                  <div className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]">
+                    <strong className="text-xs text-[#263D32] block mb-1">Dress Code & Ashram Etiquette</strong>
+                    <p className="text-xs text-[#59665C]">{centre.policies.dressCode}</p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E2E5DD] space-y-3">
+                  <h4 className="font-serif font-bold text-lg text-[#263D32]">Frequently Asked Questions</h4>
+                  {centre.faqs.map((faq, idx) => (
+                    <div key={idx} className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] space-y-1">
+                      <strong className="text-xs text-[#263D32] block">{faq.question}</strong>
+                      <p className="text-xs text-[#59665C]">{faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* Right Sticky Enquiry & Escrow Explainer Panel */}
+          <div className="space-y-6 sticky top-28">
+            
+            {/* Booking / Enquiry Action Box */}
+            <div className="bg-white p-6 sm:p-7 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-5">
+              <div className="space-y-1">
+                <span className="text-[11px] font-semibold text-[#536B50] uppercase tracking-wider block">
+                  Reserve or Enquire
+                </span>
+                <h3 className="font-serif font-bold text-2xl text-[#263D32]">
+                  {centre.name}
+                </h3>
+              </div>
+
+              <div className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] space-y-1">
+                <span className="text-xs text-[#59665C] block">Package Rates from:</span>
+                <span className="font-serif font-bold text-3xl text-[#263D32] block">
+                  {formatPrice(centre.startingPriceUSD)}
+                </span>
+                <span className="text-[11px] text-[#59665C] block">Includes tuition, lodging & 3 daily sattvic meals</span>
+              </div>
+
+              <button
+                onClick={() => {
+                  setSelectedCourseId(centreCourses[0]?.id || null);
+                  setIsBookingModalOpen(true);
+                }}
+                className="w-full bg-[#536B50] hover:bg-[#40563E] text-white font-medium py-3.5 px-4 rounded-xl text-sm shadow-sm transition flex items-center justify-center space-x-2"
+              >
+                <span>Submit Structured Enquiry</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {/* Clear explanation of what happens after enquiry */}
+              <div className="pt-4 border-t border-[#E2E5DD] space-y-2 text-xs text-[#59665C]">
+                <div className="flex items-start space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-[#286749] shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-[#252C27]">What happens after enquiry:</strong> Our Platform Admin verifies current seat availability and confirms your dietary/airport transfer requests.
+                  </span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <Lock className="w-4 h-4 text-[#536B50] shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-[#252C27]">Zero Direct Spam:</strong> Ashrams never receive your direct email or phone until you approve the booking.
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Tab 7: Policies */}
-        {activeTab === 'policies' && (
-          <div className="space-y-6 bg-white p-8 rounded-2xl border border-sand-300">
-            <h3 className="font-serif font-bold text-2xl text-sage-950">Ashram Rules, Visas & Cancellation Policy</h3>
-            <div className="space-y-4 text-xs text-sage-800">
-              <div className="bg-sand-50 p-4 rounded-xl border border-sand-300">
-                <h4 className="font-bold text-sm text-sage-950 mb-1">Cancellation Policy</h4>
-                <p>{centre.policies.cancellation}</p>
+            {/* Verified Escrow Protection Badge Box */}
+            <div className="bg-[#263D32] text-white p-6 rounded-2xl border border-[#3D5E4C]/50 space-y-3">
+              <div className="flex items-center space-x-2 text-[#DCCDB5] text-xs font-semibold">
+                <ShieldCheck className="w-4 h-4 text-[#A5B89A]" />
+                <span>100% ADMIN ESCROW PROTECTION</span>
               </div>
-
-              <div className="bg-sand-50 p-4 rounded-xl border border-sand-300">
-                <h4 className="font-bold text-sm text-sage-950 mb-1">Indian e-Visa Support</h4>
-                <p>{centre.policies.visa}</p>
-              </div>
-
-              <div className="bg-sand-50 p-4 rounded-xl border border-sand-300">
-                <h4 className="font-bold text-sm text-sage-950 mb-1">Ashram Dress Code & Behavior</h4>
-                <p>{centre.policies.dressCode}</p>
-              </div>
+              <h4 className="font-serif font-bold text-lg text-white">
+                Booking Safety Guarantee
+              </h4>
+              <p className="text-[#A5B89A] text-xs leading-relaxed">
+                Deposit funds are held in secure escrow and are only released to the yoga centre according to agreed ashram check-in policies.
+              </p>
             </div>
-          </div>
-        )}
 
+          </div>
+
+        </div>
       </div>
+
     </div>
   );
 };
