@@ -126,7 +126,7 @@ export const Navbar: React.FC = () => {
             aria-label="YogaConnect India Home"
           >
             <img 
-              src="/pictures/yogaconnect_india_logo.svg" 
+              src="/pictures/yogaconnect_india_logo.png" 
               alt="YogaConnect India" 
               className="h-16 sm:h-20 lg:h-[90px] xl:h-[96px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
@@ -254,7 +254,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile Drawer Header with Standalone Official Logo */}
           <div className="flex items-center justify-start pb-3 border-b border-[#E2E5DD]">
             <img 
-              src="/pictures/yogaconnect_india_logo.svg" 
+              src="/pictures/yogaconnect_india_logo.png" 
               alt="YogaConnect India" 
               className="h-16 w-auto object-contain" 
             />

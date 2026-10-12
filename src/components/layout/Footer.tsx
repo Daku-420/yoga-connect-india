@@ -94,7 +94,7 @@ export const Footer: React.FC = () => {
             <div>
               <div className="bg-[#F7F5EE] p-2.5 rounded-2xl shadow-sm border border-white/10 inline-block">
                 <img 
-                  src="/pictures/yogaconnect_india_logo.svg" 
+                  src="/pictures/yogaconnect_india_logo.png" 
                   alt="YogaConnect India" 
                   className="h-20 w-auto object-contain" 
                 />
