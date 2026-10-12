@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">YogaConnect India</title>
+  <desc id="desc">A forest-green yoga figure and lotus among Himalayan peaks beneath a golden rising sun, with YogaConnect India wordmark.</desc>
+  <defs>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6f8050"/><stop offset="1" stop-color="#294936"/></linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38583d"/><stop offset="1" stop-color="#183b2b"/></linearGradient>
+  </defs>
+  <!-- Emblem -->
+  <g transform="translate(600 238)">
+    <!-- rising sun -->
+    <path d="M-118 4 A118 118 0 0 1 118 4" fill="none" stroke="#dca13c" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="0" cy="-55" r="28" fill="#dfa63f"/>
+    <!-- Himalayan peaks -->
+    <path d="M-145 48 L-95 3 L-72 24 L-28 -27 L9 8 L42 -9 L91 39 L65 30 L41 10 L29 25 L-27 -4 L-67 43 L-83 28 L-121 55 Z" fill="url(#leaf)"/>
+    <path d="M-94 5 L-82 22 L-71 16 L-65 28 L-47 8 L-28 -27 L-11 -6 L-25 -14 L-43 13 L-61 37 L-72 28 L-83 36 Z" fill="#f6f1e5" opacity=".92"/>
+    <path d="M7 9 L28 -7 L43 10 L54 7 L81 35 L59 25 L43 14 L32 21 L9 1 Z" fill="#f6f1e5" opacity=".9"/>
+    <!-- lotus leaves -->
+    <path d="M-5 190 C-75 179 -140 150 -170 72 C-115 88 -73 115 -42 150 C-24 165 -11 177 -5 190Z" fill="url(#leaf)"/>
+    <path d="M5 190 C75 179 140 150 170 72 C115 88 73 115 42 150 C24 165 11 177 5 190Z" fill="url(#leaf)"/>
+    <path d="M-7 194 C-73 210 -121 197 -151 177 C-98 178 -62 183 -7 194Z" fill="#3d5b3d"/>
+    <path d="M7 194 C73 210 121 197 151 177 C98 178 62 183 7 194Z" fill="#3d5b3d"/>
+    <!-- leaf veins -->
+    <path d="M-10 184 Q-79 135 -145 85 M10 184 Q79 135 145 85" fill="none" stroke="#a4ad7c" stroke-width="2.5" opacity=".8"/>
+    <!-- meditating figure -->
+    <circle cx="0" cy="18" r="17" fill="url(#green)"/>
+    <path d="M-14 40 Q0 30 14 40 L23 83 Q31 99 54 108 Q70 114 63 124 Q51 132 27 119 L0 103 L-27 119 Q-51 132 -63 124 Q-70 114 -54 108 Q-31 99 -23 83 Z" fill="url(#green)"/>
+    <path d="M-18 55 Q-38 81 -29 102 M18 55 Q38 81 29 102" fill="none" stroke="#f6f1e5" stroke-width="5" stroke-linecap="round"/>
+    <!-- seated legs / flowing path -->
+    <path d="M-31 118 Q-72 137 -49 151 Q-24 164 0 145 Q24 164 49 151 Q72 137 31 118" fill="none" stroke="#23432f" stroke-width="13" stroke-linecap="round"/>
+    <path d="M0 144 C-3 164 43 173 26 186 C12 196 -5 198 -18 204" fill="none" stroke="#f6f1e5" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <!-- Wordmark -->
+  <g fill="#23432f" text-anchor="middle">
+    <text x="600" y="535" font-family="Georgia, 'Times New Roman', serif" font-size="105" letter-spacing="-3">YogaConnect</text>
+    <text x="600" y="600" font-family="Georgia, 'Times New Roman', serif" font-size="46" letter-spacing="18">INDIA</text>
+  </g>
+  <path d="M252 584 H430 M770 584 H948" stroke="#dca13c" stroke-width="3"/>
+  <text x="600" y="655" fill="#4a654e" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" letter-spacing="7">HIMALAYAN DISCOVERY &amp; RETREATS</text>
+</svg>

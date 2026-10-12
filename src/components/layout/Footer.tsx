@@ -91,13 +91,22 @@ export const Footer: React.FC = () => {
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-[#536B50] text-white flex items-center justify-center">
-                <Compass className="w-5 h-5 text-[#E6EDE2]" />
+            <div className="flex items-center space-x-3.5">
+              <div className="bg-[#F7F5EE] p-2 rounded-xl shadow-sm border border-white/10 shrink-0">
+                <img 
+                  src="/pictures/yogaconnect_india_logo.svg" 
+                  alt="YogaConnect India Logo" 
+                  className="h-12 w-auto object-contain" 
+                />
               </div>
-              <span className="font-serif font-bold text-2xl text-white">
-                YogaConnect <span className="text-[#DCCDB5] font-normal italic">India</span>
-              </span>
+              <div>
+                <span className="font-serif font-bold text-2xl text-white block leading-tight">
+                  YogaConnect <span className="text-[#DCCDB5] font-normal italic">India</span>
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-[#A5B89A] font-semibold block mt-0.5">
+                  Himalayan Discovery & Retreats
+                </span>
+              </div>
             </div>
             <p className="text-[#A5B89A] leading-relaxed max-w-sm">
               The curated discovery marketplace connecting Indian and international practitioners with verified yoga ashrams, master teachers, and transformative retreats across Uttarakhand.

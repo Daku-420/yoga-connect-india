@@ -116,23 +116,25 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3 flex items-center justify-between">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center">
           <button 
             onClick={() => setActiveView('home')} 
-            className="flex items-center space-x-3 text-left group focus-visible:outline-none"
+            className="flex items-center space-x-3 text-left group focus-visible:outline-none shrink-0"
             aria-label="YogaConnect India Home"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#263D32] text-[#F7F5EE] flex items-center justify-center shadow-sm group-hover:bg-[#40563E] transition-colors">
-              <Compass className="w-5 h-5 text-[#A5B89A]" />
-            </div>
-            <div>
-              <span className="font-serif font-bold text-xl sm:text-2xl text-[#263D32] tracking-tight block leading-tight">
+            <img 
+              src="/pictures/yogaconnect_india_logo.svg" 
+              alt="YogaConnect India Logo" 
+              className="h-12 sm:h-14 lg:h-16 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            />
+            <div className="hidden sm:block">
+              <span className="font-serif font-bold text-lg lg:text-xl text-[#263D32] tracking-tight block leading-tight">
                 YogaConnect <span className="text-[#536B50] font-normal italic">India</span>
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-[#59665C] font-semibold block">
+              <span className="text-[9px] lg:text-[10px] uppercase tracking-widest text-[#59665C] font-semibold block">
                 Himalayan Discovery & Retreats
               </span>
             </div>
@@ -140,7 +142,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center space-x-7 text-sm font-medium text-[#252C27]" aria-label="Main Navigation">
+        <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7 text-sm font-medium text-[#252C27]" aria-label="Main Navigation">
           <button 
             onClick={() => handleNavClick('retreats')}
             className={`transition-colors py-1 hover:text-[#536B50] ${activeView === 'retreats' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
@@ -184,7 +186,7 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Right Header Actions */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden md:flex items-center space-x-2.5 xl:space-x-3.5">
           
           {/* Saved Wishlist */}
           <button 
@@ -225,7 +227,7 @@ export const Navbar: React.FC = () => {
           {/* Primary Action Button */}
           <button 
             onClick={() => setActiveView('retreats')}
-            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
+            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors shadow-sm hidden xl:inline-flex"
           >
             Explore Retreats
           </button>
@@ -256,6 +258,23 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-[#F7F5EE] border-b border-[#E2E5DD] p-4 space-y-4 shadow-lg animate-in slide-in-from-top duration-200">
+          
+          {/* Mobile Drawer Header with Official Logo */}
+          <div className="flex items-center space-x-3 pb-3 border-b border-[#E2E5DD]">
+            <img 
+              src="/pictures/yogaconnect_india_logo.svg" 
+              alt="YogaConnect India Logo" 
+              className="h-11 w-auto object-contain" 
+            />
+            <div>
+              <span className="font-serif font-bold text-base text-[#263D32] block leading-tight">
+                YogaConnect <span className="text-[#536B50] font-normal italic">India</span>
+              </span>
+              <span className="text-[9px] uppercase tracking-widest text-[#59665C] font-semibold block">
+                Himalayan Discovery & Retreats
+              </span>
+            </div>
+          </div>
           
           {/* Role Switcher Grid */}
           <div className="grid grid-cols-2 gap-2 text-xs">
