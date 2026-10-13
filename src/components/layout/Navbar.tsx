@@ -11,7 +11,11 @@ import {
   Menu, 
   X,
   Compass, 
-  MapPin
+  MapPin,
+  ChevronDown,
+  BookOpen,
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -162,16 +166,76 @@ export const Navbar: React.FC = () => {
             Destinations
           </button>
 
-          <button 
-            onClick={() => handleNavClick('blog')}
-            className={`transition-colors py-1.5 hover:text-[#536B50] ${
-              activeView === 'blog' || activeView === 'blog-detail' || activeView === 'asanas' 
-                ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' 
-                : ''
-            }`}
-          >
-            Journal
-          </button>
+          {/* Journal Dropdown */}
+          <div className="relative group">
+            <button 
+              onClick={() => handleNavClick('blog')}
+              className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1 cursor-pointer ${
+                activeView === 'blog' || activeView === 'blog-detail' || activeView === 'asanas' 
+                  ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' 
+                  : ''
+              }`}
+            >
+              <span>Journal</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#8E9B91] group-hover:text-[#263D32] transition-transform duration-200 group-hover:rotate-180" />
+            </button>
+
+            {/* Dropdown Menu */}
+            <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-[#E2E5DD] p-2 space-y-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <button
+                onClick={() => handleNavClick('blog')}
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
+              >
+                <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
+                  <BookOpen className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex-1">
+                  <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
+                    Journal &amp; Travel Guides
+                  </span>
+                  <span className="text-[10px] text-[#8E9B91] block">
+                    Retreat guides, TTC &amp; ashrams
+                  </span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleNavClick('asanas')}
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
+              >
+                <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
+                  <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+                </div>
+                <div className="flex-1">
+                  <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
+                    Yoga Asana Directory
+                  </span>
+                  <span className="text-[10px] text-[#8E9B91] block">
+                    Poses, steps, benefits &amp; cues
+                  </span>
+                </div>
+              </button>
+
+              <div className="border-t border-[#E2E5DD] my-1" />
+
+              <button
+                onClick={() => handleNavClick('support')}
+                className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
+              >
+                <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
+                  <HelpCircle className="w-3.5 h-3.5 text-[#536B50]" />
+                </div>
+                <div className="flex-1">
+                  <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
+                    FAQs
+                  </span>
+                  <span className="text-[10px] text-[#8E9B91] block">
+                    Common questions &amp; escrow help
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
         </nav>
 
         {/* Right Header Actions */}
@@ -288,12 +352,33 @@ export const Navbar: React.FC = () => {
             >
               Uttarakhand Destinations
             </button>
-            <button 
-              onClick={() => handleNavClick('blog')}
-              className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60"
-            >
-              Journal
-            </button>
+            {/* Journal Submenu in Mobile Drawer */}
+            <div className="py-1 border-b border-[#E2E5DD]/60 space-y-1">
+              <span className="block px-3 pt-1 text-[10px] font-bold text-[#8E9B91] uppercase tracking-wider">
+                Journal
+              </span>
+              <button 
+                onClick={() => handleNavClick('blog')}
+                className="w-full text-left py-1.5 px-3 rounded-lg hover:bg-white flex items-center space-x-2 text-xs font-medium text-[#252C27]"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#536B50]" />
+                <span>Journal &amp; Travel Guides</span>
+              </button>
+              <button 
+                onClick={() => handleNavClick('asanas')}
+                className="w-full text-left py-1.5 px-3 rounded-lg hover:bg-white flex items-center space-x-2 text-xs font-medium text-[#252C27]"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+                <span>Yoga Asana Directory</span>
+              </button>
+              <button 
+                onClick={() => handleNavClick('support')}
+                className="w-full text-left py-1.5 px-3 rounded-lg hover:bg-white flex items-center space-x-2 text-xs font-medium text-[#252C27]"
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-[#536B50]" />
+                <span>FAQs</span>
+              </button>
+            </div>
             
             {/* Action buttons inside drawer */}
             <div className="pt-2">
