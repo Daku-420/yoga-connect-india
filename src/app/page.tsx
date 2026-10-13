@@ -52,10 +52,8 @@ export default function HomePage() {
       return <UserDashboard />;
 
     case 'centre-dashboard':
-      return <CentreDashboard />;
-
     case 'admin-dashboard':
-      return <AdminDashboard />;
+      return <AdminDashboard initialTab={activeView === 'centre-dashboard' ? 'centre-portal' : 'bookings'} />;
 
     case 'home':
     default:

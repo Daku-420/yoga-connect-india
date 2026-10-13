@@ -34,13 +34,6 @@ export const Navbar: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const roles: { role: UserRole; label: string; icon: any; color: string }[] = [
-    { role: 'visitor', label: 'Traveler View', icon: Globe, color: 'bg-[#536B50] text-white' },
-    { role: 'user', label: 'My Bookings', icon: User, color: 'bg-[#40563E] text-white' },
-    { role: 'centre', label: 'Centre Portal', icon: Building2, color: 'bg-[#263D32] text-white' },
-    { role: 'admin', label: 'Admin Escrow', icon: Crown, color: 'bg-[#1E3228] text-white' },
-  ];
-
   const handleNavClick = (view: string, filterCategory?: string) => {
     if (filterCategory) {
       setFilters(f => ({ ...f, courseCategory: filterCategory }));
@@ -49,6 +42,18 @@ export const Navbar: React.FC = () => {
     }
     setActiveView(view as any);
     setIsMobileMenuOpen(false);
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+      window.location.href = '/';
+    }
+  };
+
+  const handleAdminClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setUserRole('admin');
+    setActiveView('admin-dashboard');
+    if (typeof window !== 'undefined' && window.location.pathname !== '/admin') {
+      window.location.href = '/admin';
+    }
   };
 
   return (
@@ -66,7 +71,7 @@ export const Navbar: React.FC = () => {
             </span>
           </div>
 
-          {/* Right Controls: Currency Selector & Role Switcher */}
+          {/* Right Controls: Currency Selector & Admin / User Shortcuts */}
           <div className="flex items-center space-x-3 text-xs">
             {/* Currency Selector */}
             <div className="flex items-center space-x-1.5 bg-[#1E3228] rounded-md px-2.5 py-1 border border-[#3D5E4C]/50">
@@ -85,34 +90,26 @@ export const Navbar: React.FC = () => {
               </select>
             </div>
 
-            {/* Quick Role Switcher */}
-            <div className="hidden lg:flex items-center space-x-1">
-              <span className="text-[#A5B89A] mr-1 text-[11px]">Role:</span>
-              {roles.map(r => {
-                const Icon = r.icon;
-                const isActive = userRole === r.role;
-                return (
-                  <button
-                    key={r.role}
-                    onClick={() => {
-                      setUserRole(r.role);
-                      if (r.role === 'user') setActiveView('user-dashboard');
-                      else if (r.role === 'centre') setActiveView('centre-dashboard');
-                      else if (r.role === 'admin') setActiveView('admin-dashboard');
-                      else setActiveView('home');
-                    }}
-                    className={`flex items-center space-x-1 text-[11px] px-2.5 py-1 rounded-md transition ${
-                      isActive 
-                        ? `${r.color} font-medium shadow-sm ring-1 ring-[#A5B89A]` 
-                        : 'text-[#A5B89A] hover:text-white hover:bg-[#1E3228]'
-                    }`}
-                  >
-                    <Icon className="w-3 h-3" />
-                    <span>{r.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* My Bookings Shortcut */}
+            <button
+              onClick={() => handleNavClick('user-dashboard')}
+              className="hidden sm:flex items-center space-x-1 text-[11px] text-[#A5B89A] hover:text-white px-2 py-1 rounded transition hover:bg-[#1E3228]"
+              title="View your booked retreat inquiries"
+            >
+              <User className="w-3 h-3" />
+              <span>My Bookings</span>
+            </button>
+
+            {/* Unified Admin Portal (Escrow & Centre Management at /admin) */}
+            <a
+              href="/admin"
+              onClick={handleAdminClick}
+              className="flex items-center space-x-1.5 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/60 transition"
+              title="Master Admin Escrow & Centre Portal"
+            >
+              <Crown className="w-3.5 h-3.5 text-gold-400" />
+              <span>Admin</span>
+            </a>
           </div>
 
         </div>
@@ -124,7 +121,7 @@ export const Navbar: React.FC = () => {
         {/* Brand Logo - Standalone Official Logo */}
         <div className="flex items-center">
           <button 
-            onClick={() => setActiveView('home')} 
+            onClick={() => handleNavClick('home')} 
             className="flex items-center text-left group focus-visible:outline-none shrink-0"
             aria-label="YogaConnect India Home"
           >
@@ -303,28 +300,6 @@ export const Navbar: React.FC = () => {
             />
           </div>
           
-          {/* Role Switcher Grid */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {roles.map(r => (
-              <button
-                key={r.role}
-                onClick={() => {
-                  setUserRole(r.role);
-                  setIsMobileMenuOpen(false);
-                  if (r.role === 'user') setActiveView('user-dashboard');
-                  else if (r.role === 'centre') setActiveView('centre-dashboard');
-                  else if (r.role === 'admin') setActiveView('admin-dashboard');
-                  else setActiveView('home');
-                }}
-                className={`p-2 rounded-lg flex items-center space-x-1.5 font-medium transition ${
-                  userRole === r.role ? r.color : 'bg-white border border-[#E2E5DD] text-[#252C27]'
-                }`}
-              >
-                <r.icon className="w-3.5 h-3.5" />
-                <span>{r.label}</span>
-              </button>
-            ))}
-          </div>
 
           {/* Navigation Links */}
           <div className="border-t border-[#E2E5DD] pt-3 space-y-1 text-sm font-medium text-[#252C27]">
@@ -387,7 +362,7 @@ export const Navbar: React.FC = () => {
             </div>
             
             {/* Action buttons inside drawer */}
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
               <button 
                 onClick={() => { setActiveView('retreats'); setIsMobileMenuOpen(false); }}
                 className="w-full text-center py-2.5 px-3 rounded-lg bg-[#536B50] hover:bg-[#40563E] text-white font-medium text-xs transition flex items-center justify-center space-x-1.5"
@@ -395,6 +370,25 @@ export const Navbar: React.FC = () => {
                 <Compass className="w-4 h-4" />
                 <span>Explore Retreats & Centres</span>
               </button>
+
+              <div className="pt-2 border-t border-[#E2E5DD]/60 flex items-center justify-between text-xs">
+                <button 
+                  onClick={() => handleNavClick('user-dashboard')}
+                  className="flex items-center space-x-1.5 text-[#536B50] font-semibold py-1.5 px-2"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>My Bookings</span>
+                </button>
+
+                <a 
+                  href="/admin"
+                  onClick={handleAdminClick}
+                  className="flex items-center space-x-1.5 bg-[#263D32] text-white px-3 py-1.5 rounded-lg font-semibold text-xs"
+                >
+                  <Crown className="w-3.5 h-3.5 text-gold-400" />
+                  <span>Admin Portal</span>
+                </a>
+              </div>
             </div>
           </div>
 
