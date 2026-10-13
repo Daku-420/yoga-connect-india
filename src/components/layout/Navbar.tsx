@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp, CURRENCY_CONFIGS } from '../../context/AppContext';
 import { CurrencyCode, UserRole } from '../../types';
 import { 
@@ -15,7 +15,9 @@ import {
   ChevronDown,
   BookOpen,
   Sparkles,
-  HelpCircle
+  HelpCircle,
+  Calendar,
+  CheckCircle2
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -28,11 +30,24 @@ export const Navbar: React.FC = () => {
     activeView, 
     setActiveView,
     wishlist,
+    bookings,
     filters,
     setFilters
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleNavClick = (view: string, filterCategory?: string) => {
     if (filterCategory) {
@@ -71,36 +86,8 @@ export const Navbar: React.FC = () => {
             </span>
           </div>
 
-          {/* Right Controls: Currency Selector & Admin / User Shortcuts */}
-          <div className="flex items-center space-x-3 text-xs">
-            {/* Currency Selector */}
-            <div className="flex items-center space-x-1.5 bg-[#1E3228] rounded-md px-2.5 py-1 border border-[#3D5E4C]/50">
-              <Globe className="w-3.5 h-3.5 text-[#A5B89A]" />
-              <select 
-                value={currency} 
-                onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-                className="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer"
-                aria-label="Select currency"
-              >
-                {Object.values(CURRENCY_CONFIGS).map(c => (
-                  <option key={c.code} value={c.code} className="bg-[#263D32] text-white">
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* My Bookings Shortcut */}
-            <button
-              onClick={() => handleNavClick('user-dashboard')}
-              className="hidden sm:flex items-center space-x-1 text-[11px] text-[#A5B89A] hover:text-white px-2 py-1 rounded transition hover:bg-[#1E3228]"
-              title="View your booked retreat inquiries"
-            >
-              <User className="w-3 h-3" />
-              <span>My Bookings</span>
-            </button>
-
-            {/* Unified Admin Portal (Escrow & Centre Management at /admin) */}
+          {/* Right Controls: Admin Portal Shortcut */}
+          <div className="flex items-center space-x-2 text-xs">
             <a
               href="/admin"
               onClick={handleAdminClick}
@@ -108,7 +95,7 @@ export const Navbar: React.FC = () => {
               title="Master Admin Escrow & Centre Portal"
             >
               <Crown className="w-3.5 h-3.5 text-gold-400" />
-              <span>Admin</span>
+              <span>Admin Portal</span>
             </a>
           </div>
 
@@ -242,15 +229,15 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Right Header Actions */}
-        <div className="hidden md:flex items-center space-x-3 xl:space-x-4">
+        <div className="hidden md:flex items-center space-x-2.5 xl:space-x-3">
           
           {/* Saved Wishlist */}
           <button 
             onClick={() => {
               setUserRole('user');
-              setActiveView('user-dashboard');
+              handleNavClick('user-dashboard');
             }}
-            className="relative p-2.5 text-[#59665C] hover:text-[#263D32] hover:bg-[#E6EDE2] rounded-full transition"
+            className="relative p-2 text-[#59665C] hover:text-[#263D32] hover:bg-[#E6EDE2] rounded-full transition cursor-pointer"
             title="Saved Centres"
             aria-label="View saved centres"
           >
@@ -262,10 +249,133 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* Primary Action Button */}
+          {/* Currency Selector (Located beside the Profile Icon) */}
+          <div className="flex items-center space-x-1.5 bg-white hover:bg-[#F7F5EE] rounded-xl px-2.5 py-1.5 border border-[#E2E5DD] shadow-2xs transition">
+            <Globe className="w-3.5 h-3.5 text-[#536B50] shrink-0" />
+            <select 
+              value={currency} 
+              onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+              className="bg-transparent text-[#263D32] font-semibold text-xs focus:outline-none cursor-pointer"
+              aria-label="Select currency"
+            >
+              {Object.values(CURRENCY_CONFIGS).map(c => (
+                <option key={c.code} value={c.code} className="bg-white text-[#263D32]">
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Profile Icon with My Bookings Dropdown (Beside Currency & Explore Retreats) */}
+          <div className="relative" ref={profileRef}>
+            <button 
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className={`p-2 rounded-full border transition flex items-center justify-center relative cursor-pointer ${
+                isProfileOpen 
+                  ? 'bg-[#E6EDE2] text-[#263D32] border-[#536B50]' 
+                  : 'bg-white hover:bg-[#E6EDE2] text-[#59665C] hover:text-[#263D32] border-[#E2E5DD]'
+              }`}
+              title="Profile & My Bookings"
+              aria-label="Open profile menu"
+              aria-expanded={isProfileOpen}
+            >
+              <User className="w-5 h-5" />
+              {bookings.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-[#286749] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center ring-2 ring-white shadow">
+                  {bookings.length}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown Menu inside Profile Icon */}
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#E2E5DD] p-2 z-50 animate-fade-in space-y-1">
+                {/* Profile Header */}
+                <div className="px-3 py-2.5 bg-[#F7F5EE] rounded-xl flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0 border border-[#A5B89A]/40">
+                    <User className="w-4 h-4 text-[#536B50]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-bold text-[#263D32] truncate">Traveler Profile</span>
+                    <span className="block text-[10px] text-[#8E9B91] truncate">Escrow Protected Inquiries</span>
+                  </div>
+                </div>
+
+                {/* My Bookings item inside Profile */}
+                <button
+                  onClick={() => {
+                    setUserRole('user');
+                    handleNavClick('user-dashboard');
+                    setIsProfileOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] group-hover:bg-[#263D32] group-hover:text-white transition-colors">
+                      <BookOpen className="w-4 h-4 text-[#536B50] group-hover:text-white" />
+                    </div>
+                    <div>
+                      <span className="block text-xs font-semibold text-[#252C27] group-hover:text-[#263D32]">
+                        My Bookings
+                      </span>
+                      <span className="text-[10px] text-[#8E9B91] block">
+                        View retreat inquiries &amp; escrow status
+                      </span>
+                    </div>
+                  </div>
+                  {bookings.length > 0 && (
+                    <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#286749]/30">
+                      {bookings.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Saved Wishlist in Profile */}
+                <button
+                  onClick={() => {
+                    setUserRole('user');
+                    handleNavClick('user-dashboard');
+                    setIsProfileOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50]">
+                      <Heart className="w-3.5 h-3.5 text-[#536B50]" />
+                    </div>
+                    <span className="text-xs font-medium text-[#252C27]">
+                      Saved Retreats
+                    </span>
+                  </div>
+                  {wishlist.length > 0 && (
+                    <span className="text-[10px] font-semibold text-[#8E9B91]">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </button>
+
+                <div className="border-t border-[#E2E5DD] my-1" />
+
+                {/* Admin Portal Shortcut in Profile */}
+                <a
+                  href="/admin"
+                  onClick={(e) => {
+                    handleAdminClick(e);
+                    setIsProfileOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#59665C] hover:text-[#263D32] block"
+                >
+                  <Crown className="w-3.5 h-3.5 text-gold-400" />
+                  <span className="text-xs font-medium">Admin &amp; Centre Portal</span>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Primary Action Button: Explore Retreats */}
           <button 
             onClick={() => handleNavClick('retreats', 'all')}
-            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5"
+            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5 shrink-0"
           >
             <Compass className="w-3.5 h-3.5" />
             <span>Explore Retreats</span>
@@ -370,6 +480,25 @@ export const Navbar: React.FC = () => {
                 <Compass className="w-4 h-4" />
                 <span>Explore Retreats & Centres</span>
               </button>
+
+              {/* Mobile Currency Selector */}
+              <div className="flex items-center justify-between py-2 px-1 border-t border-[#E2E5DD]/60 text-xs">
+                <span className="text-[#59665C] font-medium flex items-center space-x-1.5">
+                  <Globe className="w-3.5 h-3.5 text-[#536B50]" />
+                  <span>Currency:</span>
+                </span>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+                  className="bg-white border border-[#E2E5DD] rounded-lg px-2.5 py-1 text-xs text-[#263D32] font-semibold"
+                >
+                  {Object.values(CURRENCY_CONFIGS).map(c => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="pt-2 border-t border-[#E2E5DD]/60 flex items-center justify-between text-xs">
                 <button 
