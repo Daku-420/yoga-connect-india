@@ -104,5 +104,45 @@ Choosing the right destination for your yoga retreat in India shapes your entire
     authorAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
     relatedCentreIds: [],
     seoKeywords: ['yoga in india comparison', 'rishikesh vs goa yoga', 'best yoga retreat india']
+  },
+
+  {
+    id: 'blog-4',
+    title: 'Classical Yoga Asana Compendium: Alignment Steps, Anatomical Benefits & Sacred Lineages',
+    slug: 'classical-yoga-asana-compendium-alignment-benefits',
+    category: 'Yoga Asanas',
+    excerpt: 'An authoritative master guide to classical Hatha and Ashtanga asanas: detailed biomechanical steps, therapeutic physiological benefits, and contraindications.',
+    content: `
+# The Classical Himalayan Asana Compendium
+
+In the classical tradition of Sage Patanjali and the *Hatha Yoga Pradipika*, an asana is defined as *Sthira Sukham Asanam* — a posture that is unshakeably steady yet effortlessly comfortable.
+
+Far beyond mere gymnastics or physical workout routines, classical yoga asanas are psycho-physiological postures calibrated over millennia to purify the 72,000 *nadis* (pranic energy pathways), rebalance neuro-hormonal secretions, and prepare the mind for higher states of meditation.
+
+## The Pillars of Authentic Asana Practice
+
+### 1. Bio-Mechanical Precision & Spinal Integrity
+Every classical asana originates from the pelvis and the axis of the spine. Whether practicing **Vrikshasana (Tree Pose)** for ground stability or **Bhujangasana (Cobra Pose)** for thoracic opening, maintaining spinal decompression and proper knee/ankle stacking protects delicate joint cartilage while allowing prana to flow unimpeded through the Sushumna Nadi.
+
+### 2. Synchronization with the Breath (Vinyasa Krama)
+In true Himalayan lineages, movement never precedes breath:
+* **Inhalation (Puraka)**: Associated with spinal elongation, chest expansion, and uplifting backbends.
+* **Exhalation (Rechaka)**: Associated with core stabilization, surrender, and forward folds.
+* **Retention (Kumbhaka)**: Cultivated only when foundational alignment is stable and under direct teacher guidance.
+
+### 3. Drishti (Focal Gazing) & Mental Stillness
+Scattered gaze creates a scattered mind. Each asana possesses a specified *Drishti* point (such as the tip of the nose in Downward Dog or the third eye space in Cobra Pose) to draw external sensory perception inward (*Pratyahara*).
+
+## Explore Our Interactive Asana Directory
+Browse our comprehensive pose-by-pose directory with full step-by-step instructions, targeted muscle groups, therapeutic health benefits, and precautions.
+    `,
+    coverImage: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
+    readTimeMinutes: 8,
+    publishedDate: 'August 12, 2026',
+    authorName: 'Yogi Anand Swaroop',
+    authorRole: 'Classical Hatha Lineage Master, Rishikesh',
+    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    relatedCentreIds: ['centre-1', 'centre-2'],
+    seoKeywords: ['yoga asanas poses and benefits', 'how to do yoga asanas steps', 'hatha yoga poses rishikesh', 'classical asana alignment guide']
   }
 ];

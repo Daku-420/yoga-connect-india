@@ -196,6 +196,40 @@ export interface BlogArticle {
   seoKeywords: string[];
 }
 
+export type AsanaCategory = 
+  | 'Standing' 
+  | 'Seated & Forward Bends' 
+  | 'Backbends' 
+  | 'Inversions & Arm Balances' 
+  | 'Core & Twists' 
+  | 'Restorative & Gentle';
+
+export interface YogaAsana {
+  id: string;
+  sanskritName: string;
+  sanskritDevanagari?: string;
+  englishName: string;
+  pronunciation: string;
+  slug: string;
+  category: AsanaCategory;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  chakra: string;
+  element: string;
+  targetMuscles: string[];
+  coverImage: string;
+  shortDescription: string;
+  steps: { stepNumber: number; title: string; instruction: string }[];
+  anatomicalBenefits: string[];
+  mentalBenefits: string[];
+  contraindications: string[];
+  breathingCue: string;
+  drishti: string;
+  recommendedHold: string;
+  proTips: string[];
+  seoKeywords: string[];
+  faqs: { question: string; answer: string }[];
+}
+
 export interface FilterState {
   searchLocation: string;
   courseCategory: string;

@@ -187,6 +187,11 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li>
+                <button onClick={() => setActiveView('blog')} className="hover:text-white transition text-[#DCCDB5] font-medium">
+                  Yoga Asanas & Poses Directory
+                </button>
+              </li>
+              <li>
                 <span className="text-[#A5B89A]">100% Escrow Protection</span>
               </li>
               <li>
