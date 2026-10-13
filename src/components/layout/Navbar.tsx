@@ -235,7 +235,7 @@ export const Navbar: React.FC = () => {
                       FAQs
                     </span>
                     <span className="text-[10px] text-[#8E9B91] block">
-                      Common questions &amp; escrow help
+                      11 Essential yoga questions answered
                     </span>
                   </div>
                 </button>

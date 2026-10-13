@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { BookingStatus } from '../../types';
-import { 
-  Crown, 
-  ShieldCheck, 
-  DollarSign, 
-  Users, 
-  Building2, 
-  CheckCircle2, 
-  XCircle, 
-  Eye, 
-  EyeOff, 
-  Lock, 
-  TrendingUp, 
-  FileText, 
-  Gift, 
+import {
+  Crown,
+  ShieldCheck,
+  DollarSign,
+  Users,
+  Building2,
+  CheckCircle2,
+  XCircle,
+  Eye,
+  EyeOff,
+  Lock,
+  TrendingUp,
+  FileText,
+  Gift,
   Sparkles,
   Search,
   Bell,
@@ -26,11 +26,11 @@ import { PREDEFINED_QUESTION_TEMPLATES } from '../../data/mockMatchmakers';
 import { AsanaManagerTab } from '../admin/AsanaManagerTab';
 
 export const AdminDashboard: React.FC = () => {
-  const { 
-    bookings, 
-    updateBookingStatus, 
-    centres, 
-    courses, 
+  const {
+    bookings,
+    updateBookingStatus,
+    centres,
+    courses,
     formatPrice,
     setIsSchemaModalOpen,
     setIsAddCentreOpen,
@@ -52,12 +52,12 @@ export const AdminDashboard: React.FC = () => {
 
   const totalPlatformStarts = Object.values(matchmakerAnalytics).reduce((sum, s) => sum + s.startsCount, 0);
   const totalPlatformCompletions = Object.values(matchmakerAnalytics).reduce((sum, s) => sum + s.completionsCount, 0);
-  const platformAvgConversion = totalPlatformCompletions > 0 
+  const platformAvgConversion = totalPlatformCompletions > 0
     ? ((matchmakerLeads.length / totalPlatformCompletions) * 100).toFixed(1)
     : '0.0';
 
   const toggleMask = (id: string) => {
-    setUnmaskedBookingIds(prev => 
+    setUnmaskedBookingIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -76,7 +76,7 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="py-10 bg-sage-950 text-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        
+
         {/* Admin Header */}
         <div className="bg-gradient-to-r from-purple-950 via-sage-900 to-purple-950 rounded-3xl p-8 border border-purple-800/60 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center space-x-4">
@@ -153,11 +153,10 @@ export const AdminDashboard: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-3 transition border-b-2 ${
-                activeTab === tab.id
+              className={`py-3 transition border-b-2 ${activeTab === tab.id
                   ? 'border-gold-400 text-gold-400'
                   : 'border-transparent text-sage-400 hover:text-white'
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -311,7 +310,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'coupons' && (
           <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-6">
             <h2 className="font-serif font-bold text-2xl text-sand-50">Promo Coupon Code Management</h2>
-            
+
             <form onSubmit={handleAddCoupon} className="flex flex-col sm:flex-row gap-3 bg-sage-950 p-4 rounded-xl border border-sage-800">
               <input
                 type="text"
