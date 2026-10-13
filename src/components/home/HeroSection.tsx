@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
-  Sparkles, 
   ShieldCheck, 
   Award, 
   ArrowRight, 
@@ -16,7 +15,6 @@ import {
 export const HeroSection: React.FC = () => {
   const { 
     setActiveView, 
-    setIsAIQuizModalOpen, 
     filters, 
     setFilters 
   } = useApp();
@@ -183,15 +181,6 @@ export const HeroSection: React.FC = () => {
                 Himalayan Ayurveda
               </button>
             </div>
-
-            <button 
-              type="button"
-              onClick={() => setIsAIQuizModalOpen(true)}
-              className="inline-flex items-center space-x-1.5 text-[#536B50] hover:text-[#40563E] font-medium transition"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#536B50]" />
-              <span>Need guidance? Take the 1-min Quiz</span>
-            </button>
           </div>
 
         </div>

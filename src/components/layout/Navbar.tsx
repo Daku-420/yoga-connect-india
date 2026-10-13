@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useApp, CURRENCY_CONFIGS } from '../../context/AppContext';
 import { CurrencyCode, UserRole } from '../../types';
 import { 
-  Sparkles, 
   Heart, 
   Globe, 
   ShieldCheck, 
@@ -11,8 +10,7 @@ import {
   Crown, 
   Menu, 
   X,
-  PlusCircle,
-  Compass,
+  Compass, 
   MapPin
 } from 'lucide-react';
 
@@ -26,9 +24,7 @@ export const Navbar: React.FC = () => {
     activeView, 
     setActiveView,
     wishlist,
-    setFilters,
-    setIsAIQuizModalOpen,
-    setIsAddCentreOpen
+    setFilters
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -198,43 +194,19 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* AI Retreat Quiz Modal trigger */}
-          <button 
-            onClick={() => setIsAIQuizModalOpen(true)}
-            className="flex items-center space-x-1.5 text-xs text-[#263D32] bg-[#E6EDE2] hover:bg-[#D4E0CE] px-3.5 py-2.5 rounded-lg font-medium transition"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#536B50]" />
-            <span>AI Matchmaker</span>
-          </button>
-
-          {/* List Your Centre CTA - Visible without competing with discovery */}
-          <button 
-            onClick={() => setIsAddCentreOpen(true)}
-            className="border border-[#536B50] text-[#536B50] hover:bg-[#536B50] hover:text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors flex items-center space-x-1.5"
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>List Your Centre</span>
-          </button>
-
           {/* Primary Action Button */}
           <button 
             onClick={() => setActiveView('retreats')}
-            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-colors shadow-sm hidden xl:inline-flex"
+            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5"
           >
-            Explore Retreats
+            <Compass className="w-3.5 h-3.5" />
+            <span>Explore Retreats</span>
           </button>
 
         </div>
 
         {/* Mobile Menu Toggle Button */}
         <div className="lg:hidden flex items-center space-x-2">
-          <button 
-            onClick={() => setIsAddCentreOpen(true)}
-            className="text-xs font-medium text-[#536B50] px-3 py-2 rounded-md border border-[#536B50] md:hidden"
-          >
-            List Centre
-          </button>
-          
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-[#263D32] hover:bg-[#E6EDE2] rounded-lg transition"
@@ -317,20 +289,13 @@ export const Navbar: React.FC = () => {
             </button>
             
             {/* Action buttons inside drawer */}
-            <div className="pt-2 space-y-2">
+            <div className="pt-2">
               <button 
-                onClick={() => { setIsAIQuizModalOpen(true); setIsMobileMenuOpen(false); }}
-                className="w-full text-left py-2.5 px-3 rounded-lg bg-[#E6EDE2] text-[#263D32] font-semibold flex items-center space-x-2"
+                onClick={() => { setActiveView('retreats'); setIsMobileMenuOpen(false); }}
+                className="w-full text-center py-2.5 px-3 rounded-lg bg-[#536B50] hover:bg-[#40563E] text-white font-medium text-xs transition flex items-center justify-center space-x-1.5"
               >
-                <Sparkles className="w-4 h-4 text-[#536B50]" />
-                <span>AI Retreat Matchmaker Quiz</span>
-              </button>
-
-              <button 
-                onClick={() => { setIsAddCentreOpen(true); setIsMobileMenuOpen(false); }}
-                className="w-full text-center py-2.5 px-3 rounded-lg border border-[#536B50] text-[#536B50] font-semibold text-xs"
-              >
-                + List Your Centre or Ashram
+                <Compass className="w-4 h-4" />
+                <span>Explore Retreats & Centres</span>
               </button>
             </div>
           </div>

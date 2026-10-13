@@ -219,3 +219,6 @@ export interface AIRetreatQuizState {
   budget: 'budget' | 'comfort' | 'luxury';
   skillLevel: 'beginner' | 'intermediate' | 'advanced';
 }
+
+export * from './matchmaker';
+

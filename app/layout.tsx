@@ -8,10 +8,10 @@ import { Footer } from '../src/components/layout/Footer';
 import { FilterModal } from '../src/components/search/FilterModal';
 import { CourseDrawer } from '../src/components/detail/CourseDrawer';
 import { BookingModal } from '../src/components/booking/BookingModal';
-import { AIRetreatQuizModal } from '../src/components/ai/AIRetreatQuizModal';
 import { SchemaViewerModal } from '../src/components/seo/SchemaViewerModal';
 import { LiveChatWidget } from '../src/components/support/LiveChatWidget';
 import { AddCentreModal } from '../src/components/admin/AddCentreModal';
+import { CentreMatchmakerModal } from '../src/components/matchmaker/CentreMatchmakerModal';
 
 export default function RootLayout({
   children,
@@ -43,10 +43,10 @@ export default function RootLayout({
           <FilterModal />
           <CourseDrawer />
           <BookingModal />
-          <AIRetreatQuizModal />
           <SchemaViewerModal />
           <AddCentreModal />
           <LiveChatWidget />
+          <CentreMatchmakerModal />
         </AppProvider>
       </body>
     </html>

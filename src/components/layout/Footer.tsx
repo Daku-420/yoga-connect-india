@@ -1,20 +1,17 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
-  Sparkles, 
   ShieldCheck, 
   Lock, 
   Award, 
   HeartHandshake, 
   Compass, 
-  MapPin,
-  PlusCircle
+  MapPin
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const { 
     setActiveView, 
-    setIsAddCentreOpen,
     setSelectedDestinationSlug,
     setFilters
   } = useApp();
@@ -103,15 +100,6 @@ export const Footer: React.FC = () => {
             <p className="text-[#A5B89A] leading-relaxed max-w-sm">
               The curated discovery marketplace connecting Indian and international practitioners with verified yoga ashrams, master teachers, and transformative retreats across Uttarakhand.
             </p>
-            <div className="pt-2">
-              <button
-                onClick={() => setIsAddCentreOpen(true)}
-                className="inline-flex items-center space-x-2 border border-[#A5B89A] hover:bg-[#536B50] hover:border-[#536B50] text-[#F7F5EE] px-4 py-2 rounded-lg transition-colors"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>List Your Centre on Platform</span>
-              </button>
-            </div>
           </div>
 
           {/* Destinations */}

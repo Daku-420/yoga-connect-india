@@ -19,8 +19,8 @@ export const SupportPage: React.FC = () => {
       a: 'Most featured 200-Hour TTC and Ayurvedic Panchakarma retreat packages include three nutritious organic sattvic meals daily cooked according to yogic dietary principles, plus optional private airport pickup from Dehradun Jolly Grant Airport (DED).'
     },
     {
-      q: 'How can a yoga centre register its retreats on the platform?',
-      a: 'Ashram directors and retreat founders can click "List Your Centre" in the main navigation or on the homepage to submit their sanctuary for lineage verification and listing.'
+      q: 'How are yoga centres and ashrams onboarded to the platform?',
+      a: 'All ashrams and yoga retreats on YogaConnect India are reviewed, verified, and uploaded directly by our platform team on behalf of the centres to guarantee authentic lineage and quality standards. Contact our team to request curation for your ashram.'
     }
   ];
 

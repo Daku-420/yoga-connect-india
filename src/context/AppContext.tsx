@@ -7,11 +7,19 @@ import {
   Course, 
   BookingRequest, 
   FilterState, 
-  AIRetreatQuizState 
+  AIRetreatQuizState,
+  CentreMatchmakerConfig,
+  MatchmakerLeadEnquiry,
+  MatchmakerAnalytics
 } from '../types';
 import { mockCentres } from '../data/mockCentres';
 import { mockCourses } from '../data/mockCourses';
 import { mockBookings } from '../data/mockBookings';
+import { 
+  INITIAL_CENTRE_MATCHMAKERS, 
+  INITIAL_MATCHMAKER_LEADS, 
+  INITIAL_MATCHMAKER_ANALYTICS 
+} from '../data/mockMatchmakers';
 
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
   USD: { code: 'USD', symbol: '$', rateVsUSD: 1.0, label: 'USD ($)' },
@@ -82,6 +90,22 @@ interface AppContextType {
   isAddCentreOpen: boolean;
   setIsAddCentreOpen: (open: boolean) => void;
 
+  // Centre Matchmaker System
+  matchmakerConfigs: Record<string, CentreMatchmakerConfig>;
+  matchmakerLeads: MatchmakerLeadEnquiry[];
+  matchmakerAnalytics: Record<string, MatchmakerAnalytics>;
+  isMatchmakerModalOpen: boolean;
+  matchmakerCentreId: string | null;
+  openCentreMatchmaker: (centreId: string) => void;
+  closeCentreMatchmaker: () => void;
+  saveCentreMatchmakerConfig: (config: CentreMatchmakerConfig) => void;
+  toggleCentreMatchmakerEnabled: (centreId: string, enabled: boolean) => void;
+  setCentreMatchmakerStatus: (centreId: string, status: 'draft' | 'published' | 'deactivated') => void;
+  setAdminMatchmakerDisabled: (centreId: string, disabled: boolean, reason?: string) => void;
+  submitMatchmakerEnquiry: (leadData: Omit<MatchmakerLeadEnquiry, 'id' | 'referenceCode' | 'createdAt' | 'status'>) => MatchmakerLeadEnquiry;
+  recordMatchmakerStart: (centreId: string) => void;
+  recordMatchmakerCompletion: (centreId: string, answers: Record<string, any>, recommendedCourseId?: string) => void;
+
   // Live Chat Widget
   isChatOpen: boolean;
   setIsChatOpen: (open: boolean) => void;
@@ -135,6 +159,168 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
   const [isAddCentreOpen, setIsAddCentreOpen] = useState(false);
 
+  // Centre Matchmaker System State
+  const [matchmakerConfigs, setMatchmakerConfigs] = useState<Record<string, CentreMatchmakerConfig>>(INITIAL_CENTRE_MATCHMAKERS);
+  const [matchmakerLeads, setMatchmakerLeads] = useState<MatchmakerLeadEnquiry[]>(INITIAL_MATCHMAKER_LEADS);
+  const [matchmakerAnalytics, setMatchmakerAnalytics] = useState<Record<string, MatchmakerAnalytics>>(INITIAL_MATCHMAKER_ANALYTICS);
+  const [isMatchmakerModalOpen, setIsMatchmakerModalOpen] = useState(false);
+  const [matchmakerCentreId, setMatchmakerCentreId] = useState<string | null>(null);
+
+  const openCentreMatchmaker = (centreId: string) => {
+    setMatchmakerCentreId(centreId);
+    setIsMatchmakerModalOpen(true);
+    recordMatchmakerStart(centreId);
+  };
+
+  const closeCentreMatchmaker = () => {
+    setIsMatchmakerModalOpen(false);
+  };
+
+  const saveCentreMatchmakerConfig = (config: CentreMatchmakerConfig) => {
+    setMatchmakerConfigs(prev => ({
+      ...prev,
+      [config.centreId]: {
+        ...config,
+        updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+      }
+    }));
+  };
+
+  const toggleCentreMatchmakerEnabled = (centreId: string, enabled: boolean) => {
+    setMatchmakerConfigs(prev => {
+      const existing = prev[centreId];
+      if (!existing) return prev;
+      return {
+        ...prev,
+        [centreId]: {
+          ...existing,
+          isEnabled: enabled,
+          status: enabled ? 'published' : 'deactivated',
+          updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+        }
+      };
+    });
+  };
+
+  const setCentreMatchmakerStatus = (centreId: string, status: 'draft' | 'published' | 'deactivated') => {
+    setMatchmakerConfigs(prev => {
+      const existing = prev[centreId];
+      if (!existing) return prev;
+      return {
+        ...prev,
+        [centreId]: {
+          ...existing,
+          status,
+          isEnabled: status === 'published',
+          updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+        }
+      };
+    });
+  };
+
+  const setAdminMatchmakerDisabled = (centreId: string, disabled: boolean, reason?: string) => {
+    setMatchmakerConfigs(prev => {
+      const existing = prev[centreId];
+      if (!existing) return prev;
+      return {
+        ...prev,
+        [centreId]: {
+          ...existing,
+          adminDisabled: disabled,
+          adminDisabledReason: reason || (disabled ? 'Deactivated by platform administrator pending compliance review' : undefined),
+          updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+        }
+      };
+    });
+  };
+
+  const recordMatchmakerStart = (centreId: string) => {
+    setMatchmakerAnalytics(prev => {
+      const current = prev[centreId] || {
+        centreId,
+        startsCount: 0,
+        completionsCount: 0,
+        topGoals: [],
+        popularStyles: [],
+        requestedExperienceLevels: [],
+        topRecommendedOfferings: [],
+        enquiriesCount: 0
+      };
+      return {
+        ...prev,
+        [centreId]: {
+          ...current,
+          startsCount: current.startsCount + 1
+        }
+      };
+    });
+  };
+
+  const recordMatchmakerCompletion = (centreId: string, answers: Record<string, any>, recommendedCourseId?: string) => {
+    setMatchmakerAnalytics(prev => {
+      const current = prev[centreId] || {
+        centreId,
+        startsCount: 1,
+        completionsCount: 0,
+        topGoals: [],
+        popularStyles: [],
+        requestedExperienceLevels: [],
+        topRecommendedOfferings: [],
+        enquiriesCount: 0
+      };
+
+      const newCompletions = current.completionsCount + 1;
+      const updatedOfferings = [...current.topRecommendedOfferings];
+      if (recommendedCourseId) {
+        const existingOffering = updatedOfferings.find(o => o.courseId === recommendedCourseId);
+        if (existingOffering) {
+          existingOffering.count += 1;
+        } else {
+          const course = courses.find(c => c.id === recommendedCourseId);
+          if (course) {
+            updatedOfferings.push({ courseId: course.id, title: course.title, count: 1 });
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        [centreId]: {
+          ...current,
+          completionsCount: newCompletions,
+          topRecommendedOfferings: updatedOfferings
+        }
+      };
+    });
+  };
+
+  const submitMatchmakerEnquiry = (leadData: Omit<MatchmakerLeadEnquiry, 'id' | 'referenceCode' | 'createdAt' | 'status'>): MatchmakerLeadEnquiry => {
+    const randomRef = 'MM-YC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const newLead: MatchmakerLeadEnquiry = {
+      ...leadData,
+      id: 'mm-lead-' + Date.now(),
+      referenceCode: randomRef,
+      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      status: 'new'
+    };
+
+    setMatchmakerLeads(prev => [newLead, ...prev]);
+
+    setMatchmakerAnalytics(prev => {
+      const current = prev[leadData.centreId];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [leadData.centreId]: {
+          ...current,
+          enquiriesCount: current.enquiriesCount + 1
+        }
+      };
+    });
+
+    return newLead;
+  };
+
   // Live Chat State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(1);
@@ -178,7 +364,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: 'bk-' + Date.now(),
       referenceCode: randomRef,
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      status: 'pending_admin', // ALWAYS starts at pending_admin!
+      status: 'pending_admin',
       adminNotes: 'New traveler inquiry received. Contact details masked from centre until admin approval.'
     };
 
@@ -250,6 +436,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsSchemaModalOpen,
       isAddCentreOpen,
       setIsAddCentreOpen,
+      matchmakerConfigs,
+      matchmakerLeads,
+      matchmakerAnalytics,
+      isMatchmakerModalOpen,
+      matchmakerCentreId,
+      openCentreMatchmaker,
+      closeCentreMatchmaker,
+      saveCentreMatchmakerConfig,
+      toggleCentreMatchmakerEnabled,
+      setCentreMatchmakerStatus,
+      setAdminMatchmakerDisabled,
+      submitMatchmakerEnquiry,
+      recordMatchmakerStart,
+      recordMatchmakerCompletion,
       isChatOpen,
       setIsChatOpen,
       chatMessages,

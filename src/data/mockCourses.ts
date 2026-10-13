@@ -145,5 +145,140 @@ export const mockCourses: Course[] = [
       'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=80'
     ],
     requirements: ['Suitable for all fitness and practice levels.']
+  },
+  {
+    id: 'course-1b',
+    centreId: 'centre-1',
+    centreName: 'Parmarth Niketan Sacred Ganges Ashram',
+    title: '7-Day Classical Hatha & Sacred Ganges Beginner Immersion',
+    subtitle: 'Gentle Alignment, Daily River Meditation & Ashram Living for Beginners',
+    category: 'meditation',
+    durationDays: 7,
+    priceUSD: 480,
+    certification: 'Ashram Completion Certificate',
+    syllabus: [
+      'Fundamental Classical Hatha Postures (Asanas) with props and gentle alignment',
+      'Gentle Breath Awareness & Anulom Vilom Pranayama',
+      'Daily Sunset Ganga Aarti participation and river contemplation',
+      'Introduction to Yoga Philosophy & Mindful Ashram Living',
+      'Evening Kirtan & Guided Sound Healing'
+    ],
+    dailySchedule: [
+      { time: '06:00 AM', activity: 'Morning Herbal Tea & Temple Bells' },
+      { time: '06:30 AM', activity: 'Gentle Morning Hatha & Breath Practice' },
+      { time: '08:30 AM', activity: 'Fresh Sattvic Organic Breakfast' },
+      { time: '11:00 AM', activity: 'Spiritual Lecture & Ashram Walking Tour' },
+      { time: '01:00 PM', activity: 'Organic Vegetarian Lunch' },
+      { time: '04:30 PM', activity: 'Restorative Yoga & Guided Relaxation' },
+      { time: '06:30 PM', activity: 'Sacred Parmarth Ganga Aarti by the Water' },
+      { time: '08:00 PM', activity: 'Warm Ashram Dinner' }
+    ],
+    mealsIncluded: '3 Fresh Sattvic Organic Vegetarian Meals Daily',
+    accommodationOptions: ['Private Deluxe Ashram Room', 'Shared Twin Cottage'],
+    upcomingDates: ['Every Sunday arrival throughout 2026-2027'],
+    photos: [
+      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80'
+    ],
+    requirements: ['Ideal for beginners and those seeking mental reset and gentle practice.']
+  },
+  {
+    id: 'course-1c',
+    centreId: 'centre-1',
+    centreName: 'Parmarth Niketan Sacred Ganges Ashram',
+    title: '14-Day Himalayan Kundalini Sadhana & Pranayama Masterclass',
+    subtitle: 'Advanced Chakra Energetics, Kriya Breathwork & Patanjali Sutra Immersion',
+    category: 'breathwork',
+    durationDays: 14,
+    priceUSD: 850,
+    certification: 'Yoga Alliance Continuing Education (YACEP 100h)',
+    syllabus: [
+      'Advanced Shatkriyas (Jala Neti, Nauli, Kapalabhati)',
+      'Bandhas, Mudras & Kundalini Energy Awakening Techniques',
+      'Pranayama Master Sequences for Vital Prana Expansion',
+      'In-depth study of the Hatha Yoga Pradipika',
+      'Silent Ganga Meditations at Brahma Muhurta'
+    ],
+    dailySchedule: [
+      { time: '05:00 AM', activity: 'Brahma Muhurta Kriya & Pranayama' },
+      { time: '07:00 AM', activity: 'Dynamic Hatha Sadhana' },
+      { time: '09:00 AM', activity: 'Sattvic Breakfast' },
+      { time: '11:30 AM', activity: 'Kundalini Tantra Philosophy' },
+      { time: '01:00 PM', activity: 'Ayurvedic Lunch' },
+      { time: '05:00 PM', activity: 'Chakra Activation & Sound Meditation' },
+      { time: '07:30 PM', activity: 'Light Evening Meals' }
+    ],
+    mealsIncluded: '3 Organic Meals Daily',
+    accommodationOptions: ['Private Deluxe Ashram Room'],
+    upcomingDates: ['Oct 10, 2026', 'Nov 12, 2026', 'Jan 15, 2027'],
+    photos: [
+      'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?auto=format&fit=crop&w=1200&q=80'
+    ],
+    requirements: ['At least 1 year of consistent yoga practice recommended.']
+  },
+  {
+    id: 'course-2b',
+    centreId: 'centre-2',
+    centreName: 'Veda5 Himalayan Ayurveda & Yoga Sanctuary',
+    title: '5-Day Himalayan Vinyasa Flow & Tibetan Sound Healing Retreat',
+    subtitle: 'Energizing Morning Flows, Singing Bowl Therapy & Mountain Forest Rejuvenation',
+    category: 'sound-healing',
+    durationDays: 5,
+    priceUSD: 620,
+    certification: 'Veda5 Sound & Flow Immersion Certificate',
+    syllabus: [
+      'Dynamic Creative Vinyasa sequencing with breath synchronization',
+      'Full Tibetan Singing Bowl & Gong Sound Bath immersion',
+      'Mountain Nature walks & Forest Shinrin-yoku (forest bathing)',
+      'Evening Restorative Yin with live acoustic instruments',
+      'Ayurvedic Herbal teas and farm-to-table cuisine'
+    ],
+    dailySchedule: [
+      { time: '07:00 AM', activity: 'Sunrise Dynamic Vinyasa in Mountain Shala' },
+      { time: '09:00 AM', activity: 'Fresh Organic Himalayan Breakfast' },
+      { time: '11:00 AM', activity: 'Guided Forest Walk to Waterfall' },
+      { time: '01:00 PM', activity: 'Nutritious Wellness Lunch' },
+      { time: '04:30 PM', activity: 'Tibetan Sound Healing & Chakra Balancing' },
+      { time: '07:00 PM', activity: 'Al Fresco Candlelit Dinner' }
+    ],
+    mealsIncluded: '3 Gourmet Farm-to-Table Organic Meals Daily',
+    accommodationOptions: ['Mountain View Balcony Suite', 'Single Eco Chalet'],
+    upcomingDates: ['Every Thursday to Monday throughout 2026'],
+    photos: [
+      'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80'
+    ],
+    requirements: ['Suitable for all practitioners with moderate physical ability.']
+  },
+  {
+    id: 'course-3b',
+    centreId: 'centre-3',
+    centreName: 'Uttarkashi Himalayan Hermitage & Tapasya Ashram',
+    title: '5-Day High-Altitude River Sadhana & Pranayama Immersion',
+    subtitle: 'Quiet Hermitage Living, Pure Mountain Air & Bhagirathi Water Blessing',
+    category: 'breathwork',
+    durationDays: 5,
+    priceUSD: 420,
+    certification: 'Hermitage Sadhana Certificate',
+    syllabus: [
+      'Traditional Himalayan Pranayama lineages along the high river',
+      'Mindful Silent Walking by the glacial Bhagirathi waters',
+      'Ancient Kriya Postures for lung capacity and nervous calm',
+      'Sattvic Mountain Herb Teas & pure spring nutrition'
+    ],
+    dailySchedule: [
+      { time: '06:00 AM', activity: 'Riverfront Breath & Japa' },
+      { time: '08:30 AM', activity: 'Simple Ashram Breakfast' },
+      { time: '01:00 PM', activity: 'Sattvic Dal & Organic Roti' },
+      { time: '05:00 PM', activity: 'Candle Meditation (Trataka)' },
+      { time: '07:30 PM', activity: 'Night Silence' }
+    ],
+    mealsIncluded: '3 Simple Himalayan Organic Farm Meals Daily',
+    accommodationOptions: ['Quiet Hermitage Cell', 'River View Stone Cottage'],
+    upcomingDates: ['Weekly arrivals every Friday'],
+    photos: [
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80'
+    ],
+    requirements: ['Modest attire and respect for quiet contemplative ashram environment.']
   }
 ];
+

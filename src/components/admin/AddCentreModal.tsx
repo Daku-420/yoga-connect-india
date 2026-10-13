@@ -73,10 +73,10 @@ export const AddCentreModal: React.FC = () => {
             </div>
             <div>
               <span className="text-[10px] uppercase font-semibold tracking-wider text-[#536B50] block">
-                Centre Partnership Application
+                Platform Admin Upload
               </span>
               <h3 className="font-serif font-bold text-2xl text-[#263D32]">
-                List Your Centre in Uttarakhand
+                Upload Centre on Behalf of Ashram
               </h3>
             </div>
           </div>
@@ -194,7 +194,7 @@ export const AddCentreModal: React.FC = () => {
               className="w-full bg-[#536B50] hover:bg-[#40563E] text-white font-medium py-3.5 rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 transition"
             >
               <CheckCircle2 className="w-4 h-4 text-white" />
-              <span>Submit Centre Listing for Verification</span>
+              <span>Publish & Register Centre</span>
             </button>
           </div>
         </form>

@@ -19,7 +19,8 @@ import {
   ArrowLeft,
   Lock,
   Mail,
-  Compass
+  Compass,
+  Sparkles
 } from 'lucide-react';
 
 export const CentreDetailPage: React.FC = () => {
@@ -33,7 +34,9 @@ export const CentreDetailPage: React.FC = () => {
     setIsCourseDrawerOpen,
     setIsBookingModalOpen,
     wishlist,
-    toggleWishlist
+    toggleWishlist,
+    openCentreMatchmaker,
+    matchmakerConfigs
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'stay' | 'teachers' | 'facilities' | 'reviews' | 'policies'>('overview');
@@ -60,6 +63,8 @@ export const CentreDetailPage: React.FC = () => {
 
   const centreCourses = courses.filter(c => c.centreId === centre.id);
   const isWishlisted = wishlist.includes(centre.id);
+  const matchmakerConfig = matchmakerConfigs[centre.id];
+  const isMatchmakerEligible = matchmakerConfig && matchmakerConfig.isEnabled && matchmakerConfig.status === 'published' && !matchmakerConfig.adminDisabled;
 
   return (
     <div className="bg-[#F7F5EE] min-h-screen pb-20">
@@ -180,6 +185,40 @@ export const CentreDetailPage: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Prominent Centre Yoga Matchmaker CTA Banner */}
+      {isMatchmakerEligible && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="bg-gradient-to-r from-[#263D32] via-[#2F473A] to-[#1E3228] text-white p-6 sm:p-7 rounded-2xl border border-[#3D5E4C]/60 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+            <div className="space-y-2 relative z-10 max-w-2xl">
+              <div className="flex items-center space-x-2">
+                <span className="bg-[#DCCDB5] text-[#263D32] text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                  <Sparkles className="w-3 h-3 text-[#263D32]" />
+                  <span>Personalized Recommendation</span>
+                </span>
+                <span className="text-[11px] text-[#A5B89A]">
+                  Tailored to {centre.name}’s Active Classes
+                </span>
+              </div>
+              <h3 className="font-serif font-bold text-xl sm:text-2xl text-white">
+                Find Your Perfect Yoga Experience
+              </h3>
+              <p className="text-xs sm:text-sm text-[#A5B89A] leading-relaxed">
+                Answer a few quick questions to discover the classes and retreats that suit your goals, experience, and preferences.
+              </p>
+            </div>
+
+            <button
+              onClick={() => openCentreMatchmaker(centre.id)}
+              className="relative z-10 bg-[#DCCDB5] hover:bg-[#F1E8D7] text-[#263D32] font-serif font-bold px-6 py-3.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center space-x-2 shrink-0 group"
+            >
+              <Sparkles className="w-4 h-4 text-[#263D32] group-hover:rotate-12 transition-transform" />
+              <span>Start Matchmaker Quiz</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tabs Navigation Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -498,6 +537,26 @@ export const CentreDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Quick Matchmaker Action Card in Right Sticky Panel */}
+            {isMatchmakerEligible && (
+              <div className="bg-[#E6EDE2] p-5 rounded-2xl border border-[#A5B89A]/60 space-y-3">
+                <div className="flex items-center space-x-2 text-[#263D32] text-xs font-semibold">
+                  <Sparkles className="w-4 h-4 text-[#536B50]" />
+                  <span>Unsure Which Program Fits You?</span>
+                </div>
+                <p className="text-xs text-[#59665C] leading-relaxed">
+                  Take the 2-minute personalized quiz tailored to {centre.name}’s actual syllabus and retreat options.
+                </p>
+                <button
+                  onClick={() => openCentreMatchmaker(centre.id)}
+                  className="w-full bg-[#536B50] hover:bg-[#40563E] text-white font-medium py-2.5 px-4 rounded-xl text-xs shadow-sm transition flex items-center justify-center space-x-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Find Your Perfect Match</span>
+                </button>
+              </div>
+            )}
 
             {/* Verified Escrow Protection Badge Box */}
             <div className="bg-[#263D32] text-white p-6 rounded-2xl border border-[#3D5E4C]/50 space-y-3">

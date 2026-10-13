@@ -11,8 +11,11 @@ import {
   DollarSign,
   Crown,
   Eye,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles,
+  Sliders
 } from 'lucide-react';
+import { CentreMatchmakerBuilder } from './CentreMatchmakerBuilder';
 
 export const CentreDashboard: React.FC = () => {
   const { 
@@ -24,7 +27,10 @@ export const CentreDashboard: React.FC = () => {
     currency
   } = useApp();
 
-  const myCentre = centres[0]; // Ananda Himalayan Yoga Sanctuary
+  const [managedCentreId, setManagedCentreId] = useState<string>(centres[0]?.id || 'centre-1');
+  const [activeTab, setActiveTab] = useState<'listings' | 'matchmaker'>('matchmaker');
+
+  const myCentre = centres.find(c => c.id === managedCentreId) || centres[0];
   const myCourses = courses.filter(c => c.centreId === myCentre.id);
   const myBookings = bookings.filter(b => b.centreId === myCentre.id);
 
@@ -86,7 +92,23 @@ export const CentreDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Centre Selector to test and configure multiple centres */}
+            <div className="bg-[#1E3228] p-1 rounded-xl border border-[#3D5E4C]">
+              <select
+                value={managedCentreId}
+                onChange={(e) => setManagedCentreId(e.target.value)}
+                className="bg-transparent text-[#DCCDB5] font-semibold text-xs px-2.5 py-1.5 outline-none cursor-pointer"
+                aria-label="Select ashram to manage"
+              >
+                {centres.map(c => (
+                  <option key={c.id} value={c.id} className="bg-[#263D32] text-white">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
               onClick={() => setIsAddingCourse(true)}
               className="bg-[#536B50] hover:bg-[#40563E] text-white font-medium px-4 py-2.5 rounded-xl text-xs shadow-sm transition flex items-center space-x-1.5"
@@ -105,28 +127,63 @@ export const CentreDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Analytics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#59665C] block">Total Active Courses</span>
-            <span className="font-serif font-bold text-2xl text-[#263D32]">{myCourses.length} Programs</span>
-          </div>
+        {/* Dashboard Section Tabs */}
+        <div className="border-b border-[#E2E5DD] flex space-x-6 text-xs sm:text-sm font-semibold text-[#59665C]">
+          <button
+            onClick={() => setActiveTab('matchmaker')}
+            className={`py-3.5 transition border-b-2 font-medium flex items-center space-x-2 ${
+              activeTab === 'matchmaker'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-[#536B50]" />
+            <span>Yoga Matchmaker Settings</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#A5B89A]/40">
+              Active Feature
+            </span>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#59665C] block">Assigned Lead Inquiries</span>
-            <span className="font-serif font-bold text-2xl text-[#536B50]">{myBookings.length} Leads</span>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#59665C] block">Platform Commission Rate</span>
-            <span className="font-serif font-bold text-2xl text-[#263D32]">{myCentre.commissionRatePercent}% Per Booking</span>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#59665C] block">Est. Net Ashram Payout</span>
-            <span className="font-serif font-bold text-2xl text-[#286749]">{formatPrice(1062.50)}</span>
-          </div>
+          <button
+            onClick={() => setActiveTab('listings')}
+            className={`py-3.5 transition border-b-2 font-medium flex items-center space-x-2 ${
+              activeTab === 'listings'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Course Catalog & Assigned Leads ({myCourses.length})</span>
+          </button>
         </div>
+
+        {/* TAB 1: YOGA MATCHMAKER SETTINGS BUILDER */}
+        {activeTab === 'matchmaker' ? (
+          <CentreMatchmakerBuilder centre={myCentre} />
+        ) : (
+          <div className="space-y-8">
+            {/* Analytics Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-[#59665C] block">Total Active Courses</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32]">{myCourses.length} Programs</span>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-[#59665C] block">Assigned Lead Inquiries</span>
+                <span className="font-serif font-bold text-2xl text-[#536B50]">{myBookings.length} Leads</span>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-[#59665C] block">Platform Commission Rate</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32]">{myCentre.commissionRatePercent}% Per Booking</span>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-[#E2E5DD] shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-[#59665C] block">Est. Net Ashram Payout</span>
+                <span className="font-serif font-bold text-2xl text-[#286749]">{formatPrice(1062.50)}</span>
+              </div>
+            </div>
 
         {/* Lead Requests Section with MASKED Privacy Notice */}
         <div className="bg-white rounded-2xl p-8 border border-[#E2E5DD] shadow-sm space-y-6">
@@ -189,6 +246,8 @@ export const CentreDashboard: React.FC = () => {
             ))}
           </div>
         </div>
+      </div>
+    )}
 
         {/* Modal: Add New Course */}
         {isAddingCourse && (

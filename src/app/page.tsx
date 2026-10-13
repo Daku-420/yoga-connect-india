@@ -9,7 +9,6 @@ import { QuickSearch } from '../components/home/QuickSearch';
 import { FeaturedCentres } from '../components/home/FeaturedCentres';
 import { WhyChooseUs } from '../components/home/WhyChooseUs';
 import { DestinationsSection } from '../components/home/DestinationsSection';
-import { AIRetreatBanner } from '../components/home/AIRetreatBanner';
 import { TestimonialsSection } from '../components/home/TestimonialsSection';
 import { BlogPreviewSection } from '../components/home/BlogPreviewSection';
 
@@ -66,7 +65,6 @@ export default function HomePage() {
           <FeaturedCentres />
           <WhyChooseUs />
           <DestinationsSection />
-          <AIRetreatBanner />
           <TestimonialsSection />
           <BlogPreviewSection />
         </div>
