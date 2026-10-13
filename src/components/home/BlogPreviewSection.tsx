@@ -43,15 +43,15 @@ export const BlogPreviewSection: React.FC = () => {
                 setSelectedBlogSlug(article.slug);
                 setActiveView('blog-detail');
               }}
-              className="bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer group"
+              className="card-lift bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] hover:border-[#C5A880]/60 shadow-sm flex flex-col cursor-pointer group"
             >
-              <div className="relative aspect-[16/10] overflow-hidden bg-[#E6EDE2]">
+              <div className="relative aspect-[16/10] overflow-hidden bg-[#E6EDE2] image-zoom-container">
                 <img 
                   src={article.coverImage} 
                   alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover image-zoom-target"
                 />
-                <div className="absolute top-3 left-3 bg-[#263D32]/90 text-[#F7F5EE] text-[10px] font-semibold px-2.5 py-1 rounded-md backdrop-blur-md">
+                <div className="absolute top-3 left-3 bg-[#263D32]/90 text-[#F7F5EE] text-[10px] font-semibold px-2.5 py-1 rounded-md backdrop-blur-md shadow-xs z-10">
                   {article.category}
                 </div>
               </div>
@@ -67,7 +67,7 @@ export const BlogPreviewSection: React.FC = () => {
                     </span>
                   </div>
 
-                  <h3 className="font-serif font-bold text-lg text-[#263D32] group-hover:text-[#536B50] transition leading-snug line-clamp-2">
+                  <h3 className="font-serif font-bold text-lg text-[#263D32] group-hover:text-[#536B50] transition-colors leading-snug line-clamp-2">
                     {article.title}
                   </h3>
 
@@ -86,7 +86,7 @@ export const BlogPreviewSection: React.FC = () => {
                     <span className="text-xs text-[#252C27] font-medium">{article.authorName}</span>
                   </div>
 
-                  <span className="text-xs font-semibold text-[#536B50] group-hover:translate-x-0.5 transition-transform">
+                  <span className="text-xs font-semibold text-[#536B50] group-hover:translate-x-1 transition-transform duration-300">
                     Read Article →
                   </span>
                 </div>

@@ -99,18 +99,18 @@ export const QuickSearch: React.FC = () => {
               <button
                 key={s.id}
                 onClick={() => handleStyleSelect(s.category)}
-                className={`p-4 rounded-xl text-left border transition-all duration-200 flex flex-col justify-between group ${
+                className={`card-lift p-4 rounded-xl text-left border transition-all duration-300 flex flex-col justify-between group active:scale-95 cursor-pointer ${
                   isSelected
-                    ? 'bg-white border-[#536B50] shadow-md ring-1 ring-[#536B50]'
-                    : 'bg-white border-[#E2E5DD] hover:border-[#A5B89A] hover:shadow-sm'
+                    ? 'bg-white border-[#536B50] shadow-md ring-2 ring-[#536B50]/30'
+                    : 'bg-white border-[#E2E5DD] hover:border-[#C5A880]/70 hover:shadow-sm'
                 }`}
               >
-                <div className="w-9 h-9 rounded-lg bg-[#E6EDE2] text-[#536B50] flex items-center justify-center mb-3 group-hover:bg-[#536B50] group-hover:text-white transition-colors">
-                  <Icon className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-lg bg-[#E6EDE2] text-[#536B50] flex items-center justify-center mb-3 group-hover:bg-[#536B50] group-hover:text-white transition-all duration-300 shadow-2xs">
+                  <Icon className="w-4 h-4 transform group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300" />
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-xs sm:text-sm text-[#252C27] group-hover:text-[#263D32] transition-colors leading-snug">
+                  <h3 className="font-semibold text-xs sm:text-sm text-[#252C27] group-hover:text-[#263D32] transition-colors leading-snug">
                     {s.title}
                   </h3>
                   <p className="text-[11px] text-[#59665C] mt-0.5 line-clamp-1">

@@ -76,12 +76,12 @@ export const WhyChooseUs: React.FC = () => {
           {steps.map((step, idx) => (
             <div 
               key={idx}
-              className="bg-[#1E3228] p-7 rounded-2xl border border-[#3D5E4C]/40 space-y-3 relative"
+              className="card-lift bg-[#1E3228] p-7 rounded-2xl border border-[#3D5E4C]/40 hover:border-[#DCCDB5]/50 space-y-3 relative group"
             >
-              <span className="font-serif font-bold text-3xl text-[#A5B89A]/40 block">
+              <span className="font-serif font-bold text-3xl text-[#A5B89A]/40 group-hover:text-[#DCCDB5]/70 transition-colors block">
                 {step.num}
               </span>
-              <h3 className="font-serif font-bold text-xl text-white">
+              <h3 className="font-serif font-bold text-xl text-white group-hover:text-[#F7F5EE] transition-colors">
                 {step.title}
               </h3>
               <p className="text-[#A5B89A] text-xs leading-relaxed">
@@ -98,12 +98,12 @@ export const WhyChooseUs: React.FC = () => {
             return (
               <div 
                 key={i}
-                className="bg-[#1E3228]/50 p-6 rounded-xl border border-[#3D5E4C]/30 space-y-2.5"
+                className="card-lift bg-[#1E3228]/60 p-6 rounded-xl border border-[#3D5E4C]/30 hover:border-[#A5B89A]/50 space-y-2.5 group"
               >
-                <div className="w-10 h-10 rounded-lg bg-[#536B50] text-white flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-[#E6EDE2]" />
+                <div className="w-10 h-10 rounded-lg bg-[#536B50] group-hover:bg-[#DCCDB5] text-white group-hover:text-[#1E3228] flex items-center justify-center transition-all duration-300">
+                  <Icon className="w-5 h-5 text-[#E6EDE2] group-hover:text-[#1E3228] transition-colors" />
                 </div>
-                <h4 className="font-serif font-bold text-base text-white">
+                <h4 className="font-serif font-bold text-base text-white group-hover:text-[#F7F5EE] transition-colors">
                   {item.title}
                 </h4>
                 <p className="text-[#A5B89A] text-xs leading-relaxed">

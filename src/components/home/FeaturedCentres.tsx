@@ -84,47 +84,50 @@ export const FeaturedCentres: React.FC = () => {
               return (
                 <article 
                   key={centre.id}
-                  className="bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group"
+                  className="card-lift bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] hover:border-[#C5A880]/60 shadow-sm flex flex-col group cursor-pointer"
                 >
                   {/* Image Container with Consistent Aspect Ratio */}
-                  <div className="relative aspect-[16/10] overflow-hidden bg-[#E6EDE2]">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#E6EDE2] image-zoom-container">
                     <img 
                       src={centre.coverImage} 
                       alt={centre.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover image-zoom-target"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
                       {centre.isVerified && (
-                        <span className="bg-[#263D32]/90 backdrop-blur-md text-[#F7F5EE] text-[11px] font-medium px-2.5 py-1 rounded-md border border-[#3D5E4C]/50 flex items-center space-x-1">
+                        <span className="bg-[#263D32]/90 backdrop-blur-md text-[#F7F5EE] text-[11px] font-medium px-2.5 py-1 rounded-md border border-[#3D5E4C]/50 flex items-center space-x-1 shadow-xs">
                           <ShieldCheck className="w-3 h-3 text-[#A5B89A]" />
                           <span>Admin Verified</span>
                         </span>
                       )}
-                      <span className="bg-white/90 backdrop-blur-md text-[#263D32] text-[11px] font-medium px-2.5 py-1 rounded-md shadow-sm">
+                      <span className="bg-white/95 backdrop-blur-md text-[#263D32] text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xs">
                         {centre.city}
                       </span>
                     </div>
 
-                    {/* Wishlist Button */}
+                    {/* Wishlist Button with Micro-Bounce */}
                     <button 
-                      onClick={() => toggleWishlist(centre.id)}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-md text-[#59665C] hover:text-[#B42318] transition shadow-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(centre.id);
+                      }}
+                      className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-md text-[#59665C] hover:text-[#B42318] active:scale-80 hover:scale-110 transition-all duration-200 shadow-sm cursor-pointer z-10"
                       aria-label={isWishlisted ? "Remove from saved" : "Save centre"}
                     >
-                      <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#B42318] text-[#B42318]' : ''}`} />
+                      <Heart className={`w-4 h-4 transition-colors ${isWishlisted ? 'fill-[#B42318] text-[#B42318]' : ''}`} />
                     </button>
 
                     {/* Rating Overlay */}
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-                      <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md">
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs z-10">
+                      <div className="flex items-center space-x-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 shadow-xs">
                         <Star className="w-3.5 h-3.5 text-[#DCCDB5] fill-current" />
-                        <span className="font-semibold">{centre.rating}</span>
-                        <span className="text-white/80 text-[10px]">({centre.reviewCount} reviews)</span>
+                        <span className="font-semibold text-white">{centre.rating}</span>
+                        <span className="text-white/80 text-[10px]">({centre.reviewCount})</span>
                       </div>
-                      <span className="text-white/90 text-xs">Est. {centre.foundedYear}</span>
+                      <span className="text-white/90 text-[11px] font-medium bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded">Est. {centre.foundedYear}</span>
                     </div>
                   </div>
 
@@ -142,7 +145,7 @@ export const FeaturedCentres: React.FC = () => {
                           setSelectedCentreId(centre.id);
                           setActiveView('centre-detail');
                         }}
-                        className="font-serif font-bold text-xl text-[#263D32] hover:text-[#536B50] transition cursor-pointer leading-snug line-clamp-1"
+                        className="font-serif font-bold text-xl text-[#263D32] group-hover:text-[#536B50] transition-colors cursor-pointer leading-snug line-clamp-1"
                       >
                         {centre.name}
                       </h3>
@@ -191,21 +194,23 @@ export const FeaturedCentres: React.FC = () => {
 
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedCentreId(centre.id);
                             setActiveView('centre-detail');
                           }}
-                          className="bg-[#E6EDE2] hover:bg-[#D4E0CE] text-[#263D32] text-xs font-semibold px-3 py-2 rounded-lg transition"
+                          className="bg-[#E6EDE2] hover:bg-[#D4E0CE] active:scale-95 text-[#263D32] text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-200"
                         >
                           View Details
                         </button>
 
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedCentreId(centre.id);
                             setIsBookingModalOpen(true);
                           }}
-                          className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-3.5 py-2 rounded-lg transition shadow-sm"
+                          className="bg-[#536B50] hover:bg-[#40563E] active:scale-95 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-all duration-200 shadow-xs hover:shadow-sm"
                         >
                           Enquire
                         </button>
@@ -225,7 +230,7 @@ export const FeaturedCentres: React.FC = () => {
             {courses.map(course => (
               <article 
                 key={course.id}
-                className="bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+                className="card-lift bg-white rounded-2xl overflow-hidden border border-[#E2E5DD] hover:border-[#C5A880]/60 shadow-sm p-6 flex flex-col justify-between group"
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
@@ -239,7 +244,7 @@ export const FeaturedCentres: React.FC = () => {
                           setSelectedCentreId(course.centreId);
                           setIsCourseDrawerOpen(true);
                         }}
-                        className="font-serif font-bold text-xl text-[#263D32] hover:text-[#536B50] transition cursor-pointer leading-snug"
+                        className="font-serif font-bold text-xl text-[#263D32] group-hover:text-[#536B50] transition-colors cursor-pointer leading-snug"
                       >
                         {course.title}
                       </h3>
@@ -262,7 +267,7 @@ export const FeaturedCentres: React.FC = () => {
                   </p>
 
                   {/* Highlights */}
-                  <div className="space-y-1 bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
+                  <div className="space-y-1 bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD] group-hover:border-[#C5A880]/40 transition-colors">
                     <span className="text-[11px] font-semibold text-[#263D32] block">Curriculum Focus:</span>
                     <ul className="text-[11px] text-[#59665C] space-y-0.5 list-disc list-inside">
                       {course.syllabus.slice(0, 3).map((item, idx) => (
@@ -293,7 +298,7 @@ export const FeaturedCentres: React.FC = () => {
                         setSelectedCentreId(course.centreId);
                         setIsCourseDrawerOpen(true);
                       }}
-                      className="bg-[#E6EDE2] hover:bg-[#D4E0CE] text-[#263D32] text-xs font-semibold px-3.5 py-2.5 rounded-lg transition"
+                      className="bg-[#E6EDE2] hover:bg-[#D4E0CE] active:scale-95 text-[#263D32] text-xs font-semibold px-3.5 py-2.5 rounded-lg transition-all duration-200"
                     >
                       View Syllabus
                     </button>
@@ -304,7 +309,7 @@ export const FeaturedCentres: React.FC = () => {
                         setSelectedCentreId(course.centreId);
                         setIsBookingModalOpen(true);
                       }}
-                      className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2.5 rounded-lg transition shadow-sm"
+                      className="bg-[#536B50] hover:bg-[#40563E] active:scale-95 text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-all duration-200 shadow-xs hover:shadow-sm"
                     >
                       Enquire Program
                     </button>

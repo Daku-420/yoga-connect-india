@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { playHimalayanChime } from '../../utils/ambientSound';
 import { 
   Search, 
   ArrowUpRight, 
@@ -8,7 +9,8 @@ import {
   Award, 
   CheckCircle2, 
   Clock,
-  Sparkles
+  Sparkles,
+  Volume2
 } from 'lucide-react';
 
 export const HeroSection: React.FC = () => {
@@ -18,6 +20,13 @@ export const HeroSection: React.FC = () => {
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [isChimePlaying, setIsChimePlaying] = useState(false);
+
+  const handlePlayChime = () => {
+    setIsChimePlaying(true);
+    playHimalayanChime();
+    setTimeout(() => setIsChimePlaying(false), 4000);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,9 +104,27 @@ export const HeroSection: React.FC = () => {
           {/* Hero Foreground Content */}
           <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center space-y-6">
             
-            {/* Pill Badge */}
-            <div className="inline-flex items-center space-x-2 bg-white/85 backdrop-blur-md px-4 py-1.5 rounded-full border border-black/5 text-[#263D32] text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase shadow-xs">
-              <span>HIMALAYAN YOGA DIRECTORY</span>
+            {/* Pill Badges Row */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <div className="inline-flex items-center space-x-2 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full border border-black/5 text-[#263D32] text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase shadow-xs">
+                <span>HIMALAYAN YOGA DIRECTORY</span>
+              </div>
+
+              {/* Interactive Himalayan Singing Bowl Chime */}
+              <button
+                type="button"
+                onClick={handlePlayChime}
+                className={`inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md border transition-all duration-300 cursor-pointer shadow-xs active:scale-95 ${
+                  isChimePlaying 
+                    ? 'bg-[#263D32] text-white border-[#263D32] ring-2 ring-[#DCCDB5] shadow-md scale-105' 
+                    : 'bg-white/80 hover:bg-white text-[#263D32] border-black/10 hover:border-[#536B50]/40 hover:shadow-sm'
+                }`}
+                title="Listen to authentic 432Hz Himalayan Singing Bowl tone"
+                aria-label="Play Himalayan Singing Bowl Tone"
+              >
+                <Volume2 className={`w-3.5 h-3.5 ${isChimePlaying ? 'animate-pulse text-[#DCCDB5]' : 'text-[#536B50]'}`} />
+                <span>{isChimePlaying ? 'Harmonic Resonance 432Hz...' : 'Himalayan Chime 432Hz'}</span>
+              </button>
             </div>
 
             {/* Giant Bold Headline */}
@@ -199,13 +226,13 @@ export const HeroSection: React.FC = () => {
           {/* Card 1: Dark Luxury Marketplace Card */}
           <div 
             onClick={() => setActiveView('retreats')}
-            className="bg-[#19221C] text-[#F7F5EE] rounded-[2.25rem] p-7 sm:p-8 shadow-sm flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-[#2D3B31] min-h-[380px] transition-transform hover:-translate-y-1"
+            className="card-lift bg-[#19221C] text-[#F7F5EE] rounded-[2.25rem] p-7 sm:p-8 shadow-sm flex flex-col justify-between relative overflow-hidden group cursor-pointer border border-[#2D3B31] hover:border-[#C5A880]/50 min-h-[380px]"
           >
             <div className="space-y-2 relative z-10">
               <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#A5B89A] block">
                 MARKETPLACE &amp; DIRECTORY
               </span>
-              <h3 className="font-serif font-bold text-2xl sm:text-3xl text-white">
+              <h3 className="font-serif font-bold text-2xl sm:text-3xl text-white group-hover:text-[#F7F5EE] transition-colors">
                 Curated Ashrams
               </h3>
               <p className="text-xs text-[#A5B89A] leading-relaxed max-w-xs">
@@ -215,7 +242,7 @@ export const HeroSection: React.FC = () => {
 
             {/* Nested Preview Card */}
             <div className="relative z-10 pt-4">
-              <div className="bg-[#243027] rounded-2xl p-3 border border-white/10 shadow-lg flex items-center space-x-3.5 transform group-hover:scale-[1.02] transition-transform">
+              <div className="bg-[#243027] rounded-2xl p-3 border border-white/10 group-hover:border-[#C5A880]/30 shadow-lg flex items-center space-x-3.5 transform group-hover:scale-[1.02] transition-transform duration-300">
                 <img 
                   src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=300&q=80" 
                   alt="Himalayan Ashram Preview" 
@@ -231,26 +258,26 @@ export const HeroSection: React.FC = () => {
               </div>
             </div>
 
-            <div className="relative z-10 pt-4 flex items-center justify-between text-xs font-semibold text-[#DCCDB5] group-hover:text-white">
+            <div className="relative z-10 pt-4 flex items-center justify-between text-xs font-semibold text-[#DCCDB5] group-hover:text-white transition-colors">
               <span>Explore All Verified Centres</span>
-              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform duration-300" />
             </div>
           </div>
 
           {/* Card 2: Bright Architectural Space Card */}
           <div 
             onClick={() => setActiveView('destinations')}
-            className="relative rounded-[2.25rem] overflow-hidden min-h-[380px] group cursor-pointer shadow-sm border border-[#E8E5DD] transition-transform hover:-translate-y-1"
+            className="card-lift relative rounded-[2.25rem] overflow-hidden min-h-[380px] group cursor-pointer shadow-sm border border-[#E8E5DD] hover:border-[#C5A880]/60 image-zoom-container"
           >
             <img 
               src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80" 
               alt="Sunlit Himalayan Yoga Shala" 
-              className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
+              className="w-full h-full object-cover object-center image-zoom-target"
             />
             
             {/* Top Right Floating Circle Arrow */}
-            <div className="absolute top-5 right-5 w-11 h-11 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#1E2922] shadow-md group-hover:scale-110 transition-transform">
-              <ArrowUpRight className="w-5 h-5" />
+            <div className="absolute top-5 right-5 w-11 h-11 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#1E2922] shadow-md group-hover:scale-110 group-hover:bg-white group-hover:text-[#536B50] transition-all duration-300">
+              <ArrowUpRight className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
             </div>
 
             {/* Bottom Gradient Caption */}
@@ -258,7 +285,7 @@ export const HeroSection: React.FC = () => {
               <span className="text-[10px] uppercase tracking-widest font-semibold text-[#DCCDB5] block mb-1">
                 Sacred Spaces
               </span>
-              <h4 className="font-serif font-bold text-xl sm:text-2xl text-white">
+              <h4 className="font-serif font-bold text-xl sm:text-2xl text-white group-hover:text-[#F7F5EE] transition-colors">
                 Ganges Shalas &amp; Mountain Sanctuaries
               </h4>
               <p className="text-xs text-[#E6EDE2]/90 mt-1">
@@ -270,16 +297,16 @@ export const HeroSection: React.FC = () => {
           {/* Card 3: Next Up Practice Card */}
           <div 
             onClick={() => handleQuickTag(undefined, '200h-ttc')}
-            className="relative rounded-[2.25rem] overflow-hidden min-h-[380px] group cursor-pointer shadow-sm border border-[#E8E5DD] transition-transform hover:-translate-y-1"
+            className="card-lift relative rounded-[2.25rem] overflow-hidden min-h-[380px] group cursor-pointer shadow-sm border border-[#E8E5DD] hover:border-[#C5A880]/60 image-zoom-container"
           >
             <img 
               src="https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?auto=format&fit=crop&w=1200&q=80" 
               alt="Yoga TTC Practitioners in Shala" 
-              className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
+              className="w-full h-full object-cover object-center image-zoom-target"
             />
             
             {/* Top Left Next Up Badge with Pulse Dot */}
-            <div className="absolute top-5 left-5 inline-flex items-center space-x-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-white/10">
+            <div className="absolute top-5 left-5 inline-flex items-center space-x-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-white/10 group-hover:border-[#C5A880]/50 transition-colors">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span>NEXT UP</span>
             </div>
@@ -289,7 +316,7 @@ export const HeroSection: React.FC = () => {
               <span className="text-[10px] uppercase tracking-widest font-semibold text-[#DCCDB5] block mb-1">
                 Teacher Training
               </span>
-              <h4 className="font-serif font-bold text-xl sm:text-2xl text-white">
+              <h4 className="font-serif font-bold text-xl sm:text-2xl text-white group-hover:text-[#F7F5EE] transition-colors">
                 200-Hour Multi-Style TTC
               </h4>
               <p className="text-xs text-[#E6EDE2]/90 mt-1">
@@ -300,11 +327,11 @@ export const HeroSection: React.FC = () => {
 
         </div>
 
-        {/* Minimal Trust Strip */}
+        {/* Minimal Trust Strip with Micro-Interactions */}
         <div className="pt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-[#59665C]">
-          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] shadow-xs flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5 text-[#536B50]" />
+          <div className="card-lift bg-white/85 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] hover:border-[#A5B89A] shadow-xs flex items-center space-x-3 cursor-default group">
+            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] group-hover:bg-[#263D32] group-hover:text-white text-[#263D32] flex items-center justify-center shrink-0 transition-colors duration-300">
+              <ShieldCheck className="w-5 h-5 text-[#536B50] group-hover:text-[#DCCDB5] transition-colors" />
             </div>
             <div>
               <div className="font-bold text-[#263D32]">100% Escrow Protection</div>
@@ -312,9 +339,9 @@ export const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] shadow-xs flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-[#536B50]" />
+          <div className="card-lift bg-white/85 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] hover:border-[#A5B89A] shadow-xs flex items-center space-x-3 cursor-default group">
+            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] group-hover:bg-[#263D32] group-hover:text-white text-[#263D32] flex items-center justify-center shrink-0 transition-colors duration-300">
+              <CheckCircle2 className="w-5 h-5 text-[#536B50] group-hover:text-[#DCCDB5] transition-colors" />
             </div>
             <div>
               <div className="font-bold text-[#263D32]">Vetted Yoga Ashrams</div>
@@ -322,9 +349,9 @@ export const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] shadow-xs flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0">
-              <Award className="w-5 h-5 text-[#536B50]" />
+          <div className="card-lift bg-white/85 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] hover:border-[#A5B89A] shadow-xs flex items-center space-x-3 cursor-default group">
+            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] group-hover:bg-[#263D32] group-hover:text-white text-[#263D32] flex items-center justify-center shrink-0 transition-colors duration-300">
+              <Award className="w-5 h-5 text-[#536B50] group-hover:text-[#DCCDB5] transition-colors" />
             </div>
             <div>
               <div className="font-bold text-[#263D32]">Yoga Alliance RYS</div>
@@ -332,9 +359,9 @@ export const HeroSection: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] shadow-xs flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-[#536B50]" />
+          <div className="card-lift bg-white/85 backdrop-blur-sm p-4 rounded-2xl border border-[#E8E5DD] hover:border-[#A5B89A] shadow-xs flex items-center space-x-3 cursor-default group">
+            <div className="w-9 h-9 rounded-xl bg-[#E6EDE2] group-hover:bg-[#263D32] group-hover:text-white text-[#263D32] flex items-center justify-center shrink-0 transition-colors duration-300">
+              <Clock className="w-5 h-5 text-[#536B50] group-hover:text-[#DCCDB5] transition-colors" />
             </div>
             <div>
               <div className="font-bold text-[#263D32]">Direct Ashram Rates</div>

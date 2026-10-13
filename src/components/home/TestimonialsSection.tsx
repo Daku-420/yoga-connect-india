@@ -58,15 +58,15 @@ export const TestimonialsSection: React.FC = () => {
           {testimonials.map((t, i) => (
             <div 
               key={i}
-              className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm flex flex-col justify-between relative group hover:shadow-md transition duration-300"
+              className="card-lift bg-white p-8 rounded-2xl border border-[#E2E5DD] hover:border-[#C5A880]/60 shadow-sm flex flex-col justify-between relative group"
             >
-              <Quote className="w-8 h-8 text-[#E2E5DD] absolute top-6 right-6" />
+              <Quote className="w-8 h-8 text-[#E2E5DD] group-hover:text-[#DCCDB5] transition-colors duration-300 absolute top-6 right-6" />
 
               <div className="space-y-4 relative z-10">
                 {/* Rating stars */}
                 <div className="flex items-center space-x-1 text-[#536B50]">
                   {[...Array(t.rating)].map((_, idx) => (
-                    <Star key={idx} className="w-4 h-4 fill-current" />
+                    <Star key={idx} className="w-4 h-4 fill-current group-hover:text-[#C5A880] transition-colors duration-300" />
                   ))}
                 </div>
 
@@ -80,7 +80,7 @@ export const TestimonialsSection: React.FC = () => {
                 <img 
                   src={t.avatar} 
                   alt={t.name} 
-                  className="w-11 h-11 rounded-full object-cover border border-[#E2E5DD]"
+                  className="w-11 h-11 rounded-full object-cover border-2 border-[#E2E5DD] group-hover:border-[#536B50]/40 transition-colors"
                 />
                 <div>
                   <h4 className="font-serif font-bold text-base text-[#263D32] flex items-center space-x-1.5">
