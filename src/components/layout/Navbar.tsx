@@ -163,6 +163,16 @@ export const Navbar: React.FC = () => {
           </button>
 
           <button 
+            onClick={() => handleNavClick('asanas')}
+            className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1.5 ${activeView === 'asanas' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+          >
+            <span>Yoga Asanas</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+              New
+            </span>
+          </button>
+
+          <button 
             onClick={() => handleNavClick('blog')}
             className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'blog' || activeView === 'blog-detail' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
@@ -285,10 +295,19 @@ export const Navbar: React.FC = () => {
               Uttarakhand Destinations
             </button>
             <button 
+              onClick={() => handleNavClick('asanas')}
+              className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60 flex items-center justify-between"
+            >
+              <span>Yoga Asanas (Poses, Steps &amp; Benefits)</span>
+              <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                New
+              </span>
+            </button>
+            <button 
               onClick={() => handleNavClick('blog')}
               className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60"
             >
-              Journal & Guides
+              Journal &amp; Guides
             </button>
             
             {/* Action buttons inside drawer */}

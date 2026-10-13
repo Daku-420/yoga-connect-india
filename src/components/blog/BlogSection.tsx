@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { mockBlogs } from '../../data/mockBlogs';
 import { YogaAsana } from '../../types';
@@ -16,7 +16,11 @@ import {
   Award
 } from 'lucide-react';
 
-export const BlogSection: React.FC = () => {
+interface BlogSectionProps {
+  initialSubView?: 'articles' | 'asanas';
+}
+
+export const BlogSection: React.FC<BlogSectionProps> = ({ initialSubView }) => {
   const { 
     selectedBlogSlug, 
     setSelectedBlogSlug, 
@@ -26,9 +30,18 @@ export const BlogSection: React.FC = () => {
     centres 
   } = useApp();
 
-  const [journalSubView, setJournalSubView] = useState<'articles' | 'asanas'>('articles');
+  const [journalSubView, setJournalSubView] = useState<'articles' | 'asanas'>(
+    initialSubView === 'asanas' || activeView === 'asanas' ? 'asanas' : 'articles'
+  );
   const [selectedAsana, setSelectedAsana] = useState<YogaAsana | null>(null);
   const [activeCategory, setActiveCategory] = useState('all');
+
+  useEffect(() => {
+    if (activeView === 'asanas' || initialSubView === 'asanas') {
+      setJournalSubView('asanas');
+      setSelectedAsana(null);
+    }
+  }, [activeView, initialSubView]);
 
   const selectedArticle = mockBlogs.find(b => b.slug === selectedBlogSlug);
 

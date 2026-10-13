@@ -45,7 +45,8 @@ export default function HomePage() {
 
     case 'blog':
     case 'blog-detail':
-      return <BlogSection />;
+    case 'asanas':
+      return <BlogSection initialSubView={activeView === 'asanas' ? 'asanas' : undefined} />;
 
     case 'user-dashboard':
       return <UserDashboard />;
