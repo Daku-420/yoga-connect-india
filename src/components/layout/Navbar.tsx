@@ -169,8 +169,12 @@ export const Navbar: React.FC = () => {
           {/* Journal Dropdown */}
           <div className="relative group">
             <button 
-              onClick={() => handleNavClick('blog')}
-              className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1 cursor-pointer ${
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1 cursor-default ${
                 activeView === 'blog' || activeView === 'blog-detail' || activeView === 'asanas' 
                   ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' 
                   : ''
@@ -180,60 +184,62 @@ export const Navbar: React.FC = () => {
               <ChevronDown className="w-3.5 h-3.5 text-[#8E9B91] group-hover:text-[#263D32] transition-transform duration-200 group-hover:rotate-180" />
             </button>
 
-            {/* Dropdown Menu */}
-            <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-[#E2E5DD] p-2 space-y-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
-              <button
-                onClick={() => handleNavClick('blog')}
-                className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
-              >
-                <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
-                  <BookOpen className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1">
-                  <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
-                    Journal &amp; Travel Guides
-                  </span>
-                  <span className="text-[10px] text-[#8E9B91] block">
-                    Retreat guides, TTC &amp; ashrams
-                  </span>
-                </div>
-              </button>
+            {/* Dropdown Menu with Seamless Hover Bridge */}
+            <div className="absolute top-full left-0 pt-2 w-64 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <div className="bg-white rounded-2xl shadow-xl border border-[#E2E5DD] p-2 space-y-1">
+                <button
+                  onClick={() => handleNavClick('blog')}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
+                >
+                  <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
+                    <BookOpen className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
+                      Journal &amp; Travel Guides
+                    </span>
+                    <span className="text-[10px] text-[#8E9B91] block">
+                      Retreat guides, TTC &amp; ashrams
+                    </span>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => handleNavClick('asanas')}
-                className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
-              >
-                <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
-                </div>
-                <div className="flex-1">
-                  <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
-                    Yoga Asana Directory
-                  </span>
-                  <span className="text-[10px] text-[#8E9B91] block">
-                    Poses, steps, benefits &amp; cues
-                  </span>
-                </div>
-              </button>
+                <button
+                  onClick={() => handleNavClick('asanas')}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
+                >
+                  <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
+                      Yoga Asana Directory
+                    </span>
+                    <span className="text-[10px] text-[#8E9B91] block">
+                      Poses, steps, benefits &amp; cues
+                    </span>
+                  </div>
+                </button>
 
-              <div className="border-t border-[#E2E5DD] my-1" />
+                <div className="border-t border-[#E2E5DD] my-1" />
 
-              <button
-                onClick={() => handleNavClick('support')}
-                className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
-              >
-                <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
-                  <HelpCircle className="w-3.5 h-3.5 text-[#536B50]" />
-                </div>
-                <div className="flex-1">
-                  <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
-                    FAQs
-                  </span>
-                  <span className="text-[10px] text-[#8E9B91] block">
-                    Common questions &amp; escrow help
-                  </span>
-                </div>
-              </button>
+                <button
+                  onClick={() => handleNavClick('support')}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 group/item cursor-pointer"
+                >
+                  <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] shrink-0 group-hover/item:bg-[#263D32] group-hover/item:text-white transition-colors">
+                    <HelpCircle className="w-3.5 h-3.5 text-[#536B50]" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="block text-xs font-semibold text-[#252C27] group-hover/item:text-[#263D32]">
+                      FAQs
+                    </span>
+                    <span className="text-[10px] text-[#8E9B91] block">
+                      Common questions &amp; escrow help
+                    </span>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </nav>
