@@ -57,6 +57,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ initialSubView }) => {
           <AsanaDetailPage 
             asana={selectedAsana} 
             onBack={() => setSelectedAsana(null)} 
+            onSelectAsana={(a) => setSelectedAsana(a)}
           />
         </div>
       </div>

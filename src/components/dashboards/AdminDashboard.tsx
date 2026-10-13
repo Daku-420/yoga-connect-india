@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { PREDEFINED_QUESTION_TEMPLATES } from '../../data/mockMatchmakers';
+import { AsanaManagerTab } from '../admin/AsanaManagerTab';
 
 export const AdminDashboard: React.FC = () => {
   const { 
@@ -40,7 +41,7 @@ export const AdminDashboard: React.FC = () => {
     openCentreMatchmaker
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'bookings' | 'centres' | 'revenue' | 'coupons' | 'matchmakers'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'centres' | 'revenue' | 'coupons' | 'matchmakers' | 'asanas'>('bookings');
   const [unmaskedBookingIds, setUnmaskedBookingIds] = useState<string[]>([]);
   const [couponCode, setCouponCode] = useState('YOGA2026');
   const [discountPercent, setDiscountPercent] = useState(10);
@@ -145,6 +146,7 @@ export const AdminDashboard: React.FC = () => {
             { id: 'bookings', label: `Lead Pipeline & Escrow (${bookings.length})` },
             { id: 'matchmakers', label: `Centre Matchmaker Moderation (${centres.length})` },
             { id: 'centres', label: `Centre Approvals (${centres.length})` },
+            { id: 'asanas', label: 'Asana Encyclopedia CMS' },
             { id: 'revenue', label: 'Revenue & Commissions' },
             { id: 'coupons', label: 'Coupon & Discount CMS' },
           ].map(tab => (
@@ -533,6 +535,9 @@ export const AdminDashboard: React.FC = () => {
 
           </div>
         )}
+
+        {/* TAB: Asana Encyclopedia CMS */}
+        {activeTab === 'asanas' && <AsanaManagerTab />}
 
       </div>
     </div>

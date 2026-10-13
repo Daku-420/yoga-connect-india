@@ -162,22 +162,77 @@ export const Navbar: React.FC = () => {
             Destinations
           </button>
 
-          <button 
-            onClick={() => handleNavClick('asanas')}
-            className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1.5 ${activeView === 'asanas' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
-          >
-            <span>Yoga Asanas</span>
-            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-              New
-            </span>
-          </button>
+          {/* Journal & Asana Encyclopedia Dropdown */}
+          <div className="relative group">
+            <button 
+              onClick={() => handleNavClick('blog')}
+              className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1 cursor-pointer ${
+                activeView === 'blog' || activeView === 'blog-detail' || activeView === 'asanas' 
+                  ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' 
+                  : ''
+              }`}
+            >
+              <span>Journal</span>
+              <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                Encyclopedia
+              </span>
+            </button>
 
-          <button 
-            onClick={() => handleNavClick('blog')}
-            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'blog' || activeView === 'blog-detail' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
-          >
-            Journal
-          </button>
+            {/* Dropdown Menu */}
+            <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-[#E2E5DD] p-2 space-y-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <button
+                onClick={() => handleNavClick('asanas')}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-[#263D32] hover:bg-[#E6EDE2] transition flex items-center justify-between"
+              >
+                <span>Yoga Asana Encyclopedia</span>
+                <span className="bg-[#536B50] text-white text-[9px] px-1.5 py-0.5 rounded font-bold">New</span>
+              </button>
+
+              <button
+                onClick={() => handleNavClick('asanas', 'beginner')}
+                className="w-full text-left px-3 py-1.5 rounded-xl text-xs text-[#59665C] hover:bg-[#F7F5EE] hover:text-[#263D32] transition"
+              >
+                Beginner Yoga Poses
+              </button>
+
+              <button
+                onClick={() => handleNavClick('asanas', 'traditional')}
+                className="w-full text-left px-3 py-1.5 rounded-xl text-xs text-[#59665C] hover:bg-[#F7F5EE] hover:text-[#263D32] transition"
+              >
+                Traditional Classical Asanas
+              </button>
+
+              <button
+                onClick={() => handleNavClick('asanas', 'meditation')}
+                className="w-full text-left px-3 py-1.5 rounded-xl text-xs text-[#59665C] hover:bg-[#F7F5EE] hover:text-[#263D32] transition"
+              >
+                Meditation &amp; Pranayama Postures
+              </button>
+
+              <div className="border-t border-[#E2E5DD] my-1" />
+
+              <button
+                onClick={() => handleNavClick('blog', 'Yoga Philosophy')}
+                className="w-full text-left px-3 py-1.5 rounded-xl text-xs text-[#59665C] hover:bg-[#F7F5EE] hover:text-[#263D32] transition"
+              >
+                Yoga Philosophy &amp; Sutras
+              </button>
+
+              <button
+                onClick={() => handleNavClick('blog', 'Retreat Guides')}
+                className="w-full text-left px-3 py-1.5 rounded-xl text-xs text-[#59665C] hover:bg-[#F7F5EE] hover:text-[#263D32] transition"
+              >
+                Yoga Practice Guides
+              </button>
+
+              <button
+                onClick={() => handleNavClick('blog', 'all')}
+                className="w-full text-left px-3 py-1.5 rounded-xl text-xs text-[#59665C] hover:bg-[#F7F5EE] hover:text-[#263D32] transition"
+              >
+                Himalayan Yoga &amp; Spirituality
+              </button>
+            </div>
+          </div>
         </nav>
 
         {/* Right Header Actions */}

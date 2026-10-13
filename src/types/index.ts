@@ -196,38 +196,129 @@ export interface BlogArticle {
   seoKeywords: string[];
 }
 
-export type AsanaCategory = 
+export type AsanaBodyPosition = 
   | 'Standing' 
-  | 'Seated & Forward Bends' 
+  | 'Seated' 
+  | 'Forward Folds' 
   | 'Backbends' 
-  | 'Inversions & Arm Balances' 
-  | 'Core & Twists' 
-  | 'Restorative & Gentle';
+  | 'Twists' 
+  | 'Side Bends' 
+  | 'Balancing' 
+  | 'Arm Balances' 
+  | 'Inversions' 
+  | 'Supine' 
+  | 'Prone' 
+  | 'Restorative' 
+  | 'Meditation Postures';
+
+// Retain legacy AsanaCategory alias for backward-compatibility
+export type AsanaCategory = AsanaBodyPosition | 'Seated & Forward Bends' | 'Inversions & Arm Balances' | 'Core & Twists' | 'Restorative & Gentle';
+
+export type AsanaDifficulty = 
+  | 'Beginner' 
+  | 'Intermediate' 
+  | 'Advanced' 
+  | 'Adaptive & Supported';
+
+export type AsanaPracticeIntention = 
+  | 'Mobility & Flexibility' 
+  | 'Balance & Coordination' 
+  | 'Strength & Stability' 
+  | 'Relaxation' 
+  | 'Meditation' 
+  | 'Restorative Practice' 
+  | 'Traditional Yoga Practice';
+
+export type AsanaTradition = 
+  | 'Hatha' 
+  | 'Ashtanga' 
+  | 'Iyengar' 
+  | 'Vinyasa' 
+  | 'Yin' 
+  | 'Restorative' 
+  | 'Classical Hatha';
+
+export type EditorialStatus = 'draft' | 'under_review' | 'published';
+
+export interface AsanaStep {
+  stepNumber: number;
+  title: string;
+  instruction: string;
+}
+
+export interface AsanaMistakeCorrection {
+  mistake: string;
+  correction: string;
+  whyItMatters: string;
+}
+
+export interface AsanaVariation {
+  name: string;
+  type: 'easier' | 'advanced' | 'supported';
+  description: string;
+  propsUsed?: string[];
+}
+
+export interface AsanaReviewer {
+  name: string;
+  qualification: string;
+  traditionOrSchool: string;
+  avatar?: string;
+  lastReviewedDate: string;
+}
+
+export interface AsanaReference {
+  title: string;
+  sourceType: 'classical_text' | 'peer_reviewed' | 'standard_manual';
+  citation: string;
+}
 
 export interface YogaAsana {
   id: string;
   sanskritName: string;
   sanskritDevanagari?: string;
-  englishName: string;
+  transliterationIast?: string;
   pronunciation: string;
+  englishName: string;
+  alternativeNames: string[];
+  etymology: string;
+  historicalContext?: string;
   slug: string;
   category: AsanaCategory;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  bodyPositions: AsanaBodyPosition[];
+  difficulty: AsanaDifficulty;
+  intentions: AsanaPracticeIntention[];
+  traditions: AsanaTradition[];
   chakra: string;
   element: string;
   targetMuscles: string[];
   coverImage: string;
   shortDescription: string;
-  steps: { stepNumber: number; title: string; instruction: string }[];
+  equipmentAndPreparation: string[];
+  steps: AsanaStep[];
+  breathingCue: string;
+  alignmentCues: string[];
+  commonMistakes: AsanaMistakeCorrection[];
+  variations: AsanaVariation[];
   anatomicalBenefits: string[];
   mentalBenefits: string[];
   contraindications: string[];
-  breathingCue: string;
+  safetyDisclaimer: string;
   drishti: string;
   recommendedHold: string;
   proTips: string[];
-  seoKeywords: string[];
   faqs: { question: string; answer: string }[];
+  relatedAsanaSlugs: string[];
+  suggestedSequences: { sequenceName: string; level: string; description: string }[];
+  reviewer: AsanaReviewer;
+  references: AsanaReference[];
+  relatedCentreIds: string[];
+  seoKeywords: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  editorialStatus: EditorialStatus;
+  publishedDate?: string;
+  lastUpdatedDate?: string;
 }
 
 export interface FilterState {
