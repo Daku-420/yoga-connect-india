@@ -144,7 +144,7 @@ export const AsanaDetailPage: React.FC<AsanaDetailPageProps> = ({ asana, onBack 
         {/* Quick Specs Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#E2E5DD] text-xs">
           <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
-            <span className="text-[10px] text-[#59665C] uppercase font-semibold block flex items-center space-x-1">
+            <span className="text-[10px] text-[#59665C] uppercase font-semibold flex items-center space-x-1">
               <Clock className="w-3 h-3 text-[#536B50]" />
               <span>Recommended Hold</span>
             </span>
@@ -152,7 +152,7 @@ export const AsanaDetailPage: React.FC<AsanaDetailPageProps> = ({ asana, onBack 
           </div>
 
           <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
-            <span className="text-[10px] text-[#59665C] uppercase font-semibold block flex items-center space-x-1">
+            <span className="text-[10px] text-[#59665C] uppercase font-semibold flex items-center space-x-1">
               <Eye className="w-3 h-3 text-[#536B50]" />
               <span>Drishti (Gaze Point)</span>
             </span>
@@ -160,7 +160,7 @@ export const AsanaDetailPage: React.FC<AsanaDetailPageProps> = ({ asana, onBack 
           </div>
 
           <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
-            <span className="text-[10px] text-[#59665C] uppercase font-semibold block flex items-center space-x-1">
+            <span className="text-[10px] text-[#59665C] uppercase font-semibold flex items-center space-x-1">
               <Wind className="w-3 h-3 text-[#536B50]" />
               <span>Breathing Focus</span>
             </span>
@@ -168,7 +168,7 @@ export const AsanaDetailPage: React.FC<AsanaDetailPageProps> = ({ asana, onBack 
           </div>
 
           <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
-            <span className="text-[10px] text-[#59665C] uppercase font-semibold block flex items-center space-x-1">
+            <span className="text-[10px] text-[#59665C] uppercase font-semibold flex items-center space-x-1">
               <Compass className="w-3 h-3 text-[#536B50]" />
               <span>Primary Element</span>
             </span>

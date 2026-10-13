@@ -296,7 +296,7 @@ export const Navbar: React.FC = () => {
             </button>
             <button 
               onClick={() => handleNavClick('asanas')}
-              className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60 flex items-center justify-between"
+              className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60 flex items-center justify-between"
             >
               <span>Yoga Asanas (Poses, Steps &amp; Benefits)</span>
               <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-2 py-0.5 rounded-full">
