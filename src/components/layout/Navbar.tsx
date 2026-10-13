@@ -24,6 +24,7 @@ export const Navbar: React.FC = () => {
     activeView, 
     setActiveView,
     wishlist,
+    filters,
     setFilters
   } = useApp();
 
@@ -39,8 +40,10 @@ export const Navbar: React.FC = () => {
   const handleNavClick = (view: string, filterCategory?: string) => {
     if (filterCategory) {
       setFilters(f => ({ ...f, courseCategory: filterCategory }));
+    } else if (view === 'retreats') {
+      setFilters(f => ({ ...f, courseCategory: 'all' }));
     }
-    setActiveView(view);
+    setActiveView(view as any);
     setIsMobileMenuOpen(false);
   };
 
@@ -124,57 +127,51 @@ export const Navbar: React.FC = () => {
             <img 
               src="/pictures/yogaconnect_india_logo.png" 
               alt="YogaConnect India" 
-              className="h-16 sm:h-20 lg:h-[90px] xl:h-[96px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              className="h-16 sm:h-20 lg:h-[84px] xl:h-[88px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
           </button>
         </div>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7 text-sm font-medium text-[#252C27]" aria-label="Main Navigation">
+        <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8 text-sm font-medium text-[#252C27]" aria-label="Main Navigation">
           <button 
-            onClick={() => handleNavClick('retreats')}
-            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'retreats' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
-          >
-            Explore
-          </button>
-          
-          <button 
-            onClick={() => {
-              setFilters(f => ({ ...f, courseCategory: 'all' }));
-              setActiveView('retreats');
-            }}
-            className="transition-colors py-1.5 hover:text-[#536B50]"
+            onClick={() => handleNavClick('retreats', 'all')}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'retreats' && filters.courseCategory === 'all' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Yoga Centres
           </button>
-
+          
           <button 
-            onClick={() => {
-              setFilters(f => ({ ...f, courseCategory: '200h-ttc' }));
-              setActiveView('retreats');
-            }}
-            className="transition-colors py-1.5 hover:text-[#536B50]"
+            onClick={() => handleNavClick('retreats', 'meditation')}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'retreats' && filters.courseCategory === 'meditation' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Yoga Retreats
           </button>
 
           <button 
-            onClick={() => setActiveView('destinations')}
+            onClick={() => handleNavClick('retreats', '200h-ttc')}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'retreats' && (filters.courseCategory === '200h-ttc' || filters.courseCategory === '300h-ttc') ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+          >
+            Teacher Training (TTC)
+          </button>
+
+          <button 
+            onClick={() => handleNavClick('destinations')}
             className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'destinations' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Destinations
           </button>
 
           <button 
-            onClick={() => setActiveView('blog')}
-            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'blog' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+            onClick={() => handleNavClick('blog')}
+            className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'blog' || activeView === 'blog-detail' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Journal
           </button>
         </nav>
 
         {/* Right Header Actions */}
-        <div className="hidden md:flex items-center space-x-2.5 xl:space-x-3.5">
+        <div className="hidden md:flex items-center space-x-3 xl:space-x-4">
           
           {/* Saved Wishlist */}
           <button 
@@ -196,8 +193,8 @@ export const Navbar: React.FC = () => {
 
           {/* Primary Action Button */}
           <button 
-            onClick={() => setActiveView('retreats')}
-            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-medium px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5"
+            onClick={() => handleNavClick('retreats', 'all')}
+            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5"
           >
             <Compass className="w-3.5 h-3.5" />
             <span>Explore Retreats</span>
@@ -264,16 +261,22 @@ export const Navbar: React.FC = () => {
               Home
             </button>
             <button 
-              onClick={() => handleNavClick('retreats')}
+              onClick={() => handleNavClick('retreats', 'all')}
               className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60"
             >
-              Explore Retreats & Centres
+              Yoga Centres &amp; Ashrams
+            </button>
+            <button 
+              onClick={() => handleNavClick('retreats', 'meditation')}
+              className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60"
+            >
+              Yoga Retreats &amp; Ayurveda
             </button>
             <button 
               onClick={() => handleNavClick('retreats', '200h-ttc')}
               className="block w-full text-left py-2.5 px-3 rounded-lg hover:bg-white border-b border-[#E2E5DD]/60"
             >
-              200h / 300h Teacher Training (TTC)
+              Teacher Training (TTC 200h/300h)
             </button>
             <button 
               onClick={() => handleNavClick('destinations')}
