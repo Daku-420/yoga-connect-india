@@ -249,7 +249,16 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* Currency Selector (Located beside the Profile Icon) */}
+          {/* Primary Action Button: Explore Retreats */}
+          <button 
+            onClick={() => handleNavClick('retreats', 'all')}
+            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5 shrink-0"
+          >
+            <Compass className="w-3.5 h-3.5" />
+            <span>Explore Retreats</span>
+          </button>
+
+          {/* Currency Selector (Located to the right of Explore Retreats) */}
           <div className="flex items-center space-x-1.5 bg-white hover:bg-[#F7F5EE] rounded-xl px-2.5 py-1.5 border border-[#E2E5DD] shadow-2xs transition">
             <Globe className="w-3.5 h-3.5 text-[#536B50] shrink-0" />
             <select 
@@ -266,7 +275,7 @@ export const Navbar: React.FC = () => {
             </select>
           </div>
 
-          {/* Profile Icon with My Bookings Dropdown (Beside Currency & Explore Retreats) */}
+          {/* Profile Icon with My Bookings Dropdown (To the right of Currency) */}
           <div className="relative" ref={profileRef}>
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -371,15 +380,6 @@ export const Navbar: React.FC = () => {
               </div>
             )}
           </div>
-
-          {/* Primary Action Button: Explore Retreats */}
-          <button 
-            onClick={() => handleNavClick('retreats', 'all')}
-            className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm inline-flex items-center space-x-1.5 shrink-0"
-          >
-            <Compass className="w-3.5 h-3.5" />
-            <span>Explore Retreats</span>
-          </button>
 
         </div>
 
