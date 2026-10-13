@@ -236,7 +236,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ initialSubView }) => {
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
-              <span>Yoga Asana Directory</span>
+              <span>Yoga Asana Encyclopedia</span>
             </button>
           </div>
         </div>
