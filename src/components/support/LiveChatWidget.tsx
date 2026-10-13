@@ -183,14 +183,22 @@ export const LiveChatWidget: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Action Button (FAB) */}
+      {/* Floating Action Button (FAB) matching reference style */}
       <button
         onClick={() => setIsChatOpen(!isChatOpen)}
-        className="group relative bg-[#263D32] hover:bg-[#1E3228] text-white p-4 rounded-full shadow-2xl flex items-center justify-center space-x-2 border border-[#3D5E4C] transition-all transform hover:scale-105"
-        aria-label="Open support chat"
+        className="group relative bg-[#18201A] hover:bg-[#253228] text-white pl-2.5 pr-4 py-2 rounded-full shadow-2xl flex items-center space-x-2.5 border border-white/15 transition-all transform hover:scale-105"
+        aria-label="Open concierge support chat"
       >
-        <MessageSquare className="w-5 h-5 text-[#E6EDE2]" />
-        <span className="font-semibold text-xs pr-1 hidden sm:inline">Concierge Support</span>
+        <div className="w-8 h-8 rounded-full bg-[#E6EDE2] text-sm flex items-center justify-center overflow-hidden border border-white/20 shrink-0 shadow-xs">
+          <span>🧘‍♀️</span>
+        </div>
+        <div className="text-left pr-0.5">
+          <span className="font-semibold text-xs text-white block leading-tight">Ask Concierge</span>
+          <span className="text-[10px] text-emerald-300 font-medium flex items-center space-x-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+            <span>Online</span>
+          </span>
+        </div>
         {unreadCount > 0 && !isChatOpen && (
           <span className="absolute -top-1 -right-1 bg-[#536B50] text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow border border-white">
             {unreadCount}
