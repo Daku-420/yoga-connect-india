@@ -197,6 +197,10 @@ function LoginContent() {
 
   const handlePasswordSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (returnUrl.startsWith('/admin')) {
+      setErrorMsg('Self-registration is disabled for administrator access. Admin accounts must be granted by the platform owner.');
+      return;
+    }
     if (!email || !email.includes('@')) {
       setErrorMsg('Please enter a valid email address.');
       return;
@@ -590,18 +594,24 @@ function LoginContent() {
                   </button>
 
                   <div className="text-center pt-1 text-[11px] text-[#59665C]">
-                    Don't have an account yet?{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPasswordMode('signup');
-                        setErrorMsg('');
-                        setSuccessMsg('');
-                      }}
-                      className="text-[#536B50] font-bold hover:underline cursor-pointer"
-                    >
-                      Create account
-                    </button>
+                    {returnUrl.startsWith('/admin') ? (
+                      <span className="text-[#8E9B91]">Admin Portal Access • Public Registration Disabled</span>
+                    ) : (
+                      <>
+                        Don't have an account yet?{' '}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPasswordMode('signup');
+                            setErrorMsg('');
+                            setSuccessMsg('');
+                          }}
+                          className="text-[#536B50] font-bold hover:underline cursor-pointer"
+                        >
+                          Create account
+                        </button>
+                      </>
+                    )}
                   </div>
                 </form>
               )}

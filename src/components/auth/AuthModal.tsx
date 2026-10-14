@@ -49,6 +49,12 @@ export const AuthModal: React.FC = () => {
 
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const isAdminPath = typeof window !== 'undefined' && (
+    window.location.pathname.startsWith('/admin') || 
+    window.location.search.includes('next=%2Fadmin') || 
+    window.location.search.includes('next=/admin')
+  );
+
   // Reset modal state on open/close
   useEffect(() => {
     if (isAuthModalOpen) {
@@ -211,6 +217,10 @@ export const AuthModal: React.FC = () => {
   // Handle Password Sign Up
   const handlePasswordSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isAdminPath) {
+      setErrorMsg('Self-registration is disabled for administrator access. Admin accounts must be granted by the platform owner.');
+      return;
+    }
     if (!email || !email.includes('@')) {
       setErrorMsg('Please enter a valid email address.');
       return;
@@ -609,18 +619,24 @@ export const AuthModal: React.FC = () => {
                   </button>
 
                   <div className="text-center pt-1 text-[11px] text-[#59665C]">
-                    Don't have an account yet?{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPasswordMode('signup');
-                        setErrorMsg('');
-                        setSuccessMsg('');
-                      }}
-                      className="text-[#536B50] font-bold hover:underline cursor-pointer"
-                    >
-                      Create account
-                    </button>
+                    {isAdminPath ? (
+                      <span className="text-[#8E9B91]">Admin Portal Access • Public Registration Disabled</span>
+                    ) : (
+                      <>
+                        Don't have an account yet?{' '}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPasswordMode('signup');
+                            setErrorMsg('');
+                            setSuccessMsg('');
+                          }}
+                          className="text-[#536B50] font-bold hover:underline cursor-pointer"
+                        >
+                          Create account
+                        </button>
+                      </>
+                    )}
                   </div>
                 </form>
               )}
