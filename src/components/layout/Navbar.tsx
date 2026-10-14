@@ -676,7 +676,7 @@ export const Navbar: React.FC = () => {
                       setIsProfileOpen(false);
                       handleAdminClick(e);
                     }}
-                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer group block"
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer group"
                     title="Master Admin Escrow & Centre Portal"
                   >
                     <div className="p-1.5 rounded-lg bg-[#263D32] text-gold-400 shrink-0 group-hover:bg-[#1E3228] transition-colors">
