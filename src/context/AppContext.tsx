@@ -60,6 +60,19 @@ import {
   revokeVendorInvitationInDb,
   recordAuditLogInDb
 } from '../lib/supabase';
+import {
+  auth as firebaseAuth,
+  isFirebaseConfigured,
+  firebaseSignIn,
+  firebaseSignUp,
+  firebaseSignInWithGoogle,
+  firebasePasswordReset,
+  firebaseSignOut,
+  fetchFirebaseUserProfile,
+  firebaseRegisterCentreOwner,
+  firebaseRegisterInstructor
+} from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { mockCentres } from '../data/mockCentres';
 import { mockCourses } from '../data/mockCourses';
 import { mockBookings } from '../data/mockBookings';
@@ -377,7 +390,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     c => c.id === (userProfile?.assignedCentreId || partnerMembership?.centreId)
   ) || null;
 
-  // Initialize and listen to Supabase Auth state
+  // Initialize and listen to Auth state (Firebase & Supabase)
   useEffect(() => {
     // 1. Check local storage for persistent profile in fallback mode
     if (typeof window !== 'undefined') {
@@ -394,34 +407,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    if (!isSupabaseConfigured) return;
-
-    // 2. Fetch active Supabase session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setCurrentUser(session.user);
-        syncUserProfile(session.user);
-      }
-    });
-
-    // 3. Listen to Auth changes (OAuth redirect back, OTP sign-in, sign-out)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        setCurrentUser(null);
-        setUserProfile(null);
-        setUserRole('visitor');
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('yogaconnect_user_profile');
+    // 2. Firebase Auth State Listener
+    if (isFirebaseConfigured && firebaseAuth) {
+      const unsubscribeFirebase = onAuthStateChanged(firebaseAuth, async (fbUser) => {
+        if (fbUser) {
+          const profile = await fetchFirebaseUserProfile(fbUser.uid, fbUser.email || '');
+          if (profile) {
+            setUserProfile(profile);
+            setUserRole((profile.role || 'user') as UserRole);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+            }
+          }
         }
-      } else if (session?.user) {
-        setCurrentUser(session.user);
-        syncUserProfile(session.user);
-      }
-    });
+      });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+      return () => {
+        unsubscribeFirebase();
+      };
+    }
+
+    // 3. Supabase Auth Session & Listener (Fallback)
+    if (isSupabaseConfigured) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          setCurrentUser(session.user);
+          syncUserProfile(session.user);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          setCurrentUser(null);
+          setUserProfile(null);
+          setUserRole('visitor');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('yogaconnect_user_profile');
+          }
+        } else if (session?.user) {
+          setCurrentUser(session.user);
+          syncUserProfile(session.user);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, []);
 
   const syncUserProfile = async (user: User) => {
@@ -615,6 +647,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loginWithGoogle = async (returnPath?: string) => {
+    if (isFirebaseConfigured) {
+      const res = await firebaseSignInWithGoogle();
+      if (res.success && res.profile) {
+        setUserProfile(res.profile);
+        setUserRole((res.profile.role || 'user') as UserRole);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('yogaconnect_user_profile', JSON.stringify(res.profile));
+        }
+        setIsAuthModalOpen(false);
+        return { success: true };
+      }
+      return { success: false, error: res.error };
+    }
+
     const { error } = await signInWithGoogle(returnPath);
     if (error) {
       return { error: error.message };
@@ -660,6 +706,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error: 'Please enter your password.' };
     }
 
+    if (isFirebaseConfigured) {
+      const res = await firebaseSignIn(trimmedEmail, password);
+      if (res.success && res.profile) {
+        setUserProfile(res.profile);
+        setUserRole((res.profile.role || 'user') as UserRole);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('yogaconnect_user_profile', JSON.stringify(res.profile));
+        }
+        setIsAuthModalOpen(false);
+        return { success: true };
+      }
+      return { success: false, error: res.error };
+    }
+
     const { data, error } = await signInWithEmailPassword(trimmedEmail, password);
     if (error) {
       return { success: false, error: error.message };
@@ -679,6 +739,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     if (!password || password.length < 6) {
       return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    if (isFirebaseConfigured) {
+      const res = await firebaseSignUp(trimmedEmail, password, fullName, 'user');
+      if (res.success && res.profile) {
+        setUserProfile(res.profile);
+        setUserRole('user');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('yogaconnect_user_profile', JSON.stringify(res.profile));
+        }
+        setIsAuthModalOpen(false);
+        return { 
+          success: true, 
+          requiresVerification: res.requiresVerification,
+          message: res.message || 'Account registered! Please check your email to verify your address.'
+        };
+      }
+      return { success: false, error: res.error };
     }
 
     const { data, error } = await signUpWithEmailPassword(trimmedEmail, password, fullName);
@@ -704,6 +782,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
       return { success: false, error: 'Please enter a valid email address.' };
     }
+
+    if (isFirebaseConfigured) {
+      return await firebasePasswordReset(trimmedEmail);
+    }
+
     const { error } = await sendPasswordReset(trimmedEmail);
     if (error) {
       return { success: false, error: error.message };
@@ -712,6 +795,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = async () => {
+    if (isFirebaseConfigured) {
+      await firebaseSignOut();
+    }
     if (isSupabaseConfigured) {
       await signOutUser();
     }
@@ -1653,6 +1739,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         status: 'pending' // Pending admin approval
       });
 
+      // Sync to Firebase if configured
+      if (isFirebaseConfigured && centreData.password) {
+        try {
+          await firebaseRegisterCentreOwner({
+            centreName: newCentre.name,
+            ownerName: centreData.ownerName,
+            email: centreData.ownerEmail,
+            phone: centreData.contactPhone || '',
+            password: centreData.password,
+            city: centreData.city || 'Rishikesh',
+            state: centreData.state || 'Uttarakhand',
+            styles: centreData.styles || ['Hatha'],
+            description: centreData.description,
+            websiteUrl: centreData.websiteUrl
+          });
+        } catch (fbErr) {
+          console.warn('Firebase centre owner registration note:', fbErr);
+        }
+      }
+
       recordAuditLog('centre_registered', 'centre', centreId, {
         centreName: newCentre.name,
         ownerEmail: centreData.ownerEmail
@@ -1725,6 +1831,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         teaching_hours: instructorData.teachingHours,
         status: 'pending'
       });
+
+      // Sync to Firebase if configured
+      if (isFirebaseConfigured && instructorData.password) {
+        try {
+          await firebaseRegisterInstructor({
+            fullName: instructorData.fullName,
+            email: instructorData.email,
+            phone: instructorData.phone || '',
+            password: instructorData.password,
+            city: instructorData.city || 'Rishikesh',
+            state: instructorData.state || 'Uttarakhand',
+            styles: instructorData.yogaStyles || ['Hatha'],
+            bio: instructorData.bio,
+            experienceYears: instructorData.experienceYears
+          });
+        } catch (fbErr) {
+          console.warn('Firebase instructor registration note:', fbErr);
+        }
+      }
 
       recordAuditLog('instructor_registered', 'instructor', instructorId, {
         name: instructorData.fullName,

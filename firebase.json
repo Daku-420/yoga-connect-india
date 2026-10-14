@@ -1,0 +1,17 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Yoga Connect India",
+        "authorizedRedirectUris": [
+          "http://localhost",
+          "https://yoga-connect-india-1huq.vercel.app"
+        ]
+      }
+    }
+  }
+}

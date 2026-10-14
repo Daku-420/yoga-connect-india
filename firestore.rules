@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'admin@yogaconnect.in' ||
+        request.auth.token.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+    
+    function isCentreOwner(centreId) {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/centres/$(centreId)).data.ownerUid == request.auth.uid ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.assignedCentreId == centreId
+      );
+    }
+
+    function isInstructor(instructorId) {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/instructors/$(instructorId)).data.uid == request.auth.uid
+      );
+    }
+
+    // 1. Users Collection
+    // Users can only read and update their own document.
+    // Privileged fields like 'role' CANNOT be altered by the user.
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId && (
+        !request.resource.data.keys().hasAny(['role']) || 
+        request.resource.data.role == 'user' ||
+        request.resource.data.role == 'partner' ||
+        request.resource.data.role == 'instructor'
+      );
+      allow update: if isOwner(userId) && (
+        // Prevent modifying role or verified status directly
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'verified', 'membershipStatus'])
+      ) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 2. Yoga Centres Collection
+    // Public can read approved centres. Only centre owner or admin can update.
+    match /centres/{centreId} {
+      allow read: if resource.data.status == 'approved' || isCentreOwner(centreId) || isAdmin();
+      allow create: if isAuthenticated() && (
+        request.resource.data.ownerUid == request.auth.uid || isAdmin()
+      );
+      allow update: if (isCentreOwner(centreId) && (
+        // Owner cannot self-approve or change status
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'verified'])
+      )) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 3. Individual Yoga Instructors Collection
+    match /instructors/{instructorId} {
+      allow read: if resource.data.status == 'approved' || isInstructor(instructorId) || isAdmin();
+      allow create: if isAuthenticated() && (
+        request.resource.data.uid == request.auth.uid || isAdmin()
+      );
+      allow update: if (isInstructor(instructorId) && (
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'verified'])
+      )) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 4. Bookings & Escrow Collection
+    // Customers can view only their own bookings. Centre owners can view bookings for their centre.
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        resource.data.customerUid == request.auth.uid ||
+        isCentreOwner(resource.data.centreId) ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.customerUid == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        isCentreOwner(resource.data.centreId) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 5. Financial Ledgers, Payouts & Commissions (Strictly Private)
+    match /financial_ledgers/{ledgerId} {
+      allow read: if isAuthenticated() && (
+        isCentreOwner(resource.data.centreId) || isAdmin()
+      );
+      allow write: if isAdmin();
+    }
+
+    match /payouts/{payoutId} {
+      allow read: if isAuthenticated() && (
+        isCentreOwner(resource.data.centreId) || isAdmin()
+      );
+      allow write: if isAdmin();
+    }
+  }
+}
