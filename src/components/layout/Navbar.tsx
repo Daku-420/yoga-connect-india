@@ -31,7 +31,8 @@ import {
   TrendingUp,
   Sliders,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  UserCheck
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -53,10 +54,11 @@ export const Navbar: React.FC = () => {
     partnerMembership,
     loginAsPersona,
     setIsAuthModalOpen,
-    logout,
     setAdminDashboardTab,
     setVendorDashboardTab,
-    setUserDashboardTab
+    setInstructorDashboardTab,
+    setUserDashboardTab,
+    logout
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,7 +66,8 @@ export const Navbar: React.FC = () => {
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const isPartnerProfile = userProfile?.role === 'partner' || userProfile?.role === 'centre';
+  const isPartnerProfile = userProfile?.role === 'partner' || userProfile?.role === 'centre' || userProfile?.role === 'yoga_centre_owner';
+  const isInstructorProfile = userProfile?.role === 'instructor' || userProfile?.role === 'individual_yoga_instructor';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -100,10 +103,19 @@ export const Navbar: React.FC = () => {
 
   const handlePartnerClick = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    setUserRole('partner');
-    setActiveView('centre-dashboard');
     setIsProfileOpen(false);
     setIsMobileMenuOpen(false);
+    if (isPartnerProfile) {
+      setUserRole('partner');
+      setVendorDashboardTab('overview');
+      setActiveView('centre-dashboard');
+    } else if (isInstructorProfile) {
+      setUserRole('instructor');
+      setInstructorDashboardTab('overview');
+      setActiveView('instructor-dashboard');
+    } else {
+      setActiveView('partner-portal');
+    }
     if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
       window.location.href = '/';
     }
@@ -677,6 +689,84 @@ export const Navbar: React.FC = () => {
                   </div>
                 )}
 
+                {/* 2B. INDIVIDUAL YOGA INSTRUCTOR MENU (Prompt Section 10) */}
+                {isInstructorProfile && (
+                  <div className="space-y-0.5 pt-1">
+                    <button
+                      onClick={() => {
+                        setInstructorDashboardTab('overview');
+                        setActiveView('instructor-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl bg-[#536B50] hover:bg-[#40563E] text-white transition flex items-center space-x-2.5 cursor-pointer shadow-xs"
+                    >
+                      <UserCheck className="w-4 h-4 text-gold-300 shrink-0" />
+                      <span className="text-xs font-bold text-white flex-1">My Instructor Dashboard</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-gold-300" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInstructorDashboardTab('profile');
+                        setActiveView('instructor-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <UserCheck className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Professional Profile</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInstructorDashboardTab('enquiries');
+                        setActiveView('instructor-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <MessageSquare className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Enquiries</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInstructorDashboardTab('sessions');
+                        setActiveView('instructor-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Calendar className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Teaching Sessions</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInstructorDashboardTab('financials');
+                        setActiveView('instructor-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <DollarSign className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Financial Records</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setInstructorDashboardTab('settings');
+                        setActiveView('instructor-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Account Settings</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* 3. TRAVELLER MENU (Prompt Section 1) */}
                 {userProfile && userProfile.role === 'user' && (
                   <div className="space-y-0.5 pt-1">
@@ -777,7 +867,7 @@ export const Navbar: React.FC = () => {
                   </div>
                 )}
 
-                {/* 4. VISITOR (Not Logged In) MENU (Prompt Section 1) */}
+                {/* 4. VISITOR (Not Logged In) MENU (Prompt Section 1 & 10) */}
                 {!userProfile && (
                   <div className="space-y-1.5 pt-1">
                     <button
@@ -788,18 +878,19 @@ export const Navbar: React.FC = () => {
                       className="w-full text-left px-3 py-2 rounded-xl bg-[#536B50] hover:bg-[#40563E] text-white transition flex items-center space-x-2.5 text-xs font-semibold cursor-pointer shadow-xs"
                     >
                       <LogIn className="w-4 h-4" />
-                      <span>Sign In</span>
+                      <span>Login / Sign Up</span>
                     </button>
 
                     <button
                       onClick={() => {
                         setIsProfileOpen(false);
-                        setIsAuthModalOpen(true);
+                        setUserRole('user');
+                        setActiveView('user-dashboard');
                       }}
                       className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
                     >
                       <User className="w-4 h-4 text-[#536B50]" />
-                      <span className="font-medium">Create Account</span>
+                      <span className="font-medium">Traveller Portal</span>
                     </button>
 
                     <div className="pt-1.5 border-t border-[#E2E5DD]/70">
@@ -808,10 +899,11 @@ export const Navbar: React.FC = () => {
                           setIsProfileOpen(false);
                           handlePartnerClick(e);
                         }}
-                        className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#E6EDE2] transition flex items-center space-x-2.5 text-[#263D32] text-xs cursor-pointer"
+                        className="w-full text-left px-3 py-2 rounded-xl bg-[#E6EDE2] hover:bg-[#D7E3D1] transition flex items-center space-x-2.5 text-[#263D32] text-xs font-bold cursor-pointer"
                       >
-                        <Building2 className="w-4 h-4 text-[#536B50]" />
-                        <span className="font-medium">Partner Portal Login</span>
+                        <Building2 className="w-4 h-4 text-[#286749]" />
+                        <span className="flex-1">Partner Portal</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-[#286749]" />
                       </button>
 
                       <a
@@ -820,7 +912,7 @@ export const Navbar: React.FC = () => {
                           setIsProfileOpen(false);
                           handleAdminClick(e);
                         }}
-                        className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#263D32] text-xs cursor-pointer"
+                        className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#263D32] text-xs cursor-pointer mt-1"
                       >
                         <Crown className="w-4 h-4 text-gold-500" />
                         <span className="font-medium">Admin Portal</span>
@@ -913,6 +1005,42 @@ export const Navbar: React.FC = () => {
                         <div className="min-w-0 flex-1 truncate">
                           <span className="block font-semibold">4. Partner (Suspended): Sivananda</span>
                           <span className="text-[9px] opacity-75 block">Access Blocked Test</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          loginAsPersona('instructor.aarav@yogaconnect.in');
+                          setUserRole('instructor');
+                          setActiveView('instructor-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.email === 'instructor.aarav@yogaconnect.in' ? 'bg-[#536B50] text-white font-bold' : 'hover:bg-white text-[#252C27]'
+                        }`}
+                      >
+                        <UserCheck className="w-3 h-3 text-gold-500 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">5. Instructor: Yogacharya Aarav</span>
+                          <span className="text-[9px] opacity-75 block">Independent Teacher • Active</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          loginAsPersona('instructor.ananya@yogaconnect.in');
+                          setUserRole('instructor');
+                          setActiveView('instructor-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.email === 'instructor.ananya@yogaconnect.in' ? 'bg-amber-700 text-white font-bold' : 'hover:bg-white text-amber-700'
+                        }`}
+                      >
+                        <UserCheck className="w-3 h-3 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">6. Instructor (Pending): Ananya</span>
+                          <span className="text-[9px] opacity-75 block">Awaiting Admin Verification</span>
                         </div>
                       </button>
 

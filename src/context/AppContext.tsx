@@ -21,7 +21,9 @@ import {
   CentreEnquiry,
   VendorInvitation,
   CommissionRule,
-  UserPreferences
+  UserPreferences,
+  YogaInstructor,
+  TeachingEnquiry
 } from '../types';
 import { 
   supabase, 
@@ -43,6 +45,12 @@ import {
   fetchLiveCommissionRules,
   fetchLiveVendorInvitations,
   fetchLiveProfiles,
+  fetchLiveInstructors,
+  registerInstructorInDb,
+  updateInstructorInDb,
+  fetchTeachingEnquiries,
+  createTeachingEnquiryInDb,
+  updateTeachingEnquiryInDb,
   updateProfileInDb,
   updateBookingInDb,
   updateEnquiryInDb,
@@ -70,6 +78,7 @@ import {
   INITIAL_INVITATIONS,
   INITIAL_PROFILES
 } from '../data/mockAccounting';
+import { INITIAL_INSTRUCTORS, INITIAL_TEACHING_ENQUIRIES } from '../data/mockInstructors';
 
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
   USD: { code: 'USD', symbol: '$', rateVsUSD: 1.0, label: 'USD ($)' },
@@ -246,8 +255,22 @@ interface AppContextType {
   setAdminDashboardTab: (tab: string) => void;
   vendorDashboardTab: string;
   setVendorDashboardTab: (tab: string) => void;
+  instructorDashboardTab: string;
+  setInstructorDashboardTab: (tab: string) => void;
   userDashboardTab: string;
   setUserDashboardTab: (tab: string) => void;
+
+  // Yoga Instructors & Teaching Enquiries
+  instructors: YogaInstructor[];
+  teachingEnquiries: TeachingEnquiry[];
+  activeInstructor: YogaInstructor | null;
+  registerYogaCentre: (centreData: Partial<YogaCentre> & { ownerName: string; ownerEmail: string; password?: string }) => Promise<{ success: boolean; centreId?: string; error?: string }>;
+  registerYogaInstructor: (instructorData: Omit<YogaInstructor, 'id' | 'createdAt' | 'status'> & { password?: string }) => Promise<{ success: boolean; instructorId?: string; error?: string }>;
+  updateInstructorProfile: (instructorId: string, updates: Partial<YogaInstructor>) => Promise<{ success: boolean; error?: string }>;
+  updateInstructorStatus: (instructorId: string, status: YogaInstructor['status']) => Promise<{ success: boolean; error?: string }>;
+  submitTeachingEnquiry: (enquiryData: Omit<TeachingEnquiry, 'id' | 'createdAt' | 'status' | 'platformCommission' | 'instructorNet' | 'paymentStatus'>) => Promise<{ success: boolean; enquiryId?: string; error?: string }>;
+  updateTeachingEnquiryStatus: (enquiryId: string, status: TeachingEnquiry['status'], notes?: string) => Promise<{ success: boolean; error?: string }>;
+  updateTeachingEnquiryPayment: (enquiryId: string, paymentStatus: TeachingEnquiry['paymentStatus']) => Promise<{ success: boolean; error?: string }>;
 
   // Platform User Accounts & Profile Management
   profiles: UserProfile[];
@@ -316,12 +339,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Role Portal Tab State for Deep Navigation
   const [adminDashboardTab, setAdminDashboardTab] = useState<string>('overview');
   const [vendorDashboardTab, setVendorDashboardTab] = useState<string>('overview');
+  const [instructorDashboardTab, setInstructorDashboardTab] = useState<string>('overview');
   const [userDashboardTab, setUserDashboardTab] = useState<string>('profile');
   const [profiles, setProfiles] = useState<UserProfile[]>(INITIAL_PROFILES);
+
+  // Yoga Instructors and Teaching Enquiries State
+  const [instructors, setInstructors] = useState<YogaInstructor[]>(INITIAL_INSTRUCTORS);
+  const [teachingEnquiries, setTeachingEnquiries] = useState<TeachingEnquiry[]>(INITIAL_TEACHING_ENQUIRIES);
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  // Active Instructor (derived from authenticated profile)
+  const activeInstructor = instructors.find(
+    inst => (inst.email || '').toLowerCase() === (userProfile?.email || '').toLowerCase() ||
+            (inst.userId && inst.userId === userProfile?.id) ||
+            (userProfile?.instructorId && inst.id === userProfile.instructorId)
+  ) || null;
 
   // Active Partner Membership and Centre (derived from authenticated profile)
   const partnerMembership = memberships.find(
@@ -485,10 +520,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (foundProfile.role === 'admin') {
         setUserRole('admin');
         setActiveView('admin-dashboard');
-      } else if (foundProfile.role === 'partner' || foundProfile.role === 'centre') {
+      } else if (foundProfile.role === 'partner' || foundProfile.role === 'centre' || foundProfile.role === 'yoga_centre_owner') {
         const isSuspended = foundProfile.status === 'suspended' || foundProfile.membershipStatus === 'suspended';
         setUserRole(isSuspended ? 'visitor' : 'partner');
         setActiveView('centre-dashboard');
+      } else if (foundProfile.role === 'instructor' || foundProfile.role === 'individual_yoga_instructor') {
+        const isSuspended = foundProfile.status === 'suspended';
+        setUserRole(isSuspended ? 'visitor' : 'instructor');
+        setActiveView('instructor-dashboard');
       } else {
         const isSuspended = foundProfile.status === 'suspended';
         setUserRole(isSuspended ? 'visitor' : 'user');
@@ -1508,6 +1547,278 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true };
   };
 
+  // 1. REGISTER YOGA CENTRE (Option A)
+  const registerYogaCentre = async (centreData: Partial<YogaCentre> & { ownerName: string; ownerEmail: string; password?: string }) => {
+    try {
+      const centreId = `centre-${Date.now()}`;
+      const slug = (centreData.name || 'yoga-centre').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const newCentre: YogaCentre = {
+        id: centreId,
+        name: centreData.name || 'New Himalayan Yoga Sanctuary',
+        slug,
+        tagline: centreData.tagline || 'Authentic Yoga, Meditation & Retreats in India',
+        location: `${centreData.city || 'Rishikesh'}, ${centreData.state || 'Uttarakhand'}, ${centreData.country || 'India'}`,
+        city: centreData.city || 'Rishikesh',
+        state: centreData.state || 'Uttarakhand',
+        country: centreData.country || 'India',
+        description: centreData.description || 'Dedicated authentic yoga sanctuary.',
+        coverImage: centreData.coverImage || 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80',
+        galleryImages: centreData.galleryImages || ['https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80'],
+        rating: 5.0,
+        reviewCount: 0,
+        startingPriceUSD: centreData.startingPriceUSD || 500,
+        foundedYear: centreData.foundedYear || new Date().getFullYear(),
+        certification: centreData.certification || 'Yoga Alliance Registered',
+        languages: centreData.languages || ['English', 'Hindi'],
+        accommodationTypes: centreData.accommodationTypes || ['Standard Ashram Room', 'Private Cottage'],
+        mealsIncluded: centreData.mealsIncluded ?? true,
+        airportPickup: centreData.airportPickup ?? false,
+        teachers: centreData.teachers || [],
+        facilities: centreData.facilities || ['Yoga Shala', 'Sattvic Dining', 'Meditation Garden'],
+        nearbyAttractions: centreData.nearbyAttractions || ['Sacred River', 'Himalayan Foothills'],
+        policies: {
+          cancellation: '100% full refund up to 14 days before start date via Escrow.',
+          visa: 'Tourist or Yoga/Medical Visa valid for India.',
+          dressCode: 'Modest comfortable white or natural fiber yoga clothing.'
+        },
+        faqs: centreData.faqs || [
+          { question: 'Are daily meals provided?', answer: 'Yes, wholesome fresh sattvic meals are prepared daily.' }
+        ],
+        history: centreData.history || 'Founded with a dedication to preserving authentic Himalayan lineage practices.',
+        mapCoords: centreData.mapCoords || { lat: 30.0869, lng: 78.2676 },
+        isVerified: false, // PENDING ADMIN APPROVAL (Requirement 2)
+        isFeatured: false,
+        commissionRatePercent: 12
+      };
+
+      // Add to local state
+      setCentres(prev => [newCentre, ...prev]);
+
+      // Create owner membership
+      const newMembership: CentreMembership = {
+        id: `mem-${Date.now()}`,
+        userId: `user-${Date.now()}`,
+        userEmail: centreData.ownerEmail,
+        userName: centreData.ownerName,
+        centreId: centreId,
+        centreName: newCentre.name,
+        role: 'owner',
+        status: 'active',
+        assignedBy: 'self_registration',
+        createdAt: new Date().toISOString()
+      };
+      setMemberships(prev => [newMembership, ...prev]);
+
+      // Create UserProfile
+      const newProfile: UserProfile = {
+        id: newMembership.userId,
+        email: centreData.ownerEmail,
+        fullName: centreData.ownerName,
+        role: 'yoga_centre_owner',
+        status: 'active',
+        assignedCentreId: centreId,
+        assignedCentreName: newCentre.name,
+        membershipStatus: 'active',
+        createdAt: new Date().toISOString()
+      };
+      setProfiles(prev => [newProfile, ...prev]);
+      setUserProfile(newProfile);
+      setUserRole('partner');
+
+      // Persist to local storage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(newProfile));
+      }
+
+      // Sync to live Supabase DB if connected
+      await saveCentreProfileInDb(centreId, {
+        name: newCentre.name,
+        slug: newCentre.slug,
+        location: newCentre.location,
+        description: newCentre.description,
+        contact_email: centreData.ownerEmail,
+        contact_phone: centreData.contactPhone,
+        address: centreData.address,
+        styles: centreData.styles,
+        status: 'pending' // Pending admin approval
+      });
+
+      recordAuditLog('centre_registered', 'centre', centreId, {
+        centreName: newCentre.name,
+        ownerEmail: centreData.ownerEmail
+      });
+
+      return { success: true, centreId };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to register centre' };
+    }
+  };
+
+  // 2. REGISTER INDIVIDUAL YOGA INSTRUCTOR (Option B)
+  const registerYogaInstructor = async (instructorData: Omit<YogaInstructor, 'id' | 'createdAt' | 'status'> & { password?: string }) => {
+    try {
+      const instructorId = `inst-${Date.now()}`;
+      const newInstructor: YogaInstructor = {
+        ...instructorData,
+        id: instructorId,
+        status: 'pending', // PENDING ADMIN APPROVAL (Requirement 3)
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      setInstructors(prev => [newInstructor, ...prev]);
+
+      // Create instructor user profile
+      const newProfile: UserProfile = {
+        id: `user-${Date.now()}`,
+        email: instructorData.email,
+        fullName: instructorData.fullName,
+        role: 'individual_yoga_instructor',
+        instructorId,
+        status: 'active',
+        phone: instructorData.phone,
+        country: instructorData.country || 'India',
+        createdAt: new Date().toISOString()
+      };
+
+      setProfiles(prev => [newProfile, ...prev]);
+      setUserProfile(newProfile);
+      setUserRole('instructor');
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(newProfile));
+      }
+
+      // Sync to Supabase instructors table
+      await registerInstructorInDb({
+        id: instructorId,
+        full_name: instructorData.fullName,
+        email: instructorData.email,
+        phone: instructorData.phone,
+        city: instructorData.city,
+        state: instructorData.state,
+        country: instructorData.country || 'India',
+        profile_photo: instructorData.profilePhoto,
+        yoga_styles: instructorData.yogaStyles,
+        experience_years: instructorData.experienceYears,
+        qualifications: instructorData.qualifications,
+        bio: instructorData.bio,
+        languages: instructorData.languages,
+        online_availability: instructorData.onlineAvailability,
+        in_person_availability: instructorData.inPersonAvailability,
+        preferred_locations: instructorData.preferredLocations,
+        session_types: instructorData.sessionTypes,
+        pricing_range: instructorData.pricingRange,
+        specializations: instructorData.specializations,
+        meditation_experience: instructorData.meditationExperience,
+        retreat_experience: instructorData.retreatExperience,
+        teaching_hours: instructorData.teachingHours,
+        status: 'pending'
+      });
+
+      recordAuditLog('instructor_registered', 'instructor', instructorId, {
+        name: instructorData.fullName,
+        email: instructorData.email
+      });
+
+      return { success: true, instructorId };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to register instructor' };
+    }
+  };
+
+  const updateInstructorProfile = async (instructorId: string, updates: Partial<YogaInstructor>) => {
+    setInstructors(prev => prev.map(inst => inst.id === instructorId ? { ...inst, ...updates, updatedAt: new Date().toISOString() } : inst));
+    await updateInstructorInDb(instructorId, updates);
+    recordAuditLog('instructor_updated', 'instructor', instructorId, updates);
+    return { success: true };
+  };
+
+  const updateInstructorStatus = async (instructorId: string, status: YogaInstructor['status']) => {
+    setInstructors(prev => prev.map(inst => inst.id === instructorId ? { 
+      ...inst, 
+      status, 
+      approvedAt: status === 'approved' ? new Date().toISOString() : inst.approvedAt,
+      updatedAt: new Date().toISOString() 
+    } : inst));
+    await updateInstructorInDb(instructorId, { 
+      status, 
+      approved_at: status === 'approved' ? new Date().toISOString() : null 
+    });
+    recordAuditLog('instructor_status_changed', 'instructor', instructorId, { newStatus: status });
+    return { success: true };
+  };
+
+  const submitTeachingEnquiry = async (enquiryData: Omit<TeachingEnquiry, 'id' | 'createdAt' | 'status' | 'platformCommission' | 'instructorNet' | 'paymentStatus'>) => {
+    try {
+      const enquiryId = `tenq-${Date.now()}`;
+      const sessionFee = enquiryData.sessionFee || 50;
+      const platformCommission = Math.round(sessionFee * 0.10 * 100) / 100;
+      const instructorNet = Math.round((sessionFee - platformCommission) * 100) / 100;
+
+      const newEnquiry: TeachingEnquiry = {
+        ...enquiryData,
+        id: enquiryId,
+        status: 'new',
+        sessionFee,
+        platformCommission,
+        instructorNet,
+        paymentStatus: 'unpaid',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      setTeachingEnquiries(prev => [newEnquiry, ...prev]);
+
+      await createTeachingEnquiryInDb({
+        id: enquiryId,
+        instructor_id: enquiryData.instructorId,
+        customer_name: enquiryData.customerName,
+        customer_email: enquiryData.customerEmail,
+        customer_phone: enquiryData.customerPhone,
+        session_type: enquiryData.sessionType,
+        requested_dates: enquiryData.requestedDates,
+        participants_count: enquiryData.participantsCount,
+        message: enquiryData.message,
+        status: 'new',
+        session_fee: sessionFee,
+        platform_commission: platformCommission,
+        instructor_net: instructorNet,
+        payment_status: 'unpaid'
+      });
+
+      recordAuditLog('teaching_enquiry_submitted', 'teaching_enquiry', enquiryId, {
+        instructorId: enquiryData.instructorId,
+        customer: enquiryData.customerEmail
+      });
+
+      return { success: true, enquiryId };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to submit enquiry' };
+    }
+  };
+
+  const updateTeachingEnquiryStatus = async (enquiryId: string, status: TeachingEnquiry['status'], notes?: string) => {
+    setTeachingEnquiries(prev => prev.map(e => e.id === enquiryId ? { 
+      ...e, 
+      status, 
+      instructorNotes: notes !== undefined ? notes : e.instructorNotes,
+      updatedAt: new Date().toISOString() 
+    } : e));
+    await updateTeachingEnquiryInDb(enquiryId, { status, instructor_notes: notes });
+    return { success: true };
+  };
+
+  const updateTeachingEnquiryPayment = async (enquiryId: string, paymentStatus: TeachingEnquiry['paymentStatus']) => {
+    setTeachingEnquiries(prev => prev.map(e => e.id === enquiryId ? { 
+      ...e, 
+      paymentStatus, 
+      updatedAt: new Date().toISOString() 
+    } : e));
+    await updateTeachingEnquiryInDb(enquiryId, { payment_status: paymentStatus });
+    return { success: true };
+  };
+
   const refreshDatabaseState = async () => {
     try {
       const [liveCentres, liveCourses, liveBookings, liveEnquiries, liveLedger, livePayouts, liveRules, liveInvites, liveProfiles] = await Promise.all([
@@ -1663,8 +1974,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAdminDashboardTab,
       vendorDashboardTab,
       setVendorDashboardTab,
+      instructorDashboardTab,
+      setInstructorDashboardTab,
       userDashboardTab,
       setUserDashboardTab,
+      instructors,
+      teachingEnquiries,
+      activeInstructor,
+      registerYogaCentre,
+      registerYogaInstructor,
+      updateInstructorProfile,
+      updateInstructorStatus,
+      submitTeachingEnquiry,
+      updateTeachingEnquiryStatus,
+      updateTeachingEnquiryPayment,
       profiles,
       updateUserProfile,
       updateUserPreferences,

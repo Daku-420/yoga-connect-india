@@ -7,7 +7,16 @@ export interface CurrencyConfig {
   label: string;
 }
 
-export type UserRole = 'visitor' | 'user' | 'centre' | 'partner' | 'admin';
+export type UserRole = 
+  | 'visitor' 
+  | 'user' 
+  | 'traveller'
+  | 'centre' 
+  | 'partner' 
+  | 'yoga_centre_owner' 
+  | 'instructor' 
+  | 'individual_yoga_instructor' 
+  | 'admin';
 
 export interface Teacher {
   id: string;
@@ -118,6 +127,8 @@ export interface YogaCentre {
   commissionRatePercent: number;
   status?: 'pending_approval' | 'approved' | 'suspended' | 'rejected';
   address?: string;
+  country?: string;
+  styles?: string[];
   websiteUrl?: string;
   socialLinks?: {
     instagram?: string;
@@ -449,13 +460,66 @@ export interface UserProfile {
   avatarUrl?: string;
   phone?: string;
   country?: string;
-  role?: 'user' | 'centre' | 'partner' | 'admin';
+  role?: UserRole;
   assignedCentreId?: string;
   assignedCentreName?: string;
-  membershipStatus?: 'active' | 'suspended' | 'inactive';
-  status?: 'active' | 'suspended' | 'inactive';
+  instructorId?: string;
+  membershipStatus?: 'active' | 'suspended' | 'inactive' | 'pending';
+  status?: 'active' | 'suspended' | 'inactive' | 'pending' | 'pending_approval';
   preferences?: UserPreferences;
   createdAt?: string;
+}
+
+export interface YogaInstructor {
+  id: string;
+  userId?: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  profilePhoto?: string;
+  yogaStyles: string[];
+  experienceYears: number;
+  qualifications?: string;
+  bio?: string;
+  languages: string[];
+  onlineAvailability: boolean;
+  inPersonAvailability: boolean;
+  preferredLocations: string[];
+  sessionTypes: string[];
+  pricingRange?: string;
+  specializations?: string[];
+  meditationExperience?: string;
+  retreatExperience?: string;
+  teachingHours?: string;
+  status: 'pending' | 'approved' | 'suspended' | 'rejected';
+  approvedAt?: string;
+  approvedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface TeachingEnquiry {
+  id: string;
+  instructorId: string;
+  instructorName?: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  sessionType: string;
+  requestedDates?: string;
+  participantsCount: number;
+  message: string;
+  status: 'new' | 'contacted' | 'scheduled' | 'completed' | 'cancelled';
+  sessionFee: number;
+  platformCommission: number;
+  instructorNet: number;
+  paymentStatus: 'unpaid' | 'paid' | 'refunded';
+  instructorNotes?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CentreMembership {

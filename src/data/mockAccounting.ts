@@ -607,6 +607,28 @@ export const INITIAL_PROFILES = [
     createdAt: '2026-08-20T10:00:00Z'
   },
   {
+    id: 'user-instructor-aarav',
+    email: 'instructor.aarav@yogaconnect.in',
+    fullName: 'Yogacharya Aarav Joshi',
+    role: 'individual_yoga_instructor' as const,
+    status: 'active' as const,
+    instructorId: 'inst-aarav',
+    phone: '+91 98112 33445',
+    country: 'India',
+    createdAt: '2026-07-15T09:00:00Z'
+  },
+  {
+    id: 'user-instructor-ananya',
+    email: 'instructor.ananya@yogaconnect.in',
+    fullName: 'Ananya Deshmukh (Pending)',
+    role: 'individual_yoga_instructor' as const,
+    status: 'pending' as const,
+    instructorId: 'inst-ananya',
+    phone: '+91 97234 55667',
+    country: 'India',
+    createdAt: '2026-10-01T11:00:00Z'
+  },
+  {
     id: 'user-traveler-sarah',
     email: 'sarah.jenkins@example.com',
     fullName: 'Sarah Jenkins',

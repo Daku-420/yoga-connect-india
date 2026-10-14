@@ -553,3 +553,140 @@ export async function updateProfileInDb(userId: string, updates: Record<string, 
     return { success: false, error: err.message || 'Failed to update profile' };
   }
 }
+
+/**
+ * Fetch instructors (optionally including pending for admin)
+ */
+export async function fetchLiveInstructors(includeAll = false) {
+  if (!isSupabaseConfigured) return [];
+  try {
+    let query = supabase.from('instructors').select('*');
+    if (!includeAll) {
+      query = query.eq('status', 'approved');
+    }
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching instructors:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching instructors:', err);
+    return [];
+  }
+}
+
+/**
+ * Register a new Yoga Instructor in Supabase
+ */
+export async function registerInstructorInDb(instructorData: Record<string, any>) {
+  if (!isSupabaseConfigured) return { data: null, error: 'Database not connected' };
+  try {
+    const { data, error } = await supabase
+      .from('instructors')
+      .insert({
+        ...instructorData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    if (error) {
+      return { data: null, error: error.message };
+    }
+    return { data, error: null };
+  } catch (err: any) {
+    return { data: null, error: err.message || 'Failed to register instructor' };
+  }
+}
+
+/**
+ * Update Instructor profile
+ */
+export async function updateInstructorInDb(instructorId: string, updates: Record<string, any>) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('instructors')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', instructorId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update instructor' };
+  }
+}
+
+/**
+ * Fetch teaching enquiries for an instructor
+ */
+export async function fetchTeachingEnquiries(instructorId?: string) {
+  if (!isSupabaseConfigured) return [];
+  try {
+    let query = supabase.from('teaching_enquiries').select('*');
+    if (instructorId) {
+      query = query.eq('instructor_id', instructorId);
+    }
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching teaching enquiries:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching teaching enquiries:', err);
+    return [];
+  }
+}
+
+/**
+ * Create a new teaching enquiry
+ */
+export async function createTeachingEnquiryInDb(enquiryData: Record<string, any>) {
+  if (!isSupabaseConfigured) return { data: null, error: 'Database not connected' };
+  try {
+    const { data, error } = await supabase
+      .from('teaching_enquiries')
+      .insert({
+        ...enquiryData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    if (error) {
+      return { data: null, error: error.message };
+    }
+    return { data, error: null };
+  } catch (err: any) {
+    return { data: null, error: err.message || 'Failed to create enquiry' };
+  }
+}
+
+/**
+ * Update a teaching enquiry status/payment
+ */
+export async function updateTeachingEnquiryInDb(enquiryId: string, updates: Record<string, any>) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('teaching_enquiries')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', enquiryId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update teaching enquiry' };
+  }
+}
+

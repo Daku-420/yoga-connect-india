@@ -3,46 +3,18 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '../../src/context/AppContext';
+import { PartnerPortalLanding } from '../../src/components/dashboards/PartnerPortalLanding';
+import { InstructorDashboard } from '../../src/components/dashboards/InstructorDashboard';
 import { CentreDashboard } from '../../src/components/dashboards/CentreDashboard';
-import { ShieldAlert, LogIn, ArrowLeft, Building2, User, AlertOctagon } from 'lucide-react';
+import { AlertOctagon, ShieldAlert, User } from 'lucide-react';
 
 export default function PartnerPage() {
   const router = useRouter();
   const { userProfile, setIsAuthModalOpen, setActiveView, setUserRole, partnerCentre } = useApp();
 
-  // 1. Unauthenticated Visitor
+  // 1. Unauthenticated Visitor -> Render full Partner Portal with Option A & Option B
   if (!userProfile) {
-    return (
-      <div className="min-h-screen bg-[#F7F5EE] flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl max-w-md w-full p-8 border border-[#E2E5DD] shadow-xl text-center space-y-5 animate-in fade-in">
-          <div className="w-14 h-14 rounded-2xl bg-[#263D32] text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
-            <Building2 className="w-7 h-7 text-emerald-400" />
-          </div>
-          <div>
-            <h1 className="font-serif font-bold text-2xl text-[#263D32]">Yoga Centre Partner Portal</h1>
-            <p className="text-xs text-[#59665C] mt-1.5 leading-relaxed">
-              Restricted to verified Yoga Centre owners and retreat partners. Manage your listings, retreat bookings, clients, and payouts.
-            </p>
-          </div>
-          <div className="pt-2 space-y-2">
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="w-full bg-[#263D32] hover:bg-[#1E3228] text-white text-xs font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
-            >
-              <LogIn className="w-4 h-4 text-emerald-400" />
-              <span>Partner Sign In</span>
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              className="w-full bg-[#F7F5EE] hover:bg-[#E6EDE2] text-[#263D32] text-xs font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Return to Public Website</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <PartnerPortalLanding />;
   }
 
   // 2. Suspended Account Check
@@ -120,7 +92,12 @@ export default function PartnerPage() {
     );
   }
 
-  // 4. Authorized Partner or Admin
+  // 4. Authorized Yoga Instructor
+  if (userProfile.role === 'instructor' || userProfile.role === 'individual_yoga_instructor') {
+    return <InstructorDashboard />;
+  }
+
+  // 5. Authorized Yoga Centre Owner or Admin
   return <CentreDashboard />;
 }
 

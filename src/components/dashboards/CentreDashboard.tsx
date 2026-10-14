@@ -63,7 +63,7 @@ export const CentreDashboard: React.FC = () => {
   const isAuthorizedVendor = useMemo(() => {
     if (!currentUser) return false;
     if (userRole === 'admin') return true;
-    if (userRole === 'centre' && (partnerCentre || userProfile?.assignedCentreId)) return true;
+    if ((userRole === 'centre' || userRole === 'partner' || userRole === 'yoga_centre_owner') && (partnerCentre || userProfile?.assignedCentreId)) return true;
     return false;
   }, [currentUser, userRole, partnerCentre, userProfile]);
 

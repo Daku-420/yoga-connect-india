@@ -17,7 +17,9 @@ import { RetreatSearchPage } from '../src/components/search/RetreatSearchPage';
 import { CentreDetailPage } from '../src/components/detail/CentreDetailPage';
 import { UserDashboard } from '../src/components/dashboards/UserDashboard';
 import { CentreDashboard } from '../src/components/dashboards/CentreDashboard';
+import { InstructorDashboard } from '../src/components/dashboards/InstructorDashboard';
 import { AdminDashboard } from '../src/components/dashboards/AdminDashboard';
+import { PartnerPortalLanding } from '../src/components/dashboards/PartnerPortalLanding';
 import { BlogSection } from '../src/components/blog/BlogSection';
 import { SupportPage } from '../src/components/support/SupportPage';
 
@@ -52,6 +54,12 @@ export default function HomePage() {
 
     case 'centre-dashboard':
       return <CentreDashboard />;
+
+    case 'instructor-dashboard':
+      return <InstructorDashboard />;
+
+    case 'partner-portal':
+      return <PartnerPortalLanding />;
 
     case 'admin-dashboard':
       return <AdminDashboard initialTab="centres" />;

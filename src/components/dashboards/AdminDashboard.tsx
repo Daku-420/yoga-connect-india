@@ -113,13 +113,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'ov
     adminDashboardTab,
     setAdminDashboardTab,
     profiles,
-    updateUserAccountStatus
+    updateUserAccountStatus,
+    instructors,
+    teachingEnquiries,
+    updateInstructorStatus
   } = useApp();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<
     | 'overview'
     | 'centres'
+    | 'instructors'
     | 'travellers'
     | 'bookings'
     | 'financial-oversight'
@@ -454,6 +458,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'ov
           </button>
 
           <button
+            onClick={() => setActiveTab('instructors')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'instructors'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <UserCheck className="w-4 h-4 text-emerald-600" />
+            <span>Manage Instructors</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {instructors.length}
+            </span>
+            {instructors.filter(i => i.status === 'pending').length > 0 && (
+              <span className="bg-amber-400 text-amber-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">
+                {instructors.filter(i => i.status === 'pending').length} pending
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('travellers')}
             className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
               activeTab === 'travellers'
@@ -742,6 +766,134 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'ov
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: MANAGE INDIVIDUAL YOGA INSTRUCTORS (Prompt Section 7) */}
+        {activeTab === 'instructors' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Partner Category B
+                  </span>
+                  <span className="text-xs text-gray-500">• {instructors.length} Certified Instructors</span>
+                </div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32] mt-1">
+                  Individual Yoga Instructors &amp; Accreditation Review
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Review registrations, approve public directory listings, inspect teaching qualifications, and manage account statuses.
+                </p>
+              </div>
+
+              {/* Status KPI summary */}
+              <div className="flex items-center gap-2">
+                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3 py-1.5 rounded-xl">
+                  Approved: {instructors.filter(i => i.status === 'approved').length}
+                </span>
+                <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold px-3 py-1.5 rounded-xl">
+                  Pending Review: {instructors.filter(i => i.status === 'pending').length}
+                </span>
+              </div>
+            </div>
+
+            {/* Instructors Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Instructor</th>
+                    <th className="py-3 px-3 font-bold">Location &amp; Experience</th>
+                    <th className="py-3 px-3 font-bold">Yoga Styles</th>
+                    <th className="py-3 px-3 font-bold">Pricing Range</th>
+                    <th className="py-3 px-3 font-bold">Status</th>
+                    <th className="py-3 px-3 font-bold text-center">Accreditation Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {instructors.map((inst) => (
+                    <tr key={inst.id} className="hover:bg-[#F7F5EE]/50 transition">
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={inst.profilePhoto || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80'} 
+                            alt={inst.fullName} 
+                            className="w-9 h-9 rounded-full object-cover shrink-0 border border-[#E2E5DD]" 
+                          />
+                          <div>
+                            <span className="font-bold text-gray-900 block">{inst.fullName}</span>
+                            <span className="font-mono text-[10px] text-gray-500">{inst.email}</span>
+                            <span className="text-[10px] text-emerald-700 block">{inst.qualifications || 'Certified Instructor'}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span className="font-medium text-gray-900 block">{inst.city || 'Rishikesh'}, {inst.state || 'Uttarakhand'}</span>
+                        <span className="text-[10px] text-gray-500">{inst.experienceYears} Years Experience</span>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {inst.yogaStyles.slice(0, 3).map(style => (
+                            <span key={style} className="bg-[#E6EDE2] text-[#263D32] text-[9px] font-semibold px-2 py-0.5 rounded-full">
+                              {style}
+                            </span>
+                          ))}
+                          {inst.yogaStyles.length > 3 && (
+                            <span className="text-[9px] text-gray-500 font-medium">+{inst.yogaStyles.length - 3}</span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3 font-semibold text-[#263D32]">
+                        {inst.pricingRange || '$45 - $90 / session'}
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                          inst.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                          inst.status === 'pending' ? 'bg-amber-100 text-amber-800 animate-pulse' :
+                          inst.status === 'suspended' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {inst.status}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="flex items-center justify-center space-x-1.5">
+                          {inst.status !== 'approved' ? (
+                            <button
+                              onClick={() => updateInstructorStatus(inst.id, 'approved')}
+                              className="bg-[#286749] hover:bg-[#1E4D37] text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition cursor-pointer shadow-2xs"
+                              title="Approve public listing in directory"
+                            >
+                              Approve
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => updateInstructorStatus(inst.id, 'suspended')}
+                              className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[11px] font-semibold py-1.5 px-3 rounded-lg transition cursor-pointer"
+                              title="Suspend account"
+                            >
+                              Suspend
+                            </button>
+                          )}
+                          <button
+                            onClick={() => alert(`Biography:\n${inst.bio || 'None'}\n\nQualifications: ${inst.qualifications || 'None'}\nPhone: ${inst.phone || 'None'}`)}
+                            className="bg-[#F7F5EE] hover:bg-[#E6EDE2] text-[#263D32] text-[11px] font-semibold py-1.5 px-2.5 rounded-lg transition cursor-pointer"
+                          >
+                            Details
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
