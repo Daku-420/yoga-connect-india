@@ -470,3 +470,87 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
     createdAt: '2026-10-01T14:20:00Z'
   }
 ];
+
+export const INITIAL_ENQUIRIES = [
+  {
+    id: 'enq-1',
+    referenceCode: 'ENQ-PRM-501',
+    centreId: 'centre-1',
+    centreName: 'Parmarth Niketan Sacred Ganges Ashram',
+    courseId: 'course-1',
+    courseTitle: '200 Hour Multi-Style Yoga Teacher Training (TTC)',
+    customerName: 'Sarah Jenkins',
+    customerEmail: 'sarah.jenkins@zenflow.co.uk',
+    customerPhone: '+44 7890 123456',
+    customerCountry: 'United Kingdom',
+    preferredDates: 'Jan 2027',
+    participantsCount: 2,
+    message: 'Inquiring if double room cottage is available for my partner and me for the January 2027 200h TTC batch.',
+    status: 'new' as const,
+    internalNotes: 'Followed up with room inventory check. Cottage #4 is open.',
+    lastContactedAt: new Date(Date.now() - 86400000).toISOString(),
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'enq-2',
+    referenceCode: 'ENQ-VED-502',
+    centreId: 'centre-2',
+    centreName: 'Veda5 Himalayan Ayurveda & Yoga Sanctuary',
+    courseId: 'course-2',
+    courseTitle: '14-Day Ayurvedic Panchakarma & Restorative Yoga Immersion',
+    customerName: 'Marcus Lindqvist',
+    customerEmail: 'marcus@stockholm-yoga.se',
+    customerPhone: '+46 70 123 4567',
+    customerCountry: 'Sweden',
+    preferredDates: 'Dec 2026',
+    participantsCount: 1,
+    message: 'Interested in 21-day customized chronic back pain treatment combined with restorative sessions.',
+    status: 'contacted' as const,
+    internalNotes: 'Senior Ayurvedic doctor reviewed requirements and sent treatment prospectus.',
+    lastContactedAt: new Date(Date.now() - 172800000).toISOString(),
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    updatedAt: new Date(Date.now() - 172800000).toISOString()
+  }
+];
+
+export const INITIAL_COMMISSION_RULES = [
+  {
+    id: 'rule-global',
+    centreId: null,
+    courseCategory: null,
+    commissionPercent: 15.00,
+    fixedFeeUSD: 0.00,
+    isActive: true,
+    notes: 'Standard Global Platform Escrow Commission Rate (15%)',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'rule-centre-1',
+    centreId: 'centre-1',
+    centreName: 'Parmarth Niketan Sacred Ganges Ashram',
+    courseCategory: '200h-ttc',
+    commissionPercent: 12.50,
+    fixedFeeUSD: 0.00,
+    isActive: true,
+    notes: 'Heritage Partner Preferred Rate for residential 200h TTC programs.',
+    createdAt: '2026-03-01T00:00:00Z',
+    updatedAt: '2026-03-01T00:00:00Z'
+  }
+];
+
+export const INITIAL_INVITATIONS = [
+  {
+    id: 'inv-1',
+    centreId: 'centre-3',
+    centreName: 'Sivananda Yoga Vedanta Dhanwantari Ashram',
+    email: 'admissions@sivananda-kerala.org',
+    role: 'owner' as const,
+    token: 'inv-sivananda-2026-secret-token',
+    status: 'pending' as const,
+    expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];

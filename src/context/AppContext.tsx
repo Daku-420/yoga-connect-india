@@ -17,7 +17,10 @@ import {
   FinancialLedgerEntry,
   PayoutRecord,
   FinancialQuery,
-  AuditLogEntry
+  AuditLogEntry,
+  CentreEnquiry,
+  VendorInvitation,
+  CommissionRule
 } from '../types';
 import { 
   supabase, 
@@ -29,7 +32,21 @@ import {
   signUpWithEmailPassword,
   sendPasswordReset,
   signOutUser,
-  fetchUserAuthorisation
+  fetchUserAuthorisation,
+  fetchLiveCentres,
+  fetchLiveCourses,
+  fetchLiveBookings,
+  fetchLiveEnquiries,
+  fetchLiveLedger,
+  fetchLivePayouts,
+  fetchLiveCommissionRules,
+  fetchLiveVendorInvitations,
+  updateBookingInDb,
+  updateEnquiryInDb,
+  saveCentreProfileInDb,
+  createVendorInvitationInDb,
+  revokeVendorInvitationInDb,
+  recordAuditLogInDb
 } from '../lib/supabase';
 import { mockCentres } from '../data/mockCentres';
 import { mockCourses } from '../data/mockCourses';
@@ -44,7 +61,10 @@ import {
   INITIAL_LEDGER_ENTRIES,
   INITIAL_PAYOUTS,
   INITIAL_FINANCIAL_QUERIES,
-  INITIAL_AUDIT_LOGS
+  INITIAL_AUDIT_LOGS,
+  INITIAL_ENQUIRIES,
+  INITIAL_COMMISSION_RULES,
+  INITIAL_INVITATIONS
 } from '../data/mockAccounting';
 
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
@@ -194,6 +214,25 @@ interface AppContextType {
   createFinancialQuery: (centreId: string, subject: string, message: string) => FinancialQuery;
   respondToFinancialQuery: (queryId: string, response: string) => void;
 
+  // Enquiries Management
+  enquiries: CentreEnquiry[];
+  updateEnquiryStatus: (enquiryId: string, status: CentreEnquiry['status'], internalNotes?: string) => Promise<{ success: boolean; error?: string }>;
+  updateEnquiry: (enquiryId: string, status: any, internalNotes?: string) => Promise<any>;
+  submitCustomerEnquiry: (enquiryData: Omit<CentreEnquiry, 'id' | 'referenceCode' | 'createdAt' | 'status'>) => Promise<CentreEnquiry>;
+
+  // Commission Rules
+  commissionRules: CommissionRule[];
+  addCommissionRule: (rule: Omit<CommissionRule, 'id' | 'createdAt' | 'updatedAt'>) => Promise<{ success: boolean; error?: string }>;
+  updateCommissionRule: (id: string, updates: Partial<CommissionRule>) => Promise<{ success: boolean; error?: string }>;
+
+  // Vendor Invitations (Admin only)
+  vendorInvitations: VendorInvitation[];
+  createVendorInvitation: (centreId: string, email: string, role?: 'owner' | 'manager' | 'accountant') => Promise<{ success: boolean; error?: string; invitation?: any }>;
+  revokeVendorInvitation: (id: string) => Promise<{ success: boolean; error?: string }>;
+
+  // Database State Refresh
+  refreshDatabaseState: () => Promise<void>;
+
   // Audit Logs
   auditLogs: AuditLogEntry[];
   recordAuditLog: (action: string, targetEntity: string, targetId?: string, details?: Record<string, any>) => void;
@@ -251,6 +290,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [payouts, setPayouts] = useState<PayoutRecord[]>(INITIAL_PAYOUTS);
   const [financialQueries, setFinancialQueries] = useState<FinancialQuery[]>(INITIAL_FINANCIAL_QUERIES);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
+  const [enquiries, setEnquiries] = useState<CentreEnquiry[]>(INITIAL_ENQUIRIES);
+  const [commissionRules, setCommissionRules] = useState<CommissionRule[]>(INITIAL_COMMISSION_RULES);
+  const [vendorInvitations, setVendorInvitations] = useState<VendorInvitation[]>(INITIAL_INVITATIONS);
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -1275,6 +1317,98 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCentres(prev => [...prev, centre]);
   };
 
+  const updateEnquiryStatus = async (enquiryId: string, status: CentreEnquiry['status'], internalNotes?: string) => {
+    setEnquiries(prev => prev.map(e => e.id === enquiryId ? { 
+      ...e, 
+      status, 
+      internalNotes: internalNotes ?? e.internalNotes, 
+      lastContactedAt: new Date().toISOString() 
+    } : e));
+    await updateEnquiryInDb(enquiryId, {
+      status,
+      ...(internalNotes !== undefined ? { internal_notes: internalNotes } : {}),
+      last_contacted_at: new Date().toISOString()
+    });
+    return { success: true };
+  };
+
+  const submitCustomerEnquiry = async (enquiryData: Omit<CentreEnquiry, 'id' | 'referenceCode' | 'createdAt' | 'status'>) => {
+    const newEnq: CentreEnquiry = {
+      ...enquiryData,
+      id: `enq-${Date.now()}`,
+      referenceCode: `ENQ-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: 'new',
+      createdAt: new Date().toISOString()
+    };
+    setEnquiries(prev => [newEnq, ...prev]);
+    return newEnq;
+  };
+
+  const addCommissionRule = async (ruleData: Omit<CommissionRule, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newRule: CommissionRule = {
+      ...ruleData,
+      id: `rule-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setCommissionRules(prev => [...prev, newRule]);
+    return { success: true };
+  };
+
+  const updateCommissionRule = async (id: string, updates: Partial<CommissionRule>) => {
+    setCommissionRules(prev => prev.map(r => r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r));
+    return { success: true };
+  };
+
+  const createVendorInvitation = async (centreId: string, email: string, role: 'owner' | 'manager' | 'accountant' = 'owner') => {
+    const token = `inv_${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}`;
+    const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    const newInv: VendorInvitation = {
+      id: `inv-${Date.now()}`,
+      centreId,
+      email,
+      role,
+      token,
+      status: 'pending',
+      expiresAt,
+      createdAt: new Date().toISOString()
+    };
+    setVendorInvitations(prev => [newInv, ...prev]);
+    await createVendorInvitationInDb(centreId, email, role, token, expiresAt);
+    return { success: true, invitation: newInv };
+  };
+
+  const revokeVendorInvitation = async (id: string) => {
+    setVendorInvitations(prev => prev.map(i => i.id === id ? { ...i, status: 'revoked' } : i));
+    await revokeVendorInvitationInDb(id);
+    return { success: true };
+  };
+
+  const refreshDatabaseState = async () => {
+    try {
+      const [liveCentres, liveCourses, liveBookings, liveEnquiries, liveLedger, livePayouts, liveRules, liveInvites] = await Promise.all([
+        fetchLiveCentres(),
+        fetchLiveCourses(),
+        fetchLiveBookings(),
+        fetchLiveEnquiries(),
+        fetchLiveLedger(),
+        fetchLivePayouts(),
+        fetchLiveCommissionRules(),
+        fetchLiveVendorInvitations()
+      ]);
+      if (liveCentres.length > 0) setCentres(liveCentres);
+      if (liveCourses.length > 0) setCourses(liveCourses);
+      if (liveBookings.length > 0) setBookings(liveBookings);
+      if (liveEnquiries.length > 0) setEnquiries(liveEnquiries);
+      if (liveLedger.length > 0) setLedgerEntries(liveLedger);
+      if (livePayouts.length > 0) setPayouts(livePayouts);
+      if (liveRules.length > 0) setCommissionRules(liveRules);
+      if (liveInvites.length > 0) setVendorInvitations(liveInvites);
+    } catch (e) {
+      console.warn('Live database state sync fallback:', e);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       brandName,
@@ -1369,7 +1503,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createFinancialQuery,
       respondToFinancialQuery,
       auditLogs,
-      recordAuditLog
+      recordAuditLog,
+      enquiries,
+      updateEnquiryStatus,
+      updateEnquiry: updateEnquiryStatus,
+      submitCustomerEnquiry,
+      commissionRules,
+      addCommissionRule,
+      updateCommissionRule,
+      vendorInvitations,
+      createVendorInvitation,
+      revokeVendorInvitation,
+      refreshDatabaseState
     }}>
       {children}
     </AppContext.Provider>

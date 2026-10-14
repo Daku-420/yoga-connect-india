@@ -104,59 +104,14 @@ export const Navbar: React.FC = () => {
       
       {/* Top Utility Bar - Forest Green with Warm Ivory Text */}
       <div className="bg-[#263D32] text-[#F7F5EE] text-xs py-2 px-4 border-b border-[#1E3228]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto flex items-center justify-center text-center">
           
           {/* Escrow Guarantee Statement */}
-          <div className="flex items-center space-x-2 text-[#A5B89A]">
+          <div className="flex items-center justify-center space-x-2 text-[#A5B89A]">
             <ShieldCheck className="w-4 h-4 text-[#DCCDB5] shrink-0" />
             <span>
               <strong className="text-white font-medium">100% Escrow Protected:</strong> Traveler inquiries stay strictly private with admin until booking confirmation.
             </span>
-          </div>
-
-          {/* Right Controls: Role Portal Shortcuts */}
-          <div className="flex items-center space-x-2 text-xs">
-            {isPartnerProfile ? (
-              <button
-                onClick={handlePartnerClick}
-                className="flex items-center space-x-1.5 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/60 transition cursor-pointer"
-                title={`Authorized Partner Portal: ${partnerCentre?.name || 'Assigned Ashram'}`}
-              >
-                <Building2 className="w-3.5 h-3.5 text-[#A5B89A]" />
-                <span className="max-w-[200px] truncate">{partnerCentre?.name || 'Partner Portal'}</span>
-              </button>
-            ) : userProfile?.role === 'admin' ? (
-              <a
-                href="/admin"
-                onClick={handleAdminClick}
-                className="flex items-center space-x-1.5 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/60 transition"
-                title="Master Admin Escrow & Centre Portal"
-              >
-                <Crown className="w-3.5 h-3.5 text-gold-400" />
-                <span>Admin Portal</span>
-              </a>
-            ) : (
-              <div className="flex items-center space-x-1.5">
-                <a
-                  href="/partner"
-                  onClick={handlePartnerClick}
-                  className="flex items-center space-x-1 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-medium px-2 py-0.5 rounded border border-[#3D5E4C]/40 transition"
-                  title="Ashram Partner Portal"
-                >
-                  <Building2 className="w-3 h-3 text-[#A5B89A]" />
-                  <span>Partner Portal</span>
-                </a>
-                <a
-                  href="/admin"
-                  onClick={handleAdminClick}
-                  className="flex items-center space-x-1 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-medium px-2 py-0.5 rounded border border-[#3D5E4C]/40 transition"
-                  title="Platform Administrator Portal"
-                >
-                  <Crown className="w-3 h-3 text-gold-400" />
-                  <span>Admin</span>
-                </a>
-              </div>
-            )}
           </div>
 
         </div>
@@ -208,6 +163,14 @@ export const Navbar: React.FC = () => {
             className={`transition-colors py-1.5 hover:text-[#536B50] ${activeView === 'destinations' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
           >
             Destinations
+          </button>
+
+          <button 
+            onClick={() => handlePartnerClick()}
+            className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1 font-medium ${activeView === 'centre-dashboard' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
+          >
+            <Building2 className="w-3.5 h-3.5 text-[#536B50]" />
+            <span>Vendor Portal</span>
           </button>
 
           {/* Journal Dropdown */}
@@ -668,8 +631,72 @@ export const Navbar: React.FC = () => {
                         </span>
                       )}
                     </button>
+
                   </div>
                 )}
+
+                {/* MANAGEMENT PORTALS (Partner Portal & Admin) */}
+                <div className="pt-2 border-t border-[#E2E5DD] space-y-1">
+                  <div className="px-2 py-1 text-[10px] font-bold text-[#8E9B91] uppercase tracking-wider flex items-center justify-between">
+                    <span>Authorized Portals</span>
+                    <span className="text-[9px] text-[#536B50] font-semibold">Staff &amp; Centres</span>
+                  </div>
+
+                  {/* Partner Portal */}
+                  <button
+                    onClick={(e) => {
+                      setIsProfileOpen(false);
+                      handlePartnerClick(e);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#E6EDE2]/70 transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer group"
+                    title="Yoga Centre Partner Portal"
+                  >
+                    <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] group-hover:bg-[#263D32] group-hover:text-white transition-colors shrink-0">
+                      <Building2 className="w-4 h-4 text-[#536B50] group-hover:text-[#DCCDB5]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="block text-xs font-bold text-[#263D32]">
+                          Partner Portal
+                        </span>
+                        <span className="text-[9px] bg-[#E6EDE2] text-[#263D32] font-semibold px-1.5 py-0.5 rounded border border-[#A5B89A]/40">
+                          Ashram
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#8E9B91] block truncate">
+                        {isPartnerProfile ? (partnerCentre?.name || 'Your Ashram Dashboard') : 'Yoga centre login, reservations & ledger'}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Admin Portal */}
+                  <a
+                    href="/admin"
+                    onClick={(e) => {
+                      setIsProfileOpen(false);
+                      handleAdminClick(e);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer group block"
+                    title="Master Admin Escrow & Centre Portal"
+                  >
+                    <div className="p-1.5 rounded-lg bg-[#263D32] text-gold-400 shrink-0 group-hover:bg-[#1E3228] transition-colors">
+                      <Crown className="w-4 h-4 text-gold-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="block text-xs font-bold text-[#263D32]">
+                          Admin
+                        </span>
+                        <span className="text-[9px] bg-[#263D32] text-gold-400 font-semibold px-1.5 py-0.5 rounded border border-gold-400/40">
+                          Portal
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#8E9B91] block truncate">
+                        Master platform oversight, escrow &amp; verification
+                      </span>
+                    </div>
+                  </a>
+                </div>
 
                 {/* DEMO / TEST PERSONAS COLLAPSIBLE */}
                 <div className="pt-2 border-t border-[#E2E5DD]">
@@ -977,16 +1004,28 @@ export const Navbar: React.FC = () => {
                     <span>Admin Control Center</span>
                   </a>
                 ) : (
-                  <button
-                    onClick={() => {
-                      setUserRole('user');
-                      handleNavClick('user-dashboard');
-                    }}
-                    className="w-full flex items-center justify-center space-x-1.5 bg-white text-[#263D32] border border-[#E2E5DD] py-2 px-3 rounded-lg font-semibold text-xs"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-[#536B50]" />
-                    <span>My Bookings &amp; Inquiries</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        setUserRole('user');
+                        handleNavClick('user-dashboard');
+                      }}
+                      className="w-full flex items-center justify-center space-x-1.5 bg-white text-[#263D32] border border-[#E2E5DD] py-2 px-3 rounded-lg font-semibold text-xs"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>My Guest Bookings</span>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        handlePartnerClick(e);
+                      }}
+                      className="w-full flex items-center justify-center space-x-1.5 bg-[#E6EDE2] text-[#263D32] border border-[#A5B89A]/50 py-2 px-3 rounded-lg font-bold text-xs"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-[#536B50]" />
+                      <span>Yoga Centre Vendor Portal</span>
+                    </button>
+                  </>
                 )}
               </div>
             </div>

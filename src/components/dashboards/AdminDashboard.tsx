@@ -52,6 +52,8 @@ import { exportLedgerToCSV, printCentreStatement } from '../../utils/statementEx
 interface AdminDashboardProps {
   initialTab?: 
     | 'partners'
+    | 'invitations'
+    | 'commissions'
     | 'bookings'
     | 'financial-oversight'
     | 'payouts'
@@ -90,18 +92,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
     getCentreLedgerEntries,
     getCentreFinancialMetrics,
     payouts,
+    getCentrePayouts,
     createPayoutBatch,
     processPayoutSettlement,
     financialQueries,
     respondToFinancialQuery,
     auditLogs,
     loginAsPersona,
-    setIsAuthModalOpen
+    setIsAuthModalOpen,
+    vendorInvitations,
+    createVendorInvitation,
+    revokeVendorInvitation,
+    commissionRules,
+    addCommissionRule,
+    updateCommissionRule
   } = useApp();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<
     | 'partners'
+    | 'invitations'
+    | 'commissions'
     | 'bookings'
     | 'financial-oversight'
     | 'payouts'
@@ -112,6 +123,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
     | 'asanas'
     | 'coupons'
   >(initialTab);
+
+  // Centre Drilldown Inspection Modal
+  const [inspectingCentre, setInspectingCentre] = useState<any | null>(null);
+
+  // Vendor Invitation Modal & Form State
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inviteCentreId, setInviteCentreId] = useState(centres[0]?.id || 'centre-1');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'owner' | 'manager' | 'accountant'>('owner');
+  const [inviteFeedback, setInviteFeedback] = useState<{ type: 'success' | 'error'; message: string; link?: string } | null>(null);
+  const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+
+  // Commission Rule Form State
+  const [isAddingRule, setIsAddingRule] = useState(false);
+  const [ruleScope, setRuleScope] = useState<'global' | 'centre'>('global');
+  const [ruleCentreId, setRuleCentreId] = useState(centres[0]?.id || 'centre-1');
+  const [ruleCategory, setRuleCategory] = useState('all');
+  const [rulePercent, setRulePercent] = useState(10);
+  const [ruleFixedFee, setRuleFixedFee] = useState(0);
+
 
   const [unmaskedBookingIds, setUnmaskedBookingIds] = useState<string[]>([]);
   const [bookingSearch, setBookingSearch] = useState('');
@@ -384,6 +415,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
           </button>
 
           <button
+            onClick={() => setActiveTab('invitations')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'invitations'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Send className="w-4 h-4" />
+            <span>Vendor Invitations</span>
+            {vendorInvitations && vendorInvitations.filter(i => i.status === 'pending').length > 0 && (
+              <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                {vendorInvitations.filter(i => i.status === 'pending').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('commissions')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'commissions'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Sliders className="w-4 h-4" />
+            <span>Commission Rules</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('bookings')}
             className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
               activeTab === 'bookings'
@@ -602,6 +662,220 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: VENDOR INVITATIONS */}
+        {activeTab === 'invitations' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Vendor Account Invitations &amp; Onboarding
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Generate secure, time-expiring invitation links to onboard verified yoga centres without public self-registration.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsSendingInvite(true)}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-sm"
+              >
+                <Send className="w-4 h-4" />
+                <span>Send Secure Invitation</span>
+              </button>
+            </div>
+
+            {/* Invitations Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Assigned Centre</th>
+                    <th className="py-3 px-3 font-bold">Recipient Email</th>
+                    <th className="py-3 px-3 font-bold">Role</th>
+                    <th className="py-3 px-3 font-bold">Status</th>
+                    <th className="py-3 px-3 font-bold">Expires</th>
+                    <th className="py-3 px-3 font-bold text-center">Invitation Link</th>
+                    <th className="py-3 px-3 font-bold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {vendorInvitations && vendorInvitations.length > 0 ? (
+                    vendorInvitations.map((inv) => {
+                      const centre = centres.find(c => c.id === inv.centreId);
+                      const inviteUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://yogaconnect.in'}/?view=centre_dashboard&invite=${inv.token}`;
+                      return (
+                        <tr key={inv.id} className="hover:bg-[#F7F5EE]/50 transition">
+                          <td className="py-3.5 px-3">
+                            <span className="font-bold text-[#263D32]">{centre?.name || inv.centreId}</span>
+                            <span className="block text-[10px] text-gray-500 font-mono">ID: {inv.centreId}</span>
+                          </td>
+                          <td className="py-3.5 px-3 font-semibold text-gray-900">
+                            {inv.email}
+                          </td>
+                          <td className="py-3.5 px-3 uppercase text-[10px] font-bold text-gray-700">
+                            {inv.role}
+                          </td>
+                          <td className="py-3.5 px-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              inv.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                              inv.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {inv.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 text-gray-500">
+                            {new Date(inv.expiresAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3.5 px-3 text-center">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(inviteUrl);
+                                setCopiedInviteId(inv.id);
+                                setTimeout(() => setCopiedInviteId(null), 2500);
+                              }}
+                              className="px-2.5 py-1 bg-[#F7F5EE] hover:bg-[#E6EDE2] text-[#263D32] rounded-lg text-[10px] font-bold border border-[#E2E5DD] transition"
+                            >
+                              {copiedInviteId === inv.id ? '✓ Link Copied!' : 'Copy Invite Link'}
+                            </button>
+                          </td>
+                          <td className="py-3.5 px-3 text-right">
+                            {inv.status === 'pending' && (
+                              <button
+                                onClick={async () => {
+                                  if (confirm(`Revoke invitation for ${inv.email}?`)) {
+                                    await revokeVendorInvitation(inv.id);
+                                  }
+                                }}
+                                className="text-gray-400 hover:text-red-600 text-xs font-semibold"
+                              >
+                                Revoke
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-gray-500">
+                        No pending vendor invitations. Click "Send Secure Invitation" to onboard an ashram partner.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: COMMISSION RULES */}
+        {activeTab === 'commissions' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Platform Commission &amp; Deductions Management
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Configure transparent commission percentages, payment gateway fees, and fixed service fees applied across bookings.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAddingRule(true)}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shrink-0 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Custom Commission Rule</span>
+              </button>
+            </div>
+
+            {/* Standard Tier Card */}
+            <div className="bg-[#FAF9F5] p-5 rounded-2xl border border-[#E2E5DD] flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                  Global Standard Rule
+                </span>
+                <h4 className="font-serif font-bold text-base text-[#263D32]">
+                  Standard Platform Commission: 10.0%
+                </h4>
+                <p className="text-xs text-gray-600 max-w-xl">
+                  Covers international credit card escrow handling, global SEO listing promotion, customer dispute mediation, and booking verification.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-emerald-700 bg-white px-3 py-1.5 rounded-xl border border-emerald-200">
+                Active Across All Centres
+              </span>
+            </div>
+
+            {/* Commission Rules Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Scope / Centre</th>
+                    <th className="py-3 px-3 font-bold">Course Category</th>
+                    <th className="py-3 px-3 font-bold">Commission %</th>
+                    <th className="py-3 px-3 font-bold">Fixed Fee</th>
+                    <th className="py-3 px-3 font-bold">Status</th>
+                    <th className="py-3 px-3 font-bold text-right">Toggle</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {commissionRules && commissionRules.length > 0 ? (
+                    commissionRules.map((rule) => {
+                      const centre = rule.centreId ? centres.find(c => c.id === rule.centreId) : null;
+                      return (
+                        <tr key={rule.id} className="hover:bg-[#F7F5EE]/50 transition">
+                          <td className="py-3.5 px-3">
+                            <span className="font-bold text-[#263D32]">
+                              {centre ? centre.name : 'Global (All Centres)'}
+                            </span>
+                            {rule.centreId && (
+                              <span className="block text-[10px] text-gray-500 font-mono">ID: {rule.centreId}</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-3 capitalize font-medium text-gray-800">
+                            {rule.courseCategory === 'all' ? 'All Retreat Packages' : rule.courseCategory}
+                          </td>
+                          <td className="py-3.5 px-3 font-bold text-[#263D32]">
+                            {rule.commissionPercent}%
+                          </td>
+                          <td className="py-3.5 px-3 font-mono text-gray-600">
+                            ${rule.fixedFeeUSD || 0}
+                          </td>
+                          <td className="py-3.5 px-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              rule.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                              {rule.isActive ? 'Active' : 'Disabled'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 text-right">
+                            <button
+                              onClick={async () => {
+                                await updateCommissionRule(rule.id, { isActive: !rule.isActive });
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-gray-100 text-gray-700 rounded-lg text-[10px] font-bold border border-[#E2E5DD] transition"
+                            >
+                              {rule.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-gray-500">
+                        Using global default 10% commission. Custom rules will appear here.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1041,7 +1315,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
                       <div>Partner Status: <strong>{assignedPartner?.status || 'N/A'}</strong></div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center justify-between pt-1 gap-2">
                       <button
                         onClick={() => {
                           setProvCentreId(c.id);
@@ -1051,14 +1325,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
                       >
                         {assignedPartner ? 'Manage Partner' : '+ Assign Partner'}
                       </button>
-                      <button
-                        onClick={() => {
-                          setActiveView('centre-dashboard');
-                        }}
-                        className="text-xs bg-[#263D32] text-white px-3 py-1 rounded-lg font-medium cursor-pointer"
-                      >
-                        Preview Portal
-                      </button>
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          onClick={() => setInspectingCentre(c)}
+                          className="text-xs bg-[#536B50] hover:bg-[#40563E] text-white px-2.5 py-1 rounded-lg font-medium cursor-pointer transition shadow-2xs"
+                        >
+                          Inspect Dossier
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveView('centre-dashboard');
+                          }}
+                          className="text-xs bg-[#263D32] hover:bg-[#1E3228] text-white px-2.5 py-1 rounded-lg font-medium cursor-pointer transition shadow-2xs"
+                        >
+                          Preview Portal
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1579,6 +1861,410 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
         </div>
       )}
 
+      {/* MODAL 5: Send Secure Vendor Invitation */}
+      {isSendingInvite && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <h3 className="font-serif font-bold text-lg text-[#263D32]">
+                Send Secure Vendor Invitation
+              </h3>
+              <button 
+                onClick={() => {
+                  setIsSendingInvite(false);
+                  setInviteFeedback(null);
+                }} 
+                className="text-gray-400"
+              >
+                ✕
+              </button>
+            </div>
+
+            {inviteFeedback && (
+              <div className={`p-3 rounded-xl text-xs space-y-2 border ${
+                inviteFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'
+              }`}>
+                <p className="font-medium">{inviteFeedback.message}</p>
+                {inviteFeedback.link && (
+                  <div className="bg-white p-2 rounded-lg border border-emerald-300 font-mono text-[10px] break-all select-all flex items-center justify-between gap-2">
+                    <span className="truncate">{inviteFeedback.link}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(inviteFeedback.link!);
+                        alert('Invitation link copied to clipboard!');
+                      }}
+                      className="px-2 py-1 bg-emerald-600 text-white rounded font-bold shrink-0 text-[10px]"
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setInviteFeedback(null);
+                try {
+                  const res = await createVendorInvitation(inviteCentreId, inviteEmail, inviteRole);
+                  if (res.success && res.invitation) {
+                    const url = `${window.location.origin}/?view=centre_dashboard&invite=${res.invitation.token}`;
+                    setInviteFeedback({
+                      type: 'success',
+                      message: `Invitation generated for ${inviteEmail}. Share the secure link below:`,
+                      link: url
+                    });
+                    setInviteEmail('');
+                  } else {
+                    setInviteFeedback({ type: 'error', message: res.error || 'Failed to generate invitation.' });
+                  }
+                } catch (err: any) {
+                  setInviteFeedback({ type: 'error', message: err.message || 'Error creating invitation.' });
+                }
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Target Yoga Centre</label>
+                <select
+                  value={inviteCentreId}
+                  onChange={(e) => setInviteCentreId(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] font-semibold"
+                >
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.city})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Centre Owner / Admin Email</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. ashram.contact@domain.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Authorized Role</label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as any)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                >
+                  <option value="owner">Authorised Centre Owner</option>
+                  <option value="manager">Operations Manager</option>
+                  <option value="accountant">Financial Accountant</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSendingInvite(false);
+                    setInviteFeedback(null);
+                  }}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#536B50] hover:bg-[#40563E] text-white rounded-xl font-bold shadow-sm transition"
+                >
+                  Generate Invitation
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: Add Commission Rule */}
+      {isAddingRule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <h3 className="font-serif font-bold text-lg text-[#263D32]">
+                Configure Commission Rule
+              </h3>
+              <button onClick={() => setIsAddingRule(false)} className="text-gray-400">✕</button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await addCommissionRule({
+                  centreId: ruleScope === 'global' ? undefined : ruleCentreId,
+                  courseCategory: ruleCategory,
+                  commissionPercent: rulePercent,
+                  fixedFeeUSD: ruleFixedFee,
+                  isActive: true
+                });
+                setIsAddingRule(false);
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Scope</label>
+                <select
+                  value={ruleScope}
+                  onChange={(e) => setRuleScope(e.target.value as any)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                >
+                  <option value="global">Global (Applies to all yoga centres)</option>
+                  <option value="centre">Centre Specific (Tailored ashram partner agreement)</option>
+                </select>
+              </div>
+
+              {ruleScope === 'centre' && (
+                <div>
+                  <label className="block font-bold text-[#263D32] mb-1">Select Yoga Centre</label>
+                  <select
+                    value={ruleCentreId}
+                    onChange={(e) => setRuleCentreId(e.target.value)}
+                    className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                  >
+                    {centres.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Course / Retreat Category</label>
+                <select
+                  value={ruleCategory}
+                  onChange={(e) => setRuleCategory(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                >
+                  <option value="all">All Course &amp; Retreat Packages</option>
+                  <option value="200h-ttc">200-Hour TTC</option>
+                  <option value="300h-ttc">300-Hour TTC</option>
+                  <option value="meditation">Meditation Retreats</option>
+                  <option value="ayurveda">Ayurvedic Immersion</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#263D32] mb-1">Commission %</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    step="0.5"
+                    required
+                    value={rulePercent}
+                    onChange={(e) => setRulePercent(Number(e.target.value))}
+                    className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#263D32] mb-1">Fixed Fee (USD)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={ruleFixedFee}
+                    onChange={(e) => setRuleFixedFee(Number(e.target.value))}
+                    className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingRule(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#536B50] hover:bg-[#40563E] text-white rounded-xl font-bold shadow-sm"
+                >
+                  Save Commission Rule
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 7: Comprehensive Centre Inspection Dossier */}
+      {inspectingCentre && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full border border-[#DCD6C8] shadow-2xl overflow-hidden my-8">
+            {/* Header */}
+            <div className="bg-[#263D32] text-white p-6 relative">
+              <button
+                onClick={() => setInspectingCentre(null)}
+                className="absolute top-5 right-5 text-gray-300 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors"
+              >
+                ✕
+              </button>
+              <div className="flex items-center space-x-3">
+                <img
+                  src={inspectingCentre.coverImage || inspectingCentre.image}
+                  alt={inspectingCentre.name}
+                  className="w-14 h-14 rounded-2xl object-cover border border-white/20 shrink-0"
+                />
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-serif font-bold text-xl text-[#F7F5EE]">
+                      {inspectingCentre.name}
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      Active Centre
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-300 mt-0.5">
+                    ID: <span className="font-mono">{inspectingCentre.id}</span> • {inspectingCentre.city || inspectingCentre.location}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-xs">
+              {/* Financial Metrics */}
+              {(() => {
+                const cBookings = bookings.filter(b => b.centreId === inspectingCentre.id);
+                const cLedger = getCentreLedgerEntries(inspectingCentre.id);
+                const cPayouts = getCentrePayouts(inspectingCentre.id);
+
+                const totalBookingValue = cBookings.reduce((sum, b) => sum + (b.totalUSD || b.totalPriceUSD || 0), 0);
+                const collectedRevenue = cBookings
+                  .filter(b => b.status === 'confirmed_paid' || b.paymentStatus === 'paid' || (b.paymentStatus as any) === 'paid_full')
+                  .reduce((sum, b) => sum + (b.totalUSD || b.totalPriceUSD || 0), 0);
+                const platformFee = Math.round(collectedRevenue * 0.10);
+                const netPayable = Math.max(0, collectedRevenue - platformFee);
+                const settledAmount = cPayouts
+                  .filter(p => p.status === 'processed' || p.status === 'paid')
+                  .reduce((sum, p) => sum + (p.netPayoutAmount || p.amountUSD || 0), 0);
+                const pendingSettlement = Math.max(0, netPayable - settledAmount);
+
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold block mb-1">Total Bookings</span>
+                        <div className="text-lg font-bold text-[#263D32]">{cBookings.length}</div>
+                        <span className="text-[10px] text-gray-500">Gross: {formatPrice(totalBookingValue)}</span>
+                      </div>
+
+                      <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold block mb-1">Escrow Collected</span>
+                        <div className="text-lg font-bold text-emerald-800">{formatPrice(collectedRevenue)}</div>
+                        <span className="text-[10px] text-gray-500">10% Fee: {formatPrice(platformFee)}</span>
+                      </div>
+
+                      <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold block mb-1">Net Due to Centre</span>
+                        <div className="text-lg font-bold text-[#263D32]">{formatPrice(netPayable)}</div>
+                        <span className="text-[10px] text-gray-500">After deductions</span>
+                      </div>
+
+                      <div className="bg-[#F7F5EE] p-3 rounded-xl border border-[#E2E5DD]">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold block mb-1">Outstanding Payout</span>
+                        <div className="text-lg font-bold text-blue-900">{formatPrice(pendingSettlement)}</div>
+                        <span className="text-[10px] text-gray-500">Disbursed: {formatPrice(settledAmount)}</span>
+                      </div>
+                    </div>
+
+                    {/* Centre Coordinates & Banking Details */}
+                    <div className="bg-white rounded-2xl p-4 border border-[#E2E5DD] shadow-sm space-y-2">
+                      <h4 className="font-bold text-[#263D32] flex items-center">
+                        <Building2 className="w-4 h-4 mr-1.5 text-[#536B50]" /> Registered Coordinates &amp; Bank KYC
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
+                        <div>
+                          <span className="text-gray-400 text-[10px] uppercase font-bold block">Physical Address</span>
+                          <span className="text-gray-800">{inspectingCentre.address || inspectingCentre.location || 'Rishikesh, Uttarakhand'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 text-[10px] uppercase font-bold block">Contact Details</span>
+                          <span className="text-gray-800">{inspectingCentre.contactEmail || 'contact@ashram.org'} • {inspectingCentre.contactPhone || '+91 9876543210'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 text-[10px] uppercase font-bold block">Bank Name</span>
+                          <span className="font-semibold text-gray-800">{inspectingCentre.bankAccountDetails?.bankName || 'State Bank of India'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 text-[10px] uppercase font-bold block">Account / IFSC</span>
+                          <span className="font-mono text-gray-800">{inspectingCentre.bankAccountDetails?.accountNumber || '•••••••• 4092'} (IFSC: {inspectingCentre.bankAccountDetails?.ifscCode || 'SBIN0001234'})</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recent Bookings for this centre */}
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-[#263D32]">Recent Reservations for this Centre</h4>
+                      {cBookings.length === 0 ? (
+                        <p className="text-gray-500 italic p-3 bg-[#F7F5EE] rounded-xl">No reservations recorded yet for this centre.</p>
+                      ) : (
+                        <div className="overflow-x-auto border border-[#E2E5DD] rounded-xl">
+                          <table className="w-full text-left text-xs">
+                            <thead className="bg-[#F7F5EE] text-gray-600 font-bold uppercase text-[10px]">
+                              <tr>
+                                <th className="py-2 px-3">Booking ID</th>
+                                <th className="py-2 px-3">Guest</th>
+                                <th className="py-2 px-3">Dates</th>
+                                <th className="py-2 px-3">Amount</th>
+                                <th className="py-2 px-3">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E5DD]">
+                              {cBookings.slice(0, 5).map(b => (
+                                <tr key={b.id} className="hover:bg-[#FAF9F5]">
+                                  <td className="py-2 px-3 font-mono">{b.id.slice(0, 10)}</td>
+                                  <td className="py-2 px-3 font-semibold text-gray-800">{b.guestName || b.customerName}</td>
+                                  <td className="py-2 px-3 text-gray-600">{b.startDate ? new Date(b.startDate).toLocaleDateString() : 'Flexible'}</td>
+                                  <td className="py-2 px-3 font-bold text-[#263D32]">{formatPrice(b.totalUSD || b.totalPriceUSD || 0)}</td>
+                                  <td className="py-2 px-3 capitalize">{b.status.replace('_', ' ')}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Footer */}
+            <div className="bg-[#F7F5EE] px-6 py-4 border-t border-[#E2E5DD] flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setInspectingCentre(null);
+                  setActiveView('centre-dashboard');
+                }}
+                className="px-4 py-2 bg-[#263D32] hover:bg-[#1E3228] text-white rounded-xl text-xs font-bold transition shadow-sm"
+              >
+                Open Centre Vendor Portal View
+              </button>
+              <button
+                onClick={() => setInspectingCentre(null)}
+                className="px-5 py-2 bg-white text-gray-700 hover:bg-gray-100 rounded-xl text-xs font-bold border border-[#DCD6C8]"
+              >
+                Close Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
+

@@ -207,3 +207,308 @@ export async function fetchUserAuthorisation(userId: string, email: string) {
   }
 }
 
+/**
+ * Fetch all registered centres from Supabase
+ */
+export async function fetchLiveCentres() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('centres')
+      .select('*')
+      .order('sponsored_rank', { ascending: true });
+    if (error) {
+      console.warn('Error fetching centres from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching centres:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch all courses from Supabase
+ */
+export async function fetchLiveCourses() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .order('price_usd', { ascending: true });
+    if (error) {
+      console.warn('Error fetching courses from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching courses:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch bookings with strict RLS enforcement (Admin gets all, Vendors get assigned)
+ */
+export async function fetchLiveBookings() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching bookings from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching bookings:', err);
+    return [];
+  }
+}
+
+/**
+ * Update booking status and permitted notes
+ */
+export async function updateBookingInDb(bookingId: string, updates: { status?: string; payment_status?: string; vendor_notes?: string; admin_notes?: string }) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bookingId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update booking' };
+  }
+}
+
+/**
+ * Fetch enquiries assigned to centre or all enquiries if admin
+ */
+export async function fetchLiveEnquiries() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('enquiries')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching enquiries from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching enquiries:', err);
+    return [];
+  }
+}
+
+/**
+ * Update enquiry status or internal notes
+ */
+export async function updateEnquiryInDb(enquiryId: string, updates: { status?: string; internal_notes?: string; last_contacted_at?: string }) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('enquiries')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', enquiryId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update enquiry' };
+  }
+}
+
+/**
+ * Fetch financial ledger entries
+ */
+export async function fetchLiveLedger() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('financial_ledger')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching ledger from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching ledger:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch payouts
+ */
+export async function fetchLivePayouts() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('payouts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching payouts from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching payouts:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch commission rules
+ */
+export async function fetchLiveCommissionRules() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('commission_rules')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching commission rules from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching commission rules:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch vendor invitations (Admin only)
+ */
+export async function fetchLiveVendorInvitations() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('vendor_invitations')
+      .select('*, centres(id, name)')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching invitations from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching invitations:', err);
+    return [];
+  }
+}
+
+/**
+ * Create a new vendor invitation (Admin only)
+ */
+export async function createVendorInvitationInDb(
+  centreId: string, 
+  email: string, 
+  role: string = 'owner',
+  token?: string,
+  expiresAt?: string
+) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { data, error } = await supabase
+      .from('vendor_invitations')
+      .insert({
+        centre_id: centreId,
+        email: email.trim().toLowerCase(),
+        role: role,
+        ...(token ? { token } : {}),
+        ...(expiresAt ? { expires_at: expiresAt } : {})
+      })
+      .select()
+      .single();
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, invitation: data };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to create vendor invitation' };
+  }
+}
+
+/**
+ * Revoke vendor invitation
+ */
+export async function revokeVendorInvitationInDb(invitationId: string) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('vendor_invitations')
+      .update({ status: 'revoked', updated_at: new Date().toISOString() })
+      .eq('id', invitationId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Save / Update Centre Profile in Supabase
+ */
+export async function saveCentreProfileInDb(centreId: string, updates: Record<string, any>) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('centres')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', centreId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to save centre profile' };
+  }
+}
+
+/**
+ * Record immutable audit log
+ */
+export async function recordAuditLogInDb(action: string, targetEntity: string, targetId?: string, details?: any) {
+  if (!isSupabaseConfigured) return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.from('audit_logs').insert({
+      actor_id: session?.user?.id || null,
+      actor_email: session?.user?.email || null,
+      action,
+      target_entity: targetEntity,
+      target_id: targetId || null,
+      details: details || {}
+    });
+  } catch (err) {
+    console.warn('Failed to record audit log:', err);
+  }
+}
+

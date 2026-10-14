@@ -58,16 +58,20 @@ export interface Course {
   centreName: string;
   title: string;
   subtitle: string;
+  description?: string;
+  location?: string;
   category: CourseCategory;
   durationDays: number;
   priceUSD: number;
   certification: string;
   syllabus: string[];
+  features?: string[];
   dailySchedule: DailyScheduleItem[];
   mealsIncluded: string;
   accommodationOptions: string[];
   upcomingDates: string[];
   photos: string[];
+  image?: string;
   videoUrl?: string;
   requirements: string[];
 }
@@ -81,6 +85,7 @@ export interface YogaCentre {
   city: string;
   state: string;
   coverImage: string;
+  image?: string;
   galleryImages: string[];
   videoUrl?: string;
   rating: number;
@@ -111,6 +116,30 @@ export interface YogaCentre {
   isVerified: boolean;
   sponsoredRank?: number;
   commissionRatePercent: number;
+  status?: 'pending_approval' | 'approved' | 'suspended' | 'rejected';
+  address?: string;
+  websiteUrl?: string;
+  socialLinks?: {
+    instagram?: string;
+    facebook?: string;
+    youtube?: string;
+    linkedin?: string;
+  };
+  operatingHours?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  bankAccountDetails?: {
+    accountHolderName?: string;
+    accountHolder?: string;
+    bankName?: string;
+    accountNumberMasked?: string;
+    accountNumber?: string;
+    ifscOrSwift?: string;
+    ifscCode?: string;
+    swiftCode?: string;
+    branch?: string;
+    isVerified?: boolean;
+  };
 }
 
 export type BookingStatus = 
@@ -118,6 +147,7 @@ export type BookingStatus =
   | 'approved_by_admin' 
   | 'assigned_to_centre' 
   | 'confirmed_paid' 
+  | 'completed'
   | 'cancelled';
 
 export interface BookingRequest {
@@ -128,24 +158,83 @@ export interface BookingRequest {
   courseId: string;
   courseTitle: string;
   startDate: string;
+  endDate?: string;
   durationDays: number;
   participantsCount: number;
   roomType: string;
   airportPickup: boolean;
   totalUSD: number;
+  totalPriceUSD?: number;
   currencyPaid: CurrencyCode;
   
-  // Sensitive Customer Data (ONLY visible to Platform Admin & User)
+  // Customer Data (Authorized disclosure rules apply)
   customerName: string;
+  guestName?: string;
   customerEmail: string;
+  guestEmail?: string;
   customerPhone: string;
+  guestPhone?: string;
   customerCountry: string;
   specialRequests?: string;
+  specialRequirements?: string;
+  vendorNotes?: string;
+  paymentStatus?: 'unverified' | 'pending' | 'paid' | 'paid_full' | 'paid_deposit' | 'refunded' | 'disputed';
   
   status: BookingStatus;
   createdAt: string;
+  updatedAt?: string;
   adminNotes?: string;
   centrePayoutUSD?: number;
+  commissionFeeUSD?: number;
+}
+
+export interface CentreEnquiry {
+  id: string;
+  referenceCode: string;
+  centreId: string;
+  centreName?: string;
+  courseId?: string;
+  courseTitle?: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  customerCountry?: string;
+  preferredDates?: string;
+  participantsCount: number;
+  message: string;
+  status: 'new' | 'in_progress' | 'contacted' | 'converted' | 'closed' | 'archived';
+  internalNotes?: string;
+  lastContactedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface VendorInvitation {
+  id: string;
+  centreId: string;
+  centreName?: string;
+  email: string;
+  role: 'owner' | 'manager' | 'accountant';
+  token: string;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  invitedBy?: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CommissionRule {
+  id: string;
+  centreId?: string | null;
+  centreName?: string;
+  courseCategory?: string | null;
+  commissionPercent: number;
+  fixedFeeUSD: number;
+  isActive: boolean;
+  notes?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Review {
@@ -393,6 +482,8 @@ export interface FinancialLedgerEntry {
   entryType: LedgerEntryType;
   entryDirection: LedgerDirection;
   amount: number;
+  amountUSD?: number;
+  runningBalanceUSD?: number;
   currency: CurrencyCode;
   description: string;
   referenceCode?: string;
@@ -402,7 +493,7 @@ export interface FinancialLedgerEntry {
   createdAt: string;
 }
 
-export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'reversed';
+export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'reversed' | 'processed';
 
 export interface PayoutRecord {
   id: string;
@@ -413,9 +504,12 @@ export interface PayoutRecord {
   commissionDeducted: number;
   refundsDeducted: number;
   netPayoutAmount: number;
+  amountUSD?: number;
   currency: CurrencyCode;
   status: PayoutStatus;
   settlementReference?: string;
+  bankReference?: string;
+  scheduledDate?: string;
   payoutMethod: string;
   periodStart?: string;
   periodEnd?: string;
