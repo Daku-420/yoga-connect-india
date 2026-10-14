@@ -448,14 +448,14 @@ export const Navbar: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="p-3 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]/70 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0">
+                  <div className="p-3 bg-gradient-to-br from-[#F7F5EE] to-[#E6EDE2]/50 rounded-xl border border-[#E2E5DD] space-y-2.5">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-8 h-8 rounded-full bg-white shadow-xs border border-[#E2E5DD] text-[#263D32] flex items-center justify-center shrink-0">
                         <User className="w-4 h-4 text-[#536B50]" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <span className="block text-xs font-bold text-[#263D32]">Account Login</span>
-                        <span className="block text-[10px] text-[#8E9B91]">Customer, Partner, or Administrator</span>
+                        <span className="block text-[10px] text-[#59665C]">Customer, Partner, or Administrator</span>
                       </div>
                     </div>
                     <button
@@ -463,10 +463,10 @@ export const Navbar: React.FC = () => {
                         setIsProfileOpen(false);
                         setIsAuthModalOpen(true);
                       }}
-                      className="w-full bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold py-2 px-3 rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                      className="w-full bg-[#263D32] hover:bg-[#1E3228] text-white text-xs font-semibold py-2 px-3 rounded-lg transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
                     >
                       <LogIn className="w-3.5 h-3.5" />
-                      <span>Sign In with Gmail / OTP</span>
+                      <span>Login / Sign Up</span>
                     </button>
                   </div>
                 )}
@@ -867,57 +867,68 @@ export const Navbar: React.FC = () => {
                   </div>
                 )}
 
-                {/* 4. VISITOR (Not Logged In) MENU (Prompt Section 1 & 10) */}
+                {/* 4. VISITOR (Not Logged In) PORTAL DIRECTORY */}
                 {!userProfile && (
-                  <div className="space-y-1.5 pt-1">
-                    <button
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        setIsAuthModalOpen(true);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl bg-[#536B50] hover:bg-[#40563E] text-white transition flex items-center space-x-2.5 text-xs font-semibold cursor-pointer shadow-xs"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      <span>Login / Sign Up</span>
-                    </button>
+                  <div className="space-y-1 pt-1">
+                    <div className="px-1 pb-1">
+                      <span className="text-[10px] font-bold text-[#8E9B91] uppercase tracking-wider">Access Portals</span>
+                    </div>
 
+                    {/* Traveller Portal */}
                     <button
                       onClick={() => {
                         setIsProfileOpen(false);
                         setUserRole('user');
                         setActiveView('user-dashboard');
                       }}
-                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                      className="w-full group text-left px-2.5 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 cursor-pointer border border-transparent hover:border-[#E2E5DD]"
                     >
-                      <User className="w-4 h-4 text-[#536B50]" />
-                      <span className="font-medium">Traveller Portal</span>
+                      <div className="w-7 h-7 rounded-lg bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0 group-hover:bg-[#263D32] group-hover:text-white transition-colors">
+                        <User className="w-3.5 h-3.5 text-[#536B50] group-hover:text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-xs font-semibold text-[#263D32]">Traveller Portal</span>
+                        <span className="block text-[10px] text-[#59665C] truncate">Bookings, wishlist & saved retreats</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#8E9B91] group-hover:text-[#263D32] group-hover:translate-x-0.5 transition-all shrink-0" />
                     </button>
 
-                    <div className="pt-1.5 border-t border-[#E2E5DD]/70">
-                      <button
-                        onClick={(e) => {
-                          setIsProfileOpen(false);
-                          handlePartnerClick(e);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl bg-[#E6EDE2] hover:bg-[#D7E3D1] transition flex items-center space-x-2.5 text-[#263D32] text-xs font-bold cursor-pointer"
-                      >
-                        <Building2 className="w-4 h-4 text-[#286749]" />
-                        <span className="flex-1">Partner Portal</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-[#286749]" />
-                      </button>
+                    {/* Partner Portal */}
+                    <button
+                      onClick={(e) => {
+                        setIsProfileOpen(false);
+                        handlePartnerClick(e);
+                      }}
+                      className="w-full group text-left px-2.5 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 cursor-pointer border border-transparent hover:border-[#E2E5DD]"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-[#E6EDE2] text-[#286749] flex items-center justify-center shrink-0 group-hover:bg-[#286749] group-hover:text-white transition-colors">
+                        <Building2 className="w-3.5 h-3.5 text-[#286749] group-hover:text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-xs font-semibold text-[#263D32]">Partner Portal</span>
+                        <span className="block text-[10px] text-[#59665C] truncate">Centre listings, bookings & payouts</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#8E9B91] group-hover:text-[#286749] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </button>
 
-                      <a
-                        href="/admin"
-                        onClick={(e) => {
-                          setIsProfileOpen(false);
-                          handleAdminClick(e);
-                        }}
-                        className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#263D32] text-xs cursor-pointer mt-1"
-                      >
-                        <Crown className="w-4 h-4 text-gold-500" />
-                        <span className="font-medium">Admin Portal</span>
-                      </a>
-                    </div>
+                    {/* Admin Portal */}
+                    <a
+                      href="/admin"
+                      onClick={(e) => {
+                        setIsProfileOpen(false);
+                        handleAdminClick(e);
+                      }}
+                      className="w-full group text-left px-2.5 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 cursor-pointer border border-transparent hover:border-[#E2E5DD]"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 group-hover:bg-[#263D32] group-hover:text-gold-400 transition-colors border border-amber-200/50">
+                        <Crown className="w-3.5 h-3.5 text-amber-600 group-hover:text-gold-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-xs font-semibold text-[#263D32]">Admin Portal</span>
+                        <span className="block text-[10px] text-[#59665C] truncate">Platform management & oversight</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#8E9B91] group-hover:text-[#263D32] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </a>
                   </div>
                 )}
 
