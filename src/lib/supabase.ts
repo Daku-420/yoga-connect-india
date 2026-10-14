@@ -53,14 +53,29 @@ export async function sendEmailOtp(email: string) {
   if (!isSupabaseConfigured) {
     return { data: null, error: new Error('Supabase configuration missing in .env.local.') };
   }
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}` : undefined,
+      emailRedirectTo: origin ? `${origin}/auth/callback` : undefined,
     },
   });
-  return { data, error };
+
+  if (error) {
+    const msg = error.message || '';
+    if (msg.toLowerCase().includes('rate limit') || (error as any).status === 429) {
+      return {
+        data: null,
+        error: new Error(
+          'Email provider hourly rate limit reached. Please use Password login or Continue with Google for instant access.'
+        ),
+      };
+    }
+    return { data, error };
+  }
+
+  return { data, error: null };
 }
 
 /**
@@ -93,13 +108,14 @@ export async function signInWithEmailPassword(email: string, password: string) {
 
 /**
  * Sign up using Email and Password
+ * Automatically establishes an authenticated session immediately
  */
 export async function signUpWithEmailPassword(email: string, password: string, fullName?: string) {
   if (!isSupabaseConfigured) {
     return { data: null, error: new Error('Supabase is not configured.') };
   }
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  return await supabase.auth.signUp({
+  const signUpRes = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -110,6 +126,23 @@ export async function signUpWithEmailPassword(email: string, password: string, f
       emailRedirectTo: `${origin}/auth/callback`,
     },
   });
+
+  if (signUpRes.error) {
+    return signUpRes;
+  }
+
+  // If user was created, verify or establish session right away so user is immediately logged in
+  if (!signUpRes.data?.session && signUpRes.data?.user) {
+    const signInRes = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInRes.data?.session) {
+      return signInRes;
+    }
+  }
+
+  return signUpRes;
 }
 
 /**

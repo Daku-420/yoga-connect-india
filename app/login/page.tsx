@@ -38,7 +38,7 @@ function LoginContent() {
     resetPassword 
   } = useApp();
 
-  const [authMethod, setAuthMethod] = useState<'otp' | 'password'>('otp');
+  const [authMethod, setAuthMethod] = useState<'otp' | 'password'>('password');
   const [passwordMode, setPasswordMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [email, setEmail] = useState('');
@@ -292,9 +292,23 @@ function LoginContent() {
 
           {/* Feedback */}
           {errorMsg && (
-            <div className="p-3 bg-[#FEF3F2] border border-[#FECDCA] rounded-xl flex items-start space-x-2 text-xs text-[#B42318] animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
+            <div className="p-3 bg-[#FEF3F2] border border-[#FECDCA] rounded-xl flex flex-col space-y-2 text-xs text-[#B42318] animate-in fade-in">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="flex-1">{errorMsg}</span>
+              </div>
+              {authMethod === 'otp' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMethod('password');
+                    setErrorMsg('');
+                  }}
+                  className="self-start text-[11px] font-bold text-[#263D32] bg-white px-2.5 py-1 rounded-md border border-[#FECDCA] hover:bg-[#F7F5EE] transition cursor-pointer"
+                >
+                  👉 Switch to Password Login
+                </button>
+              )}
             </div>
           )}
 
