@@ -511,4 +511,45 @@ export async function recordAuditLogInDb(action: string, targetEntity: string, t
     console.warn('Failed to record audit log:', err);
   }
 }
+/**
+ * Fetch all user profiles (Admin)
+ */
+export async function fetchLiveProfiles() {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Error fetching profiles from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Network error fetching profiles:', err);
+    return [];
+  }
+}
 
+/**
+ * Update user profile / preferences in Supabase
+ */
+export async function updateProfileInDb(userId: string, updates: Record<string, any>) {
+  if (!isSupabaseConfigured) return { success: false, error: 'Database not connected' };
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update profile' };
+  }
+}

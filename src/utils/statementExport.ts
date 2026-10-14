@@ -4,7 +4,7 @@ import { FinancialLedgerEntry, PayoutRecord, YogaCentre } from '../types';
  * Generates and triggers download of a standardized CSV statement for a yoga centre
  */
 export function exportLedgerToCSV(
-  centre: YogaCentre,
+  centreOrTitle: YogaCentre | { name: string; location?: string; slug?: string },
   entries: FinancialLedgerEntry[],
   dateRangeLabel = 'All Time'
 ) {
@@ -49,8 +49,8 @@ export function exportLedgerToCSV(
   const summaryRows = [
     [],
     ['--- SUMMARY ---'],
-    ['Centre Name', `"${centre.name}"`],
-    ['Location', `"${centre.location}"`],
+    ['Entity Name', `"${centreOrTitle.name || 'Platform Consolidated'}"`],
+    ['Location', `"${centreOrTitle.location || 'India'}"`],
     ['Statement Period', `"${dateRangeLabel}"`],
     ['Generated At', new Date().toISOString()],
     ['Total Credits (USD)', totalCredits.toFixed(2)],
@@ -68,7 +68,7 @@ export function exportLedgerToCSV(
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `${centre.slug || 'centre'}-financial-statement-${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', `${centreOrTitle.slug || 'platform'}-financial-statement-${new Date().toISOString().split('T')[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

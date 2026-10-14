@@ -434,6 +434,14 @@ export interface AIRetreatQuizState {
   skillLevel: 'beginner' | 'intermediate' | 'advanced';
 }
 
+export interface UserPreferences {
+  yogaStyle?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+  dietaryPreference?: 'sattvic' | 'vegan' | 'vegetarian' | 'regular';
+  roomType?: 'private' | 'shared';
+  preferredLocation?: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -445,6 +453,8 @@ export interface UserProfile {
   assignedCentreId?: string;
   assignedCentreName?: string;
   membershipStatus?: 'active' | 'suspended' | 'inactive';
+  status?: 'active' | 'suspended' | 'inactive';
+  preferences?: UserPreferences;
   createdAt?: string;
 }
 

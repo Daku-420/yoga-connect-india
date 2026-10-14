@@ -41,7 +41,8 @@ import {
   CreditCard,
   History,
   Check,
-  Ban
+  Ban,
+  ArrowRight
 } from 'lucide-react';
 
 import { PREDEFINED_QUESTION_TEMPLATES } from '../../data/mockMatchmakers';
@@ -51,13 +52,16 @@ import { exportLedgerToCSV, printCentreStatement } from '../../utils/statementEx
 
 interface AdminDashboardProps {
   initialTab?: 
-    | 'partners'
-    | 'invitations'
-    | 'commissions'
+    | 'overview'
+    | 'centres'
+    | 'travellers'
     | 'bookings'
     | 'financial-oversight'
     | 'payouts'
-    | 'centres'
+    | 'reports'
+    | 'commissions'
+    | 'partners'
+    | 'invitations'
     | 'queries'
     | 'audit-logs'
     | 'matchmakers'
@@ -65,7 +69,7 @@ interface AdminDashboardProps {
     | 'coupons';
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'partners' }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'overview' }) => {
   const {
     bookings,
     updateBookingStatus,
@@ -105,24 +109,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
     revokeVendorInvitation,
     commissionRules,
     addCommissionRule,
-    updateCommissionRule
+    updateCommissionRule,
+    adminDashboardTab,
+    setAdminDashboardTab,
+    profiles,
+    updateUserAccountStatus
   } = useApp();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<
-    | 'partners'
-    | 'invitations'
-    | 'commissions'
+    | 'overview'
+    | 'centres'
+    | 'travellers'
     | 'bookings'
     | 'financial-oversight'
     | 'payouts'
-    | 'centres'
+    | 'reports'
+    | 'commissions'
+    | 'partners'
+    | 'invitations'
     | 'queries'
     | 'audit-logs'
     | 'matchmakers'
     | 'asanas'
     | 'coupons'
   >(initialTab);
+
+  // Sync tab with context if navigated via Profile Menu
+  React.useEffect(() => {
+    if (adminDashboardTab) {
+      setActiveTab(adminDashboardTab as any);
+    }
+  }, [adminDashboardTab]);
+
+  // Travellers Tab Filter & Search State
+  const [travellerSearch, setTravellerSearch] = useState('');
+  const [travellerStatusFilter, setTravellerStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
+
+  // Reports Tab Filters
+  const [reportCentreFilter, setReportCentreFilter] = useState<string>('all');
+  const [reportStatusFilter, setReportStatusFilter] = useState<string>('all');
+  const [reportDateRange, setReportDateRange] = useState<string>('all');
 
   // Centre Drilldown Inspection Modal
   const [inspectingCentre, setInspectingCentre] = useState<any | null>(null);
@@ -397,50 +424,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
           </div>
         </div>
 
-        {/* Admin Navigation Tabs */}
+        {/* Admin Navigation Tabs - Matching Prompt Section 1 & 2 */}
         <div className="border-b border-[#E2E5DD] flex space-x-2 sm:space-x-5 overflow-x-auto text-xs sm:text-sm font-semibold text-[#59665C]">
           <button
-            onClick={() => setActiveTab('partners')}
+            onClick={() => setActiveTab('overview')}
             className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'partners'
+              activeTab === 'overview'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Crown className="w-4 h-4 text-gold-500" />
+            <span>Admin Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('centres')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'centres'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Manage Yoga Centres</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {centres.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('travellers')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'travellers'
                 ? 'border-[#536B50] text-[#536B50] font-bold'
                 : 'border-transparent text-[#59665C] hover:text-[#263D32]'
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Partner Accounts</span>
+            <span>Manage Travellers</span>
             <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-              {memberships.length}
+              {profiles.filter(p => p.role === 'user').length}
             </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('invitations')}
-            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'invitations'
-                ? 'border-[#536B50] text-[#536B50] font-bold'
-                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
-            }`}
-          >
-            <Send className="w-4 h-4" />
-            <span>Vendor Invitations</span>
-            {vendorInvitations && vendorInvitations.filter(i => i.status === 'pending').length > 0 && (
-              <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                {vendorInvitations.filter(i => i.status === 'pending').length}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('commissions')}
-            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'commissions'
-                ? 'border-[#536B50] text-[#536B50] font-bold'
-                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
-            }`}
-          >
-            <Sliders className="w-4 h-4" />
-            <span>Commission Rules</span>
           </button>
 
           <button
@@ -452,7 +477,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Platform Bookings</span>
+            <span>Manage Bookings</span>
             <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
               {bookings.length}
             </span>
@@ -467,7 +492,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
             }`}
           >
             <DollarSign className="w-4 h-4" />
-            <span>Financial Oversight</span>
+            <span>Financial Overview</span>
           </button>
 
           <button
@@ -479,7 +504,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
             }`}
           >
             <CreditCard className="w-4 h-4" />
-            <span>Payouts &amp; Settlements</span>
+            <span>Payments &amp; Transactions</span>
             {payouts.filter(p => p.status === 'pending').length > 0 && (
               <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
                 {payouts.filter(p => p.status === 'pending').length}
@@ -488,18 +513,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
           </button>
 
           <button
-            onClick={() => setActiveTab('centres')}
+            onClick={() => setActiveTab('reports')}
             className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'centres'
+              activeTab === 'reports'
                 ? 'border-[#536B50] text-[#536B50] font-bold'
                 : 'border-transparent text-[#59665C] hover:text-[#263D32]'
             }`}
           >
-            <Building2 className="w-4 h-4" />
-            <span>Centre Directory</span>
-            <span className="bg-gray-100 text-gray-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-              {centres.length}
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Reports &amp; Analytics</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('commissions')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'commissions'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Sliders className="w-4 h-4" />
+            <span>Platform Settings</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('partners')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'partners'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            <span>Partner Credentials</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {memberships.length}
             </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('invitations')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'invitations'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Send className="w-4 h-4" />
+            <span>Invitations</span>
           </button>
 
           <button
@@ -511,12 +572,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Financial Inquiries</span>
-            {financialQueries.filter(q => q.status === 'open').length > 0 && (
-              <span className="bg-red-100 text-red-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                {financialQueries.filter(q => q.status === 'open').length}
-              </span>
-            )}
+            <span>Inquiries</span>
           </button>
 
           <button
@@ -530,45 +586,458 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'pa
             <History className="w-4 h-4" />
             <span>Audit Logs</span>
           </button>
-
-          <button
-            onClick={() => setActiveTab('matchmakers')}
-            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'matchmakers'
-                ? 'border-[#536B50] text-[#536B50] font-bold'
-                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>AI Matchmakers</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('asanas')}
-            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'asanas'
-                ? 'border-[#536B50] text-[#536B50] font-bold'
-                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Asana Directory</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('coupons')}
-            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'coupons'
-                ? 'border-[#536B50] text-[#536B50] font-bold'
-                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
-            }`}
-          >
-            <Gift className="w-4 h-4" />
-            <span>Coupons</span>
-          </button>
         </div>
 
-        {/* TAB 1: PARTNER ACCOUNT MANAGEMENT */}
+        {/* TAB 0: ADMIN DASHBOARD OVERVIEW & SUMMARY CARDS (Prompt Section 2) */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* 10 Required Summary KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 sm:gap-4">
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Registered Centres</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32] mt-1 block">{centres.length}</span>
+                <span className="text-[10px] text-emerald-700 font-medium">100% verified ashrams</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Registered Travellers</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32] mt-1 block">
+                  {profiles.filter(p => p.role === 'user').length}
+                </span>
+                <span className="text-[10px] text-blue-700 font-medium">Verified customer accounts</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Total Bookings</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32] mt-1 block">{bookings.length}</span>
+                <span className="text-[10px] text-gray-500 font-medium">Platform-wide volume</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-2xs">
+                <span className="text-[10px] font-bold text-amber-800 uppercase block tracking-wider">Pending Bookings</span>
+                <span className="font-serif font-bold text-2xl text-amber-700 mt-1 block">
+                  {bookings.filter(b => b.status === 'pending_admin' || b.status === 'assigned_to_centre').length}
+                </span>
+                <span className="text-[10px] text-amber-700 font-medium">Awaiting seat assignment</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-2xs">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase block tracking-wider">Confirmed Bookings</span>
+                <span className="font-serif font-bold text-2xl text-emerald-700 mt-1 block">
+                  {bookings.filter(b => b.status === 'confirmed_paid').length}
+                </span>
+                <span className="text-[10px] text-emerald-700 font-medium">Escrow verified &amp; confirmed</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-red-200 bg-red-50/30 shadow-2xs">
+                <span className="text-[10px] font-bold text-red-800 uppercase block tracking-wider">Cancelled Bookings</span>
+                <span className="font-serif font-bold text-2xl text-red-700 mt-1 block">
+                  {bookings.filter(b => b.status === 'cancelled').length}
+                </span>
+                <span className="text-[10px] text-red-600 font-medium">Reversals recorded</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Verified Payments</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32] mt-1 block">
+                  {formatPrice(platformTotals.settledPayouts + platformTotals.outstanding)}
+                </span>
+                <span className="text-[10px] text-emerald-700 font-medium">Received customer funds</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Pending Payouts</span>
+                <span className="font-serif font-bold text-2xl text-amber-600 mt-1 block">
+                  {formatPrice(payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.netPayoutAmount, 0))}
+                </span>
+                <span className="text-[10px] text-amber-700 font-medium">Queued for NEFT / wire</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Platform Commission</span>
+                <span className="font-serif font-bold text-2xl text-gold-600 mt-1 block">
+                  {formatPrice(platformTotals.commissions)}
+                </span>
+                <span className="text-[10px] text-gray-500 font-medium">Earned platform revenue</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block tracking-wider">Outstanding Payable</span>
+                <span className="font-serif font-bold text-2xl text-[#263D32] mt-1 block">
+                  {formatPrice(platformTotals.outstanding)}
+                </span>
+                <span className="text-[10px] text-emerald-700 font-medium">Escrow safe balance</span>
+              </div>
+            </div>
+
+            {/* Centre-wise Performance Table (Prompt Section 2) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-serif font-bold text-xl text-[#263D32]">Centre-Wise Performance &amp; Escrow Entitlement</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Real database records distinguishing gross booking value, received payments, refunds, and net payable balances.</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('centres')}
+                  className="text-xs font-semibold text-[#536B50] hover:underline flex items-center space-x-1"
+                >
+                  <span>Manage All Centres ({centres.length})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                      <th className="py-3 px-3 font-bold">Yoga Centre</th>
+                      <th className="py-3 px-3 font-bold text-center">Offerings</th>
+                      <th className="py-3 px-3 font-bold text-center">Bookings</th>
+                      <th className="py-3 px-3 font-bold text-right">Gross Value</th>
+                      <th className="py-3 px-3 font-bold text-right">Verified Payments</th>
+                      <th className="py-3 px-3 font-bold text-right">Refunds</th>
+                      <th className="py-3 px-3 font-bold text-right">Platform Fee</th>
+                      <th className="py-3 px-3 font-bold text-right">Outstanding Payable</th>
+                      <th className="py-3 px-3 font-bold text-center">Inspect</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E2E5DD]">
+                    {centres.map((c) => {
+                      const cBookings = bookings.filter(b => b.centreId === c.id);
+                      const cCourses = courses.filter(co => co.centreId === c.id);
+                      const grossVal = cBookings.reduce((sum, b) => sum + (b.totalUSD || 0), 0);
+                      const verifiedPaid = cBookings.filter(b => b.status === 'confirmed_paid').reduce((sum, b) => sum + (b.totalUSD || 0), 0);
+                      const cRefunds = ledgerEntries.filter(e => e.centreId === c.id && e.entryType === 'refund').reduce((sum, e) => sum + e.amount, 0);
+                      const cComm = ledgerEntries.filter(e => e.centreId === c.id && e.entryType === 'platform_commission').reduce((sum, e) => sum + e.amount, 0);
+                      const cSettled = payouts.filter(p => p.centreId === c.id && p.status === 'paid').reduce((sum, p) => sum + p.netPayoutAmount, 0);
+                      const outstandingBal = Math.max(0, verifiedPaid - cComm - cRefunds - cSettled);
+
+                      return (
+                        <tr key={c.id} className="hover:bg-[#F7F5EE]/50 transition">
+                          <td className="py-3 px-3">
+                            <div className="font-serif font-bold text-sm text-[#263D32]">{c.name}</div>
+                            <span className="text-[10px] text-gray-500">{c.city} • ID: {c.id}</span>
+                          </td>
+                          <td className="py-3 px-3 text-center font-medium">{cCourses.length}</td>
+                          <td className="py-3 px-3 text-center">
+                            <span className="font-bold text-[#263D32]">{cBookings.length}</span>
+                          </td>
+                          <td className="py-3 px-3 text-right font-medium text-gray-600">{formatPrice(grossVal)}</td>
+                          <td className="py-3 px-3 text-right font-bold text-emerald-700">{formatPrice(verifiedPaid)}</td>
+                          <td className="py-3 px-3 text-right font-medium text-red-600">{cRefunds > 0 ? formatPrice(cRefunds) : '—'}</td>
+                          <td className="py-3 px-3 text-right font-medium text-amber-700">{formatPrice(cComm)}</td>
+                          <td className="py-3 px-3 text-right font-bold text-[#263D32]">{formatPrice(outstandingBal)}</td>
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={() => setInspectingCentre(c)}
+                              className="px-2.5 py-1 bg-[#E6EDE2] hover:bg-[#D7E3D1] text-[#263D32] font-semibold rounded-lg text-[11px] transition cursor-pointer"
+                              title="Inspect Centre Bookings, Offerings and Finances"
+                            >
+                              Inspect
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: MANAGE TRAVELLERS (Prompt Section 2) */}
+        {activeTab === 'travellers' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Registered Traveller Accounts &amp; Access Permissions
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Platform-wide directory of customer accounts, booking history, preferences, and account status controls.
+                </p>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by traveller name or email..."
+                  value={travellerSearch}
+                  onChange={(e) => setTravellerSearch(e.target.value)}
+                  className="p-2 bg-[#F7F5EE] border border-[#E2E5DD] rounded-xl text-xs w-60 focus:outline-none"
+                />
+                <select
+                  value={travellerStatusFilter}
+                  onChange={(e) => setTravellerStatusFilter(e.target.value as any)}
+                  className="p-2 bg-[#F7F5EE] border border-[#E2E5DD] rounded-xl text-xs focus:outline-none font-semibold text-[#263D32]"
+                >
+                  <option value="all">All Accounts</option>
+                  <option value="active">Active Accounts</option>
+                  <option value="suspended">Suspended Accounts</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Traveller Account</th>
+                    <th className="py-3 px-3 font-bold">Contact &amp; Country</th>
+                    <th className="py-3 px-3 font-bold">Preferences</th>
+                    <th className="py-3 px-3 font-bold text-center">Bookings</th>
+                    <th className="py-3 px-3 font-bold">Account Status</th>
+                    <th className="py-3 px-3 font-bold text-center">Access Permissions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {profiles
+                    .filter(p => p.role === 'user')
+                    .filter(p => {
+                      if (travellerStatusFilter !== 'all' && p.status !== travellerStatusFilter) return false;
+                      if (!travellerSearch) return true;
+                      const q = travellerSearch.toLowerCase();
+                      return (p.fullName || '').toLowerCase().includes(q) || (p.email || '').toLowerCase().includes(q);
+                    })
+                    .map((t) => {
+                      const tBookings = bookings.filter(b => b.customerEmail?.toLowerCase() === t.email.toLowerCase());
+
+                      return (
+                        <tr key={t.id} className="hover:bg-[#F7F5EE]/50 transition">
+                          <td className="py-3 px-3">
+                            <div className="flex items-center space-x-2.5">
+                              {t.avatarUrl ? (
+                                <img src={t.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-[#263D32] text-white flex items-center justify-center font-bold text-[10px] uppercase">
+                                  {t.fullName ? t.fullName.slice(0, 2) : 'TR'}
+                                </div>
+                              )}
+                              <div>
+                                <span className="font-bold text-gray-900 block">{t.fullName || 'Traveller'}</span>
+                                <span className="font-mono text-[10px] text-gray-500">{t.email}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <span className="block font-medium">{t.phone || 'Phone not set'}</span>
+                            <span className="text-[10px] text-gray-500">{t.country || 'India'}</span>
+                          </td>
+
+                          <td className="py-3 px-3 text-[11px] text-[#59665C]">
+                            {t.preferences?.yogaStyle ? (
+                              <span>{t.preferences.yogaStyle} • {t.preferences.experienceLevel || 'Int.'} • {t.preferences.dietaryPreference || 'Sattvic'}</span>
+                            ) : (
+                              <span className="italic text-gray-400">Default preferences</span>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={() => {
+                                setBookingSearch(t.email);
+                                setActiveTab('bookings');
+                              }}
+                              className="font-bold text-[#263D32] hover:underline"
+                            >
+                              {tBookings.length} Bookings
+                            </button>
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              t.status === 'suspended' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {t.status || 'active'}
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
+                            {t.status === 'suspended' ? (
+                              <button
+                                onClick={() => updateUserAccountStatus(t.id, 'active')}
+                                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-[10px] border border-emerald-200 transition cursor-pointer"
+                              >
+                                Reactivate
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => updateUserAccountStatus(t.id, 'suspended')}
+                                className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-lg text-[10px] border border-red-200 transition cursor-pointer"
+                              >
+                                Suspend Account
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: REPORTS & ANALYTICS (Prompt Section 2) */}
+        {activeTab === 'reports' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Booking &amp; Financial Revenue Reports
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Multi-dimensional reports filterable by yoga centre, booking status, and payment verification.
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => exportLedgerToCSV({ name: 'YogaConnect Platform Consolidated', slug: 'yogaconnect-platform-ledger' }, ledgerEntries, 'All Records')}
+                  className="bg-[#263D32] hover:bg-[#1E3228] text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="bg-white border border-[#E2E5DD] hover:bg-[#F7F5EE] text-[#263D32] text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Report</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-[#F7F5EE] p-4 rounded-2xl border border-[#E2E5DD] grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Filter by Yoga Centre</label>
+                <select
+                  value={reportCentreFilter}
+                  onChange={(e) => setReportCentreFilter(e.target.value)}
+                  className="w-full p-2 bg-white rounded-xl border border-[#E2E5DD] text-xs font-semibold text-[#263D32]"
+                >
+                  <option value="all">All Registered Centres ({centres.length})</option>
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Booking Status</label>
+                <select
+                  value={reportStatusFilter}
+                  onChange={(e) => setReportStatusFilter(e.target.value)}
+                  className="w-full p-2 bg-white rounded-xl border border-[#E2E5DD] text-xs font-semibold text-[#263D32]"
+                >
+                  <option value="all">All Booking Statuses</option>
+                  <option value="confirmed_paid">Confirmed &amp; Paid</option>
+                  <option value="assigned_to_centre">Assigned to Ashram</option>
+                  <option value="pending_admin">Pending Review</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">Time Period</label>
+                <select
+                  value={reportDateRange}
+                  onChange={(e) => setReportDateRange(e.target.value)}
+                  className="w-full p-2 bg-white rounded-xl border border-[#E2E5DD] text-xs font-semibold text-[#263D32]"
+                >
+                  <option value="all">All Historical Records</option>
+                  <option value="30d">Last 30 Days</option>
+                  <option value="90d">Last 90 Days</option>
+                  <option value="year">Current Financial Year (2026-27)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Filtered Breakdown Table */}
+            {(() => {
+              const repBookings = bookings.filter(b => {
+                if (reportCentreFilter !== 'all' && b.centreId !== reportCentreFilter) return false;
+                if (reportStatusFilter !== 'all' && b.status !== reportStatusFilter) return false;
+                return true;
+              });
+
+              const repGross = repBookings.reduce((sum, b) => sum + (b.totalUSD || 0), 0);
+              const repPaid = repBookings.filter(b => b.status === 'confirmed_paid').reduce((sum, b) => sum + (b.totalUSD || 0), 0);
+              const repFee = Math.round(repPaid * 0.10);
+              const repNet = Math.max(0, repPaid - repFee);
+
+              return (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#E6EDE2]/50 p-4 rounded-2xl border border-[#A5B89A]/40 text-xs">
+                    <div>
+                      <span className="text-[#59665C] block text-[10px] uppercase font-bold">Filtered Bookings</span>
+                      <span className="font-serif font-bold text-xl text-[#263D32]">{repBookings.length}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#59665C] block text-[10px] uppercase font-bold">Gross Booking Value</span>
+                      <span className="font-serif font-bold text-xl text-[#263D32]">{formatPrice(repGross)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#59665C] block text-[10px] uppercase font-bold">Received Payments</span>
+                      <span className="font-serif font-bold text-xl text-emerald-700">{formatPrice(repPaid)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#59665C] block text-[10px] uppercase font-bold">Platform Fee Earned</span>
+                      <span className="font-serif font-bold text-xl text-gold-600">{formatPrice(repFee)}</span>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                          <th className="py-2.5 px-3 font-bold">Booking Ref</th>
+                          <th className="py-2.5 px-3 font-bold">Date</th>
+                          <th className="py-2.5 px-3 font-bold">Customer</th>
+                          <th className="py-2.5 px-3 font-bold">Centre</th>
+                          <th className="py-2.5 px-3 font-bold">Offering</th>
+                          <th className="py-2.5 px-3 font-bold text-right">Amount</th>
+                          <th className="py-2.5 px-3 font-bold">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E2E5DD]">
+                        {repBookings.map((b) => (
+                          <tr key={b.id} className="hover:bg-[#F7F5EE]/40 transition">
+                            <td className="py-2.5 px-3 font-mono font-bold text-[#263D32]">{b.referenceCode}</td>
+                            <td className="py-2.5 px-3 text-gray-600">{b.startDate}</td>
+                            <td className="py-2.5 px-3">
+                              <span className="font-semibold block">{b.customerName}</span>
+                              <span className="text-[10px] text-gray-500 font-mono">{b.customerEmail}</span>
+                            </td>
+                            <td className="py-2.5 px-3 font-serif font-bold text-[#263D32]">{b.centreName}</td>
+                            <td className="py-2.5 px-3">{b.courseTitle}</td>
+                            <td className="py-2.5 px-3 text-right font-bold text-[#263D32]">{formatPrice(b.totalUSD)}</td>
+                            <td className="py-2.5 px-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                b.status === 'confirmed_paid' ? 'bg-emerald-100 text-emerald-800' :
+                                b.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {b.status.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* TAB: PARTNER ACCOUNT MANAGEMENT */}
         {activeTab === 'partners' && (
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

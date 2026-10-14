@@ -20,7 +20,8 @@ import {
   AuditLogEntry,
   CentreEnquiry,
   VendorInvitation,
-  CommissionRule
+  CommissionRule,
+  UserPreferences
 } from '../types';
 import { 
   supabase, 
@@ -41,6 +42,8 @@ import {
   fetchLivePayouts,
   fetchLiveCommissionRules,
   fetchLiveVendorInvitations,
+  fetchLiveProfiles,
+  updateProfileInDb,
   updateBookingInDb,
   updateEnquiryInDb,
   saveCentreProfileInDb,
@@ -64,7 +67,8 @@ import {
   INITIAL_AUDIT_LOGS,
   INITIAL_ENQUIRIES,
   INITIAL_COMMISSION_RULES,
-  INITIAL_INVITATIONS
+  INITIAL_INVITATIONS,
+  INITIAL_PROFILES
 } from '../data/mockAccounting';
 
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
@@ -236,6 +240,21 @@ interface AppContextType {
   // Audit Logs
   auditLogs: AuditLogEntry[];
   recordAuditLog: (action: string, targetEntity: string, targetId?: string, details?: Record<string, any>) => void;
+
+  // Role Portal Tab State for Deep Navigation
+  adminDashboardTab: string;
+  setAdminDashboardTab: (tab: string) => void;
+  vendorDashboardTab: string;
+  setVendorDashboardTab: (tab: string) => void;
+  userDashboardTab: string;
+  setUserDashboardTab: (tab: string) => void;
+
+  // Platform User Accounts & Profile Management
+  profiles: UserProfile[];
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
+  updateUserPreferences: (preferences: UserPreferences) => Promise<{ success: boolean; error?: string }>;
+  updateUserAccountStatus: (userId: string, status: 'active' | 'suspended') => Promise<{ success: boolean; error?: string }>;
+  requestBookingCancellation: (bookingId: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 
@@ -293,6 +312,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [enquiries, setEnquiries] = useState<CentreEnquiry[]>(INITIAL_ENQUIRIES);
   const [commissionRules, setCommissionRules] = useState<CommissionRule[]>(INITIAL_COMMISSION_RULES);
   const [vendorInvitations, setVendorInvitations] = useState<VendorInvitation[]>(INITIAL_INVITATIONS);
+
+  // Role Portal Tab State for Deep Navigation
+  const [adminDashboardTab, setAdminDashboardTab] = useState<string>('overview');
+  const [vendorDashboardTab, setVendorDashboardTab] = useState<string>('overview');
+  const [userDashboardTab, setUserDashboardTab] = useState<string>('profile');
+  const [profiles, setProfiles] = useState<UserProfile[]>(INITIAL_PROFILES);
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -452,6 +477,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loginAsPersona = (email: string) => {
     const trimmed = email.trim().toLowerCase();
+
+    // Check in registered platform profiles first
+    const foundProfile = profiles.find(p => p.email.toLowerCase() === trimmed);
+    if (foundProfile) {
+      setUserProfile(foundProfile);
+      if (foundProfile.role === 'admin') {
+        setUserRole('admin');
+        setActiveView('admin-dashboard');
+      } else if (foundProfile.role === 'partner' || foundProfile.role === 'centre') {
+        const isSuspended = foundProfile.status === 'suspended' || foundProfile.membershipStatus === 'suspended';
+        setUserRole(isSuspended ? 'visitor' : 'partner');
+        setActiveView('centre-dashboard');
+      } else {
+        const isSuspended = foundProfile.status === 'suspended';
+        setUserRole(isSuspended ? 'visitor' : 'user');
+        setActiveView('user-dashboard');
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(foundProfile));
+      }
+      setIsAuthModalOpen(false);
+      return;
+    }
+
     if (trimmed === 'admin@yogaconnect.in') {
       const profile: UserProfile = {
         id: 'admin-1',
@@ -459,6 +508,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fullName: 'Chief Administrator',
         avatarUrl: '',
         role: 'admin',
+        status: 'active',
         createdAt: new Date().toISOString()
       };
       setUserProfile(profile);
@@ -480,6 +530,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fullName: membership.userName || 'Centre Partner',
         avatarUrl: '',
         role: 'partner',
+        status: membership.status,
         assignedCentreId: membership.centreId,
         assignedCentreName: centre?.name || membership.centreName,
         membershipStatus: membership.status,
@@ -502,6 +553,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       fullName: trimmed.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Sarah Jenkins',
       avatarUrl: '',
       role: 'user',
+      status: 'active',
       createdAt: new Date().toISOString()
     };
     setUserProfile(profile);
@@ -1384,9 +1436,81 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true };
   };
 
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    if (!userProfile) return { success: false, error: 'Not authenticated' };
+    const updated: UserProfile = { ...userProfile, ...updates };
+    setUserProfile(updated);
+    setProfiles(prev => prev.map(p => p.id === updated.id || p.email === updated.email ? { ...p, ...updates } : p));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yogaconnect_user_profile', JSON.stringify(updated));
+    }
+    await updateProfileInDb(userProfile.id, {
+      full_name: updated.fullName,
+      avatar_url: updated.avatarUrl,
+      phone: updated.phone,
+      country: updated.country,
+      preferences: updated.preferences
+    });
+    recordAuditLog('profile_updated', 'profile', userProfile.id, updates);
+    return { success: true };
+  };
+
+  const updateUserPreferences = async (preferences: UserPreferences) => {
+    if (!userProfile) return { success: false, error: 'Not authenticated' };
+    const updated: UserProfile = { ...userProfile, preferences };
+    setUserProfile(updated);
+    setProfiles(prev => prev.map(p => p.id === updated.id || p.email === updated.email ? { ...p, preferences } : p));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yogaconnect_user_profile', JSON.stringify(updated));
+    }
+    await updateProfileInDb(userProfile.id, { preferences });
+    recordAuditLog('preferences_updated', 'user_preferences', userProfile.id, preferences);
+    return { success: true };
+  };
+
+  const updateUserAccountStatus = async (userId: string, status: 'active' | 'suspended') => {
+    setProfiles(prev => prev.map(p => p.id === userId ? { ...p, status } : p));
+    if (userProfile && userProfile.id === userId) {
+      const updated: UserProfile = { ...userProfile, status };
+      setUserProfile(updated);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(updated));
+      }
+    }
+    await updateProfileInDb(userId, { status });
+    recordAuditLog('account_status_changed', 'profile', userId, { newStatus: status });
+    return { success: true };
+  };
+
+  const requestBookingCancellation = async (bookingId: string, reason?: string) => {
+    const target = bookings.find(b => b.id === bookingId);
+    if (!target) return { success: false, error: 'Booking not found' };
+
+    // Update booking in local state and Supabase
+    updateBookingStatus(bookingId, 'cancelled', reason || 'Cancellation requested by customer');
+
+    // Add ledger reversal / note if it was previously confirmed
+    if (target.centreId) {
+      addLedgerAdjustment(
+        target.centreId,
+        target.totalUSD,
+        'debit',
+        `Booking cancellation adjustment - Ref #${target.referenceCode}: ${reason || 'Customer requested cancellation'}`,
+        target.referenceCode
+      );
+    }
+
+    recordAuditLog('booking_cancelled', 'booking', bookingId, {
+      referenceCode: target.referenceCode,
+      reason
+    });
+
+    return { success: true };
+  };
+
   const refreshDatabaseState = async () => {
     try {
-      const [liveCentres, liveCourses, liveBookings, liveEnquiries, liveLedger, livePayouts, liveRules, liveInvites] = await Promise.all([
+      const [liveCentres, liveCourses, liveBookings, liveEnquiries, liveLedger, livePayouts, liveRules, liveInvites, liveProfiles] = await Promise.all([
         fetchLiveCentres(),
         fetchLiveCourses(),
         fetchLiveBookings(),
@@ -1394,7 +1518,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fetchLiveLedger(),
         fetchLivePayouts(),
         fetchLiveCommissionRules(),
-        fetchLiveVendorInvitations()
+        fetchLiveVendorInvitations(),
+        fetchLiveProfiles()
       ]);
       if (liveCentres.length > 0) setCentres(liveCentres);
       if (liveCourses.length > 0) setCourses(liveCourses);
@@ -1404,6 +1529,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (livePayouts.length > 0) setPayouts(livePayouts);
       if (liveRules.length > 0) setCommissionRules(liveRules);
       if (liveInvites.length > 0) setVendorInvitations(liveInvites);
+      if (liveProfiles.length > 0) {
+        setProfiles(prev => {
+          const map = new Map(prev.map(p => [p.id, p]));
+          for (const lp of liveProfiles) {
+            map.set(lp.id, {
+              id: lp.id,
+              email: lp.email || '',
+              fullName: lp.full_name || '',
+              avatarUrl: lp.avatar_url || '',
+              phone: lp.phone || '',
+              role: lp.role || 'user',
+              status: lp.status || 'active',
+              preferences: lp.preferences || {},
+              createdAt: lp.created_at
+            });
+          }
+          return Array.from(map.values());
+        });
+      }
     } catch (e) {
       console.warn('Live database state sync fallback:', e);
     }
@@ -1514,7 +1658,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       vendorInvitations,
       createVendorInvitation,
       revokeVendorInvitation,
-      refreshDatabaseState
+      refreshDatabaseState,
+      adminDashboardTab,
+      setAdminDashboardTab,
+      vendorDashboardTab,
+      setVendorDashboardTab,
+      userDashboardTab,
+      setUserDashboardTab,
+      profiles,
+      updateUserProfile,
+      updateUserPreferences,
+      updateUserAccountStatus,
+      requestBookingCancellation
     }}>
       {children}
     </AppContext.Provider>

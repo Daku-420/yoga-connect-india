@@ -554,3 +554,124 @@ export const INITIAL_INVITATIONS = [
     updatedAt: new Date().toISOString()
   }
 ];
+
+export const INITIAL_PROFILES = [
+  {
+    id: 'user-admin',
+    email: 'admin@yogaconnect.in',
+    fullName: 'Chief Administrator',
+    role: 'admin' as const,
+    status: 'active' as const,
+    membershipStatus: 'active' as const,
+    phone: '+91 11 2345 6789',
+    country: 'India',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'user-partner-parmarth',
+    email: 'partner.parmarth@yogaconnect.in',
+    fullName: 'Acharya Vishwajeet Shastri',
+    role: 'partner' as const,
+    status: 'active' as const,
+    membershipStatus: 'active' as const,
+    assignedCentreId: 'centre-1',
+    assignedCentreName: 'Parmarth Niketan Sacred Ganges Ashram',
+    phone: '+91 135 244 0088',
+    country: 'India',
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'user-partner-phoolchatti',
+    email: 'partner.phoolchatti@yogaconnect.in',
+    fullName: 'Acharya Devendra Ji',
+    role: 'partner' as const,
+    status: 'active' as const,
+    membershipStatus: 'active' as const,
+    assignedCentreId: 'centre-2',
+    assignedCentreName: 'Phool Chatti Ashram Heritage',
+    phone: '+91 135 244 0123',
+    country: 'India',
+    createdAt: '2026-08-10T11:30:00Z'
+  },
+  {
+    id: 'user-partner-suspended',
+    email: 'partner.suspended@yogaconnect.in',
+    fullName: 'Rameshwar Nath',
+    role: 'partner' as const,
+    status: 'suspended' as const,
+    membershipStatus: 'suspended' as const,
+    assignedCentreId: 'centre-4',
+    assignedCentreName: 'Sivananda Ashram & Divine Life Society',
+    phone: '+91 135 243 0099',
+    country: 'India',
+    createdAt: '2026-08-20T10:00:00Z'
+  },
+  {
+    id: 'user-traveler-sarah',
+    email: 'sarah.jenkins@example.com',
+    fullName: 'Sarah Jenkins',
+    role: 'user' as const,
+    status: 'active' as const,
+    phone: '+1 (555) 349-2041',
+    country: 'United States',
+    preferences: {
+      yogaStyle: 'Hatha',
+      experienceLevel: 'intermediate' as const,
+      dietaryPreference: 'vegetarian' as const,
+      roomType: 'private' as const,
+      preferredLocation: 'Rishikesh (Ganges Valley)'
+    },
+    createdAt: '2026-08-15T12:00:00Z'
+  },
+  {
+    id: 'user-traveler-marcus',
+    email: 'marcus.l@example.se',
+    fullName: 'Marcus Lindqvist',
+    role: 'user' as const,
+    status: 'active' as const,
+    phone: '+46 70 123 4567',
+    country: 'Sweden',
+    preferences: {
+      yogaStyle: 'Ayurveda & Yoga',
+      experienceLevel: 'beginner' as const,
+      dietaryPreference: 'sattvic' as const,
+      roomType: 'private' as const,
+      preferredLocation: 'Ananda / Narendra Nagar'
+    },
+    createdAt: '2026-08-20T09:30:00Z'
+  },
+  {
+    id: 'user-traveler-priya',
+    email: 'priya.sundaram@example.in',
+    fullName: 'Priya Sundaram',
+    role: 'user' as const,
+    status: 'active' as const,
+    phone: '+91 98765 43210',
+    country: 'India',
+    preferences: {
+      yogaStyle: 'Ashtanga',
+      experienceLevel: 'advanced' as const,
+      dietaryPreference: 'sattvic' as const,
+      roomType: 'shared' as const,
+      preferredLocation: 'Tapovan / Rishikesh'
+    },
+    createdAt: '2026-09-01T14:20:00Z'
+  },
+  {
+    id: 'user-traveler-elena',
+    email: 'elena.rostova@example.de',
+    fullName: 'Elena Rostova',
+    role: 'user' as const,
+    status: 'active' as const,
+    phone: '+49 170 9876543',
+    country: 'Germany',
+    preferences: {
+      yogaStyle: 'Kundalini',
+      experienceLevel: 'intermediate' as const,
+      dietaryPreference: 'vegan' as const,
+      roomType: 'private' as const,
+      preferredLocation: 'Uttarkashi Himalayas'
+    },
+    createdAt: '2026-09-10T16:45:00Z'
+  }
+];

@@ -24,7 +24,14 @@ import {
   DollarSign,
   ShieldAlert,
   ArrowRight,
-  Shield
+  Shield,
+  Users,
+  Settings,
+  CreditCard,
+  TrendingUp,
+  Sliders,
+  MessageSquare,
+  BarChart3
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -46,7 +53,10 @@ export const Navbar: React.FC = () => {
     partnerMembership,
     loginAsPersona,
     setIsAuthModalOpen,
-    logout
+    logout,
+    setAdminDashboardTab,
+    setVendorDashboardTab,
+    setUserDashboardTab
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -459,171 +469,276 @@ export const Navbar: React.FC = () => {
 
                 {/* ROLE SPECIFIC ACTIONS */}
                 
-                {/* 1. YOGA CENTRE PARTNER MENU */}
-                {isPartnerProfile && (
-                  <div className="space-y-1 pt-1">
-                    <button
-                      onClick={() => {
-                        setUserRole('partner');
-                        setActiveView('centre-dashboard');
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl bg-[#E6EDE2]/50 hover:bg-[#E6EDE2] text-[#263D32] transition flex items-center space-x-2.5 group cursor-pointer border border-[#A5B89A]/30"
-                    >
-                      <div className="p-1.5 rounded-lg bg-[#263D32] text-[#DCCDB5] shrink-0">
-                        <Building2 className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="block text-xs font-bold text-[#263D32]">
-                          Partner Centre Dashboard
-                        </span>
-                        <span className="text-[10px] text-[#59665C] block truncate">
-                          Bookings, guest list & profile
-                        </span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#536B50] shrink-0" />
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setUserRole('partner');
-                        setActiveView('centre-dashboard');
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
-                    >
-                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
-                        <DollarSign className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="block text-xs font-semibold">Financial Ledger & Settlements</span>
-                        <span className="text-[10px] text-[#8E9B91]">Escrow debits, payouts & net entitlement</span>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setUserRole('partner');
-                        setActiveView('centre-dashboard');
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
-                    >
-                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
-                        <FileText className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="block text-xs font-semibold">Download Statements</span>
-                        <span className="text-[10px] text-[#8E9B91]">CSV & printable tax PDF statements</span>
-                      </div>
-                    </button>
-                  </div>
-                )}
-
-                {/* 2. PLATFORM ADMINISTRATOR MENU */}
+                {/* 1. PLATFORM ADMINISTRATOR MENU (Prompt Section 1) */}
                 {userProfile?.role === 'admin' && (
-                  <div className="space-y-1 pt-1">
+                  <div className="space-y-0.5 pt-1">
                     <button
-                      onClick={(e) => {
-                        handleAdminClick(e);
+                      onClick={() => {
+                        setAdminDashboardTab('overview');
+                        setActiveView('admin-dashboard');
                         setIsProfileOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl bg-[#263D32] hover:bg-[#1E3228] text-white transition flex items-center space-x-2.5 group cursor-pointer shadow-sm"
+                      className="w-full text-left px-3 py-2 rounded-xl bg-[#263D32] hover:bg-[#1E3228] text-white transition flex items-center space-x-2.5 cursor-pointer shadow-xs"
                     >
-                      <div className="p-1.5 rounded-lg bg-white/10 text-gold-400 shrink-0">
-                        <Crown className="w-4 h-4 text-gold-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="block text-xs font-bold text-white">
-                          Admin Control Center
-                        </span>
-                        <span className="text-[10px] text-[#A5B89A] block truncate">
-                          Platform-wide escrow & centres
-                        </span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                      <Crown className="w-4 h-4 text-gold-400 shrink-0" />
+                      <span className="text-xs font-bold text-white flex-1">Admin Dashboard</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-gold-400" />
                     </button>
 
                     <button
-                      onClick={(e) => {
-                        handleAdminClick(e);
+                      onClick={() => {
+                        setAdminDashboardTab('centres');
+                        setActiveView('admin-dashboard');
                         setIsProfileOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
                     >
-                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
-                        <Building2 className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="block text-xs font-semibold">Centre Directory & Partner Accounts</span>
-                        <span className="text-[10px] text-[#8E9B91]">Provision logins & assign ashrams</span>
-                      </div>
+                      <Building2 className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Manage Yoga Centres</span>
                     </button>
 
                     <button
-                      onClick={(e) => {
-                        handleAdminClick(e);
+                      onClick={() => {
+                        setAdminDashboardTab('travellers');
+                        setActiveView('admin-dashboard');
                         setIsProfileOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
                     >
-                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="block text-xs font-semibold">Audit Logs & Security</span>
-                        <span className="text-[10px] text-[#8E9B91]">Track adjustments, payouts & changes</span>
-                      </div>
+                      <Users className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Manage Travellers</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAdminDashboardTab('bookings');
+                        setActiveView('admin-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Manage Bookings</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAdminDashboardTab('financial-oversight');
+                        setActiveView('admin-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <DollarSign className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Financial Overview</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAdminDashboardTab('payouts');
+                        setActiveView('admin-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <CreditCard className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Payments and Transactions</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAdminDashboardTab('reports');
+                        setActiveView('admin-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <BarChart3 className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Reports and Analytics</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAdminDashboardTab('commissions');
+                        setActiveView('admin-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Sliders className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Website and Platform Settings</span>
                     </button>
                   </div>
                 )}
 
-                {/* 3. REGULAR CUSTOMER MENU (OR GUEST) */}
-                {(!userProfile || userProfile.role === 'user') && (
-                  <div className="space-y-1 pt-1">
+                {/* 2. YOGA CENTRE OWNER MENU (Prompt Section 1) */}
+                {isPartnerProfile && (
+                  <div className="space-y-0.5 pt-1">
                     <button
                       onClick={() => {
-                        setUserRole('user');
-                        handleNavClick('user-dashboard');
+                        setVendorDashboardTab('overview');
+                        setActiveView('centre-dashboard');
                         setIsProfileOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
+                      className="w-full text-left px-3 py-2 rounded-xl bg-[#E6EDE2] hover:bg-[#D7E3D1] text-[#263D32] transition flex items-center space-x-2.5 cursor-pointer border border-[#A5B89A]/40"
                     >
-                      <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] group-hover:bg-[#263D32] group-hover:text-white transition-colors">
-                          <BookOpen className="w-4 h-4 text-[#536B50] group-hover:text-white" />
-                        </div>
-                        <div>
-                          <span className="block text-xs font-semibold text-[#252C27] group-hover:text-[#263D32]">
-                            My Retreat Bookings
-                          </span>
-                          <span className="text-[10px] text-[#8E9B91] block">
-                            Inquiries & escrow receipts
-                          </span>
-                        </div>
-                      </div>
-                      {userProfile && (
-                        <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#286749]/30">
-                          {bookings.filter(b => b.customerEmail?.toLowerCase() === userProfile?.email?.toLowerCase()).length}
-                        </span>
-                      )}
+                      <TrendingUp className="w-4 h-4 text-[#286749] shrink-0" />
+                      <span className="text-xs font-bold text-[#263D32] flex-1">My Centre Dashboard</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#286749]" />
                     </button>
 
                     <button
                       onClick={() => {
-                        setUserRole('user');
-                        handleNavClick('user-dashboard');
+                        setVendorDashboardTab('profile');
+                        setActiveView('centre-dashboard');
                         setIsProfileOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Building2 className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Centre Profile</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('courses');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Listings and Offerings</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('bookings');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Calendar className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Bookings</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('customers');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Users className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Clients</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('ledger');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <DollarSign className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Financial Records</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('settlements');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <CreditCard className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Payments and Payouts</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('reports');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <BarChart3 className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Reports</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setVendorDashboardTab('settings');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Account Settings</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* 3. TRAVELLER MENU (Prompt Section 1) */}
+                {userProfile && userProfile.role === 'user' && (
+                  <div className="space-y-0.5 pt-1">
+                    <button
+                      onClick={() => {
+                        setUserDashboardTab('profile');
+                        setActiveView('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Profile</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleNavClick('retreats', 'all');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Compass className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Explore Yoga Centres</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDashboardTab('bookings');
+                        setActiveView('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center justify-between text-[#252C27] text-xs cursor-pointer"
                     >
                       <div className="flex items-center space-x-2.5">
-                        <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50]">
-                          <Heart className="w-3.5 h-3.5 text-[#536B50]" />
-                        </div>
-                        <span className="text-xs font-medium text-[#252C27]">
-                          Saved Sanctuaries
-                        </span>
+                        <BookOpen className="w-4 h-4 text-[#536B50] shrink-0" />
+                        <span className="font-medium">My Bookings</span>
+                      </div>
+                      <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2 py-0.2 rounded-full">
+                        {bookings.filter(b => b.customerEmail?.toLowerCase() === userProfile?.email?.toLowerCase()).length}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDashboardTab('wishlist');
+                        setActiveView('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center justify-between text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <Heart className="w-4 h-4 text-[#536B50] shrink-0" />
+                        <span className="font-medium">Saved Yoga Centres</span>
                       </div>
                       {wishlist.length > 0 && (
                         <span className="text-[10px] font-semibold text-[#8E9B91]">
@@ -632,71 +747,95 @@ export const Navbar: React.FC = () => {
                       )}
                     </button>
 
+                    <button
+                      onClick={() => {
+                        setUserDashboardTab('enquiries');
+                        setActiveView('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <MessageSquare className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">My Enquiries</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDashboardTab('preferences');
+                        setActiveView('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Travel and Yoga Preferences</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserDashboardTab('settings');
+                        setActiveView('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-[#536B50] shrink-0" />
+                      <span className="font-medium">Account Settings</span>
+                    </button>
                   </div>
                 )}
 
-                {/* MANAGEMENT PORTALS (Partner Portal & Admin) */}
-                <div className="pt-2 border-t border-[#E2E5DD] space-y-1">
-                  <div className="px-2 py-1 text-[10px] font-bold text-[#8E9B91] uppercase tracking-wider flex items-center justify-between">
-                    <span>Authorized Portals</span>
-                    <span className="text-[9px] text-[#536B50] font-semibold">Staff &amp; Centres</span>
+                {/* 4. VISITOR (Not Logged In) MENU (Prompt Section 1) */}
+                {!userProfile && (
+                  <div className="space-y-1.5 pt-1">
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl bg-[#536B50] hover:bg-[#40563E] text-white transition flex items-center space-x-2.5 text-xs font-semibold cursor-pointer shadow-xs"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span>Sign In</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] text-xs cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-[#536B50]" />
+                      <span className="font-medium">Create Account</span>
+                    </button>
+
+                    <div className="pt-1.5 border-t border-[#E2E5DD]/70">
+                      <button
+                        onClick={(e) => {
+                          setIsProfileOpen(false);
+                          handlePartnerClick(e);
+                        }}
+                        className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#E6EDE2] transition flex items-center space-x-2.5 text-[#263D32] text-xs cursor-pointer"
+                      >
+                        <Building2 className="w-4 h-4 text-[#536B50]" />
+                        <span className="font-medium">Partner Portal Login</span>
+                      </button>
+
+                      <a
+                        href="/admin"
+                        onClick={(e) => {
+                          setIsProfileOpen(false);
+                          handleAdminClick(e);
+                        }}
+                        className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#263D32] text-xs cursor-pointer"
+                      >
+                        <Crown className="w-4 h-4 text-gold-500" />
+                        <span className="font-medium">Admin Portal</span>
+                      </a>
+                    </div>
                   </div>
-
-                  {/* Partner Portal */}
-                  <button
-                    onClick={(e) => {
-                      setIsProfileOpen(false);
-                      handlePartnerClick(e);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#E6EDE2]/70 transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer group"
-                    title="Yoga Centre Partner Portal"
-                  >
-                    <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] group-hover:bg-[#263D32] group-hover:text-white transition-colors shrink-0">
-                      <Building2 className="w-4 h-4 text-[#536B50] group-hover:text-[#DCCDB5]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="block text-xs font-bold text-[#263D32]">
-                          Partner Portal
-                        </span>
-                        <span className="text-[9px] bg-[#E6EDE2] text-[#263D32] font-semibold px-1.5 py-0.5 rounded border border-[#A5B89A]/40">
-                          Ashram
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-[#8E9B91] block truncate">
-                        {isPartnerProfile ? (partnerCentre?.name || 'Your Ashram Dashboard') : 'Yoga centre login, reservations & ledger'}
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Admin Portal */}
-                  <a
-                    href="/admin"
-                    onClick={(e) => {
-                      setIsProfileOpen(false);
-                      handleAdminClick(e);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer group"
-                    title="Master Admin Escrow & Centre Portal"
-                  >
-                    <div className="p-1.5 rounded-lg bg-[#263D32] text-gold-400 shrink-0 group-hover:bg-[#1E3228] transition-colors">
-                      <Crown className="w-4 h-4 text-gold-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="block text-xs font-bold text-[#263D32]">
-                          Admin
-                        </span>
-                        <span className="text-[9px] bg-[#263D32] text-gold-400 font-semibold px-1.5 py-0.5 rounded border border-gold-400/40">
-                          Portal
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-[#8E9B91] block truncate">
-                        Master platform oversight, escrow &amp; verification
-                      </span>
-                    </div>
-                  </a>
-                </div>
+                )}
 
                 {/* DEMO / TEST PERSONAS COLLAPSIBLE */}
                 <div className="pt-2 border-t border-[#E2E5DD]">
