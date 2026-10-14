@@ -51,7 +51,7 @@ export async function signInWithGoogle(returnPath?: string) {
  */
 export async function sendEmailOtp(email: string) {
   if (!isSupabaseConfigured) {
-    return { data: null, error: null, isDemo: true };
+    return { data: null, error: new Error('Supabase configuration missing in .env.local.') };
   }
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
@@ -60,7 +60,7 @@ export async function sendEmailOtp(email: string) {
       emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}` : undefined,
     },
   });
-  return { data, error, isDemo: false };
+  return { data, error };
 }
 
 /**
@@ -68,14 +68,14 @@ export async function sendEmailOtp(email: string) {
  */
 export async function verifyEmailOtp(email: string, token: string) {
   if (!isSupabaseConfigured) {
-    return { data: null, error: null, isDemo: true };
+    return { data: null, error: new Error('Supabase configuration missing in .env.local.') };
   }
   const { data, error } = await supabase.auth.verifyOtp({
     email,
     token,
     type: 'email',
   });
-  return { data, error, isDemo: false };
+  return { data, error };
 }
 
 /**

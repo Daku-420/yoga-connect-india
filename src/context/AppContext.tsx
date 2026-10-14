@@ -161,7 +161,7 @@ interface AppContextType {
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
   loginWithGoogle: (returnPath?: string) => Promise<{ success?: boolean; error?: string }>;
-  sendOtp: (email: string) => Promise<{ success: boolean; error?: string; isDemo?: boolean; demoCode?: string }>;
+  sendOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
   verifyOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
   loginWithPassword: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUpWithPassword: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string; requiresVerification?: boolean; message?: string }>;
@@ -472,12 +472,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loginWithGoogle = async (returnPath?: string) => {
-    if (!isSupabaseConfigured) {
-      // Demo fallback login as regular customer
-      loginAsPersona('emma.watson@gmail.com');
-      return { success: true };
-    }
-
     const { error } = await signInWithGoogle(returnPath);
     if (error) {
       return { error: error.message };
@@ -491,27 +485,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error: 'Please enter a valid email address.' };
     }
 
-    if (!isSupabaseConfigured) {
-      // Simulated OTP for immediate testing
-      return { success: true, isDemo: true, demoCode: '108108' };
-    }
-
-    const { error, isDemo } = await sendEmailOtp(trimmed);
+    const { error } = await sendEmailOtp(trimmed);
     if (error) {
       return { success: false, error: error.message };
     }
-    return { success: true, isDemo: isDemo || false };
+    return { success: true };
   };
 
   const verifyOtp = async (emailToVerify: string, token: string) => {
     const trimmedEmail = emailToVerify.trim().toLowerCase();
     const trimmedToken = token.trim();
-
-    if (!isSupabaseConfigured) {
-      // In demo mode, sign in with role matching the email address
-      loginAsPersona(trimmedEmail);
-      return { success: true };
-    }
 
     const { data, error } = await verifyEmailOtp(trimmedEmail, trimmedToken);
     if (error) {
@@ -532,11 +515,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     if (!password) {
       return { success: false, error: 'Please enter your password.' };
-    }
-
-    if (!isSupabaseConfigured) {
-      loginAsPersona(trimmedEmail);
-      return { success: true };
     }
 
     const { data, error } = await signInWithEmailPassword(trimmedEmail, password);
@@ -560,11 +538,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error: 'Password must be at least 6 characters long.' };
     }
 
-    if (!isSupabaseConfigured) {
-      loginAsPersona(trimmedEmail);
-      return { success: true };
-    }
-
     const { data, error } = await signUpWithEmailPassword(trimmedEmail, password, fullName);
     if (error) {
       return { success: false, error: error.message };
@@ -578,7 +551,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { 
         success: true, 
         requiresVerification: true,
-        message: 'Account created! If email confirmation is required, please check your inbox.' 
+        message: 'Account registered! Please check your email inbox to confirm your account.' 
       };
     }
   };
@@ -588,14 +561,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
       return { success: false, error: 'Please enter a valid email address.' };
     }
-    if (!isSupabaseConfigured) {
-      return { success: true, message: 'Password reset link sent (demo mode).' };
-    }
     const { error } = await sendPasswordReset(trimmedEmail);
     if (error) {
       return { success: false, error: error.message };
     }
-    return { success: true, message: 'Password reset instructions have been sent to your email.' };
+    return { success: true, message: 'Password reset link has been dispatched to your email.' };
   };
 
   const logout = async () => {

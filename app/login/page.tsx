@@ -100,11 +100,7 @@ function LoginContent() {
       if (res.success) {
         setStep('otp');
         setResendTimer(30);
-        if (res.demoCode) {
-          setSuccessMsg(`Demo Mode: Use code ${res.demoCode} to verify`);
-        } else {
-          setSuccessMsg(`We sent a 6-digit verification code to ${email}`);
-        }
+        setSuccessMsg(`We sent a 6-digit verification code to ${email}`);
         setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
       } else {
         setErrorMsg(res.error || 'Failed to send OTP. Please check your email.');

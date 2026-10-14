@@ -3,7 +3,6 @@ import { useApp } from '../../context/AppContext';
 import { 
   X, 
   Mail, 
-  Sparkles, 
   ShieldCheck, 
   ArrowRight, 
   CheckCircle2, 
@@ -11,11 +10,7 @@ import {
   RotateCcw,
   Lock,
   Compass,
-  Crown,
-  Building2,
-  ShieldAlert,
   User,
-  ChevronDown,
   Eye,
   EyeOff,
   KeyRound,
@@ -42,7 +37,6 @@ export const AuthModal: React.FC = () => {
   const [authMethod, setAuthMethod] = useState<'otp' | 'password'>('otp');
   const [passwordMode, setPasswordMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
   const [step, setStep] = useState<'email' | 'otp'>('email');
-  const [showDemoRoles, setShowDemoRoles] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -52,7 +46,6 @@ export const AuthModal: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
-  const [isDemoHint, setIsDemoHint] = useState(false);
 
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -69,7 +62,6 @@ export const AuthModal: React.FC = () => {
       setSuccessMsg('');
       setOtpDigits(['', '', '', '', '', '']);
       setResendTimer(30);
-      setIsDemoHint(!isSupabaseConfigured);
     }
   }, [isAuthModalOpen]);
 
@@ -117,14 +109,8 @@ export const AuthModal: React.FC = () => {
       if (res.success) {
         setStep('otp');
         setResendTimer(30);
-        if (res.demoCode) {
-          setSuccessMsg(`Demo Mode: Use test code ${res.demoCode} to sign in`);
-          // Pre-fill first digit focus
-          setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
-        } else {
-          setSuccessMsg(`We sent a 6-digit verification code to ${email}`);
-          setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
-        }
+        setSuccessMsg(`We sent a 6-digit verification code to ${email}`);
+        setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
       } else {
         setErrorMsg(res.error || 'Failed to send OTP code. Please check your email.');
       }
@@ -775,142 +761,6 @@ export const AuthModal: React.FC = () => {
               )}
             </div>
           )}
-
-          {/* Demo hint if credentials are not configured yet */}
-          {isDemoHint && (
-            <div className="p-3 bg-[#F7F5EE] border border-[#E2E5DD] rounded-xl text-[11px] text-[#59665C] space-y-1">
-              <span className="font-bold text-[#263D32] flex items-center space-x-1">
-                <Sparkles className="w-3 h-3 text-gold-500" />
-                <span>Instant Testing Mode</span>
-              </span>
-              <p>
-                Click <strong>Continue with Google</strong> or test Email OTP with code <strong>108108</strong>. Live Supabase config can be enabled anytime via <code className="bg-white px-1 py-0.5 rounded border border-[#E2E5DD] text-[10px]">.env.local</code>.
-              </p>
-            </div>
-          )}
-
-          {/* Quick Demo Role Accounts Selector */}
-          <div className="pt-2 border-t border-[#E2E5DD]">
-            <button
-              type="button"
-              onClick={() => setShowDemoRoles(!showDemoRoles)}
-              className="w-full flex items-center justify-between p-2 rounded-xl bg-white hover:bg-[#F7F5EE] border border-[#E2E5DD] text-xs font-semibold text-[#263D32] transition cursor-pointer"
-            >
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-gold-500" />
-                <span>One-Click Role Test Accounts</span>
-              </div>
-              <ChevronDown className={`w-4 h-4 text-[#59665C] transition-transform ${showDemoRoles ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showDemoRoles && (
-              <div className="mt-2 p-2.5 bg-[#F7F5EE] rounded-2xl border border-[#E2E5DD] space-y-1.5 text-xs animate-in fade-in">
-                <p className="text-[10px] text-[#59665C] px-1 pb-1">
-                  Select a role to instantly test permissions, multi-tenant isolation &amp; ledger records:
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsPersona('admin@yogaconnect.in');
-                    setUserRole('admin');
-                    setActiveView('admin-dashboard');
-                    setIsAuthModalOpen(false);
-                  }}
-                  className="w-full text-left p-2 rounded-xl bg-white hover:bg-[#263D32] hover:text-white border border-[#E2E5DD] flex items-center justify-between transition group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2 min-w-0">
-                    <Crown className="w-4 h-4 text-gold-500 shrink-0" />
-                    <div className="truncate">
-                      <span className="font-bold block text-xs">1. Platform Administrator</span>
-                      <span className="text-[10px] text-[#8E9B91] group-hover:text-[#A5B89A] block truncate">admin@yogaconnect.in (Full Oversight)</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#59665C] group-hover:text-white shrink-0 ml-1" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsPersona('partner.parmarth@yogaconnect.in');
-                    setUserRole('partner');
-                    setActiveView('centre-dashboard');
-                    setIsAuthModalOpen(false);
-                  }}
-                  className="w-full text-left p-2 rounded-xl bg-white hover:bg-[#263D32] hover:text-white border border-[#E2E5DD] flex items-center justify-between transition group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2 min-w-0">
-                    <Building2 className="w-4 h-4 text-[#286749] shrink-0" />
-                    <div className="truncate">
-                      <span className="font-bold block text-xs">2. Partner A: Parmarth Niketan</span>
-                      <span className="text-[10px] text-[#8E9B91] group-hover:text-[#A5B89A] block truncate">partner.parmarth@yogaconnect.in (Centre 1)</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#59665C] group-hover:text-white shrink-0 ml-1" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsPersona('partner.phoolchatti@yogaconnect.in');
-                    setUserRole('partner');
-                    setActiveView('centre-dashboard');
-                    setIsAuthModalOpen(false);
-                  }}
-                  className="w-full text-left p-2 rounded-xl bg-white hover:bg-[#263D32] hover:text-white border border-[#E2E5DD] flex items-center justify-between transition group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2 min-w-0">
-                    <Building2 className="w-4 h-4 text-[#286749] shrink-0" />
-                    <div className="truncate">
-                      <span className="font-bold block text-xs">3. Partner B: Phool Chatti</span>
-                      <span className="text-[10px] text-[#8E9B91] group-hover:text-[#A5B89A] block truncate">partner.phoolchatti@yogaconnect.in (Centre 2)</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#59665C] group-hover:text-white shrink-0 ml-1" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsPersona('partner.suspended@yogaconnect.in');
-                    setUserRole('partner');
-                    setActiveView('centre-dashboard');
-                    setIsAuthModalOpen(false);
-                  }}
-                  className="w-full text-left p-2 rounded-xl bg-white hover:bg-[#B42318] hover:text-white border border-[#E2E5DD] flex items-center justify-between transition group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2 min-w-0">
-                    <ShieldAlert className="w-4 h-4 text-[#B42318] shrink-0 group-hover:text-white" />
-                    <div className="truncate">
-                      <span className="font-bold block text-xs">4. Suspended Partner: Sivananda</span>
-                      <span className="text-[10px] text-[#8E9B91] group-hover:text-[#FECDCA] block truncate">partner.suspended@yogaconnect.in (Blocked)</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#59665C] group-hover:text-white shrink-0 ml-1" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsPersona('sarah.jenkins@example.com');
-                    setUserRole('user');
-                    setActiveView('user-dashboard');
-                    setIsAuthModalOpen(false);
-                  }}
-                  className="w-full text-left p-2 rounded-xl bg-white hover:bg-[#263D32] hover:text-white border border-[#E2E5DD] flex items-center justify-between transition group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2 min-w-0">
-                    <User className="w-4 h-4 text-[#536B50] shrink-0" />
-                    <div className="truncate">
-                      <span className="font-bold block text-xs">5. Regular Customer: Sarah J.</span>
-                      <span className="text-[10px] text-[#8E9B91] group-hover:text-[#A5B89A] block truncate">sarah.jenkins@example.com (Bookings Only)</span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#59665C] group-hover:text-white shrink-0 ml-1" />
-                </button>
-              </div>
-            )}
-          </div>
 
           {/* Trust Footer */}
           <div className="pt-3 border-t border-[#E2E5DD] flex items-center justify-center space-x-4 text-[10px] text-[#8E9B91]">
