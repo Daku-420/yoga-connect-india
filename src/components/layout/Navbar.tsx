@@ -175,14 +175,6 @@ export const Navbar: React.FC = () => {
             Destinations
           </button>
 
-          <button 
-            onClick={() => handlePartnerClick()}
-            className={`transition-colors py-1.5 hover:text-[#536B50] flex items-center space-x-1 font-medium ${activeView === 'centre-dashboard' ? 'text-[#536B50] font-semibold border-b-2 border-[#536B50]' : ''}`}
-          >
-            <Building2 className="w-3.5 h-3.5 text-[#536B50]" />
-            <span>Vendor Portal</span>
-          </button>
-
           {/* Journal Dropdown */}
           <div className="relative group">
             <button 
