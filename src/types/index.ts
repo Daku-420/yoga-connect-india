@@ -263,6 +263,9 @@ export interface Review {
   foodRating: number;
   stayRating: number;
   photos?: string[];
+  isVerifiedBooking?: boolean;
+  bookingRef?: string;
+  authorEmail?: string;
 }
 
 export interface Destination {
@@ -480,6 +483,7 @@ export interface YogaInstructor {
   state?: string;
   country?: string;
   profilePhoto?: string;
+  photoUrl?: string;
   yogaStyles: string[];
   experienceYears: number;
   qualifications?: string;
@@ -487,9 +491,13 @@ export interface YogaInstructor {
   languages: string[];
   onlineAvailability: boolean;
   inPersonAvailability: boolean;
+  onlineAvailable?: boolean;
+  inPersonAvailable?: boolean;
+  yearsOfExperience?: number;
   preferredLocations: string[];
   sessionTypes: string[];
   pricingRange?: string;
+  hourlyRateUSD?: number;
   specializations?: string[];
   meditationExperience?: string;
   retreatExperience?: string;

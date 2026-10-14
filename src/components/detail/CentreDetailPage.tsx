@@ -36,7 +36,8 @@ export const CentreDetailPage: React.FC = () => {
     wishlist,
     toggleWishlist,
     openCentreMatchmaker,
-    matchmakerConfigs
+    matchmakerConfigs,
+    getCentreReviews
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'stay' | 'teachers' | 'facilities' | 'reviews' | 'policies'>('overview');
@@ -429,27 +430,62 @@ export const CentreDetailPage: React.FC = () => {
             {activeTab === 'reviews' && (
               <div className="bg-white p-8 rounded-2xl border border-[#E2E5DD] shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-serif font-bold text-2xl text-[#263D32]">Verified Reviews</h3>
+                  <h3 className="font-serif font-bold text-2xl text-[#263D32]">Practitioner Reviews</h3>
                   <div className="flex items-center space-x-1 text-[#536B50] font-bold text-base">
                     <Star className="w-5 h-5 fill-current" />
                     <span>{centre.rating} out of 5</span>
+                    <span className="text-xs text-[#59665C] font-normal ml-1">({getCentreReviews(centre.id).length} reviews)</span>
                   </div>
                 </div>
-                <p className="text-xs text-[#59665C]">Reviews are collected exclusively from practitioners who completed authenticated bookings through the escrow system.</p>
+                <p className="text-xs text-[#59665C]">Reviews submitted by practitioners with completed booking reservations undergo escrow verification to guarantee authenticity.</p>
 
                 <div className="space-y-4 pt-2">
-                  <div className="p-4 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <strong className="text-[#263D32]">Sarah Jenkins (Australia)</strong>
-                      <span className="text-[#59665C]">October 2026</span>
+                  {getCentreReviews(centre.id).length > 0 ? (
+                    getCentreReviews(centre.id).map(rev => (
+                      <div key={rev.id} className="p-5 bg-[#F7F5EE] rounded-2xl border border-[#E2E5DD] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#E6EDE2] text-[#263D32] flex items-center justify-center font-bold text-xs">
+                              {rev.authorName.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <strong className="text-xs text-[#263D32]">{rev.authorName} ({rev.authorCountry})</strong>
+                                {rev.isVerifiedBooking ? (
+                                  <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 border border-[#286749]/30">
+                                    <CheckCircle2 className="w-2.5 h-2.5" />
+                                    <span>Verified Practitioner</span>
+                                  </span>
+                                ) : (
+                                  <span className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded-full">
+                                    Community Review
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-[#59665C]">{rev.courseName} • {rev.date}</span>
+                            </div>
+                          </div>
+                          <div className="flex text-[#536B50]">
+                            {[...Array(rev.rating)].map((_, i) => (
+                              <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                            ))}
+                          </div>
+                        </div>
+
+                        {rev.title && (
+                          <h4 className="font-serif font-bold text-sm text-[#263D32]">{rev.title}</h4>
+                        )}
+
+                        <p className="text-xs text-[#252C27] leading-relaxed">
+                          "{rev.comment}"
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center bg-[#F7F5EE]/40 rounded-xl border border-dashed border-[#E2E5DD]">
+                      <p className="text-xs text-[#59665C]">No reviews posted for this sanctuary yet. Practitioners who complete a retreat can submit authenticated feedback from their Traveller Portal.</p>
                     </div>
-                    <div className="flex text-[#536B50]">
-                      {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-current" />)}
-                    </div>
-                    <p className="text-xs text-[#252C27] leading-relaxed">
-                      "An extraordinary sanctuary. The teachers possess deep lineage wisdom and taught with genuine care. The admin escrow team organized my private pickup from Dehradun airport flawlessly."
-                    </p>
-                  </div>
+                  )}
                 </div>
               </div>
             )}

@@ -23,7 +23,8 @@ import {
   CommissionRule,
   UserPreferences,
   YogaInstructor,
-  TeachingEnquiry
+  TeachingEnquiry,
+  Review
 } from '../types';
 import { 
   supabase, 
@@ -79,6 +80,7 @@ import {
   INITIAL_PROFILES
 } from '../data/mockAccounting';
 import { INITIAL_INSTRUCTORS, INITIAL_TEACHING_ENQUIRIES } from '../data/mockInstructors';
+import { INITIAL_REVIEWS } from '../data/mockReviews';
 
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
   USD: { code: 'USD', symbol: '$', rateVsUSD: 1.0, label: 'USD ($)' },
@@ -272,6 +274,11 @@ interface AppContextType {
   updateTeachingEnquiryStatus: (enquiryId: string, status: TeachingEnquiry['status'], notes?: string) => Promise<{ success: boolean; error?: string }>;
   updateTeachingEnquiryPayment: (enquiryId: string, paymentStatus: TeachingEnquiry['paymentStatus']) => Promise<{ success: boolean; error?: string }>;
 
+  // Reviews & Verified Ratings
+  reviews: Review[];
+  submitReview: (reviewData: Omit<Review, 'id' | 'date'>) => { success: boolean; review?: Review; error?: string };
+  getCentreReviews: (centreId: string) => Review[];
+
   // Platform User Accounts & Profile Management
   profiles: UserProfile[];
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
@@ -346,6 +353,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Yoga Instructors and Teaching Enquiries State
   const [instructors, setInstructors] = useState<YogaInstructor[]>(INITIAL_INSTRUCTORS);
   const [teachingEnquiries, setTeachingEnquiries] = useState<TeachingEnquiry[]>(INITIAL_TEACHING_ENQUIRIES);
+
+  // Reviews & Verified Ratings State
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
 
   // Authentication State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -1819,6 +1829,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true };
   };
 
+  // 3. REVIEWS & VERIFIED PRACTITIONER RATINGS
+  const submitReview = (reviewData: Omit<Review, 'id' | 'date'>) => {
+    // Check if the submitter has an authenticated completed booking
+    const matchingBooking = bookings.find(
+      b => b.centreId === reviewData.centreId && 
+           (b.referenceCode === reviewData.bookingRef || 
+            (reviewData.authorEmail && b.customerEmail.toLowerCase() === reviewData.authorEmail.toLowerCase())) &&
+           b.status === 'completed'
+    );
+
+    const isVerified = Boolean(matchingBooking || reviewData.isVerifiedBooking);
+
+    const newReview: Review = {
+      ...reviewData,
+      id: `rev-${Date.now()}`,
+      date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      isVerifiedBooking: isVerified,
+      bookingRef: matchingBooking ? matchingBooking.referenceCode : reviewData.bookingRef
+    };
+
+    setReviews(prev => [newReview, ...prev]);
+
+    // Recalculate centre rating and review count
+    setCentres(prevCentres => prevCentres.map(c => {
+      if (c.id === reviewData.centreId) {
+        const centreReviews = [...reviews.filter(r => r.centreId === c.id), newReview];
+        const newAvg = Number((centreReviews.reduce((sum, r) => sum + r.rating, 0) / centreReviews.length).toFixed(1));
+        return {
+          ...c,
+          reviewCount: centreReviews.length,
+          rating: newAvg
+        };
+      }
+      return c;
+    }));
+
+    recordAuditLog('review_submitted', 'centre', reviewData.centreId, {
+      author: reviewData.authorName,
+      isVerified,
+      rating: reviewData.rating
+    });
+
+    return { success: true, review: newReview };
+  };
+
+  const getCentreReviews = (centreId: string) => {
+    return reviews.filter(r => r.centreId === centreId);
+  };
+
   const refreshDatabaseState = async () => {
     try {
       const [liveCentres, liveCourses, liveBookings, liveEnquiries, liveLedger, livePayouts, liveRules, liveInvites, liveProfiles] = await Promise.all([
@@ -1992,7 +2051,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateUserProfile,
       updateUserPreferences,
       updateUserAccountStatus,
-      requestBookingCancellation
+      requestBookingCancellation,
+      reviews,
+      submitReview,
+      getCentreReviews
     }}>
       {children}
     </AppContext.Provider>

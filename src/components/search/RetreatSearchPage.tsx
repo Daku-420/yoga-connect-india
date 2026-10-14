@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { YogaInstructor } from '../../types';
+import { InstructorEnquiryModal } from '../booking/InstructorEnquiryModal';
 import { 
   Star, 
   MapPin, 
@@ -12,13 +14,19 @@ import {
   Sparkles,
   RefreshCw,
   Clock,
-  ArrowRight
+  ArrowRight,
+  UserCheck,
+  Building2,
+  Globe,
+  Video,
+  DollarSign
 } from 'lucide-react';
 
 export const RetreatSearchPage: React.FC = () => {
   const { 
     centres, 
     courses,
+    instructors,
     filters, 
     setFilters, 
     resetFilters,
@@ -32,6 +40,12 @@ export const RetreatSearchPage: React.FC = () => {
     setIsCourseDrawerOpen,
     setIsFilterModalOpen
   } = useApp();
+
+  const [activeDiscoveryType, setActiveDiscoveryType] = useState<'centres' | 'instructors'>('centres');
+  const [selectedInstructorForEnquiry, setSelectedInstructorForEnquiry] = useState<YogaInstructor | null>(null);
+
+  // Filter approved instructors
+  const approvedInstructors = instructors.filter(inst => inst.status === 'approved' || !inst.status);
 
   // Apply Filters
   const filteredCentres = centres.filter(centre => {
@@ -81,12 +95,40 @@ export const RetreatSearchPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Bar */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-[#E2E5DD] flex flex-wrap items-center justify-between gap-4">
-          
-          <div className="flex items-center space-x-2 text-xs font-semibold text-[#59665C]">
-            <span>Showing <strong className="text-[#263D32] text-sm font-serif">{filteredCentres.length}</strong> Verified Centres</span>
-          </div>
+        {/* Discovery Mode Switcher */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setActiveDiscoveryType('centres')}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+              activeDiscoveryType === 'centres'
+                ? 'bg-[#263D32] text-white shadow-sm'
+                : 'bg-white text-[#59665C] border border-[#E2E5DD] hover:bg-[#E6EDE2]'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Yoga Centres &amp; Sanctuaries ({centres.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveDiscoveryType('instructors')}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+              activeDiscoveryType === 'instructors'
+                ? 'bg-[#263D32] text-white shadow-sm'
+                : 'bg-white text-[#59665C] border border-[#E2E5DD] hover:bg-[#E6EDE2]'
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            <span>Certified Yoga Instructors ({approvedInstructors.length})</span>
+          </button>
+        </div>
+
+        {/* Filter Bar (Centres mode) */}
+        {activeDiscoveryType === 'centres' && (
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-[#E2E5DD] flex flex-wrap items-center justify-between gap-4">
+            
+            <div className="flex items-center space-x-2 text-xs font-semibold text-[#59665C]">
+              <span>Showing <strong className="text-[#263D32] text-sm font-serif">{filteredCentres.length}</strong> Verified Centres</span>
+            </div>
 
           {/* Quick Category Chips */}
           <div className="flex flex-wrap items-center gap-2">
@@ -133,9 +175,11 @@ export const RetreatSearchPage: React.FC = () => {
           </div>
 
         </div>
+        )}
 
         {/* Results Grid */}
-        {filteredCentres.length > 0 ? (
+        {activeDiscoveryType === 'centres' ? (
+          filteredCentres.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCentres.map(centre => {
               const isWishlisted = wishlist.includes(centre.id);
@@ -288,7 +332,121 @@ export const RetreatSearchPage: React.FC = () => {
               Reset All Filters
             </button>
           </div>
+        )) : (
+          /* Instructors Discovery View */
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[#59665C] font-semibold">
+                Showing <strong className="text-[#263D32] text-sm font-serif">{approvedInstructors.length}</strong> Certified Yoga Instructors
+              </span>
+              <span className="text-[11px] text-[#286749] bg-[#E6EDE2] px-3 py-1 rounded-full font-bold border border-[#286749]/20">
+                Accredited Practitioners
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {approvedInstructors.map((inst) => (
+                <article
+                  key={inst.id}
+                  className="bg-white rounded-3xl overflow-hidden border border-[#E2E5DD] shadow-xs hover:shadow-md transition duration-300 flex flex-col group"
+                >
+                  {/* Header Image or Avatar */}
+                  <div className="h-44 bg-[#263D32] relative overflow-hidden flex items-center justify-center p-6 text-center">
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
+                    <div className="relative z-10 space-y-2">
+                      <div className="w-20 h-20 rounded-full bg-white/10 mx-auto flex items-center justify-center border-2 border-gold-300 shadow-md overflow-hidden">
+                        {inst.photoUrl ? (
+                          <img src={inst.photoUrl} alt={inst.fullName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="font-serif font-bold text-2xl text-white">
+                            {inst.fullName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="inline-flex items-center space-x-1 bg-white/20 px-2.5 py-0.5 rounded-full text-white text-[10px] font-semibold backdrop-blur-xs">
+                        <CheckCircle2 className="w-3 h-3 text-gold-300" />
+                        <span>Verified Teacher</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-serif font-bold text-lg text-[#263D32] group-hover:text-[#536B50] transition">
+                            {inst.fullName}
+                          </h3>
+                          <p className="text-xs text-[#59665C] flex items-center space-x-1 mt-0.5">
+                            <MapPin className="w-3 h-3 text-[#536B50]" />
+                            <span>{inst.city || 'Rishikesh'}, {inst.state || 'Uttarakhand'}</span>
+                          </p>
+                        </div>
+                        <span className="text-[10px] bg-[#F7F5EE] text-[#263D32] font-bold px-2 py-1 rounded-lg border border-[#E2E5DD]">
+                          {inst.yearsOfExperience}+ Yrs Exp
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-[#59665C] line-clamp-3 leading-relaxed">
+                        {inst.bio}
+                      </p>
+
+                      {/* Styles */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {inst.yogaStyles?.slice(0, 3).map((st, i) => (
+                          <span key={i} className="text-[10px] bg-[#E6EDE2] text-[#263D32] px-2 py-0.5 rounded-md font-medium">
+                            {st}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Delivery Modes */}
+                      <div className="flex items-center gap-2 pt-1 text-[11px] text-[#59665C]">
+                        {inst.inPersonAvailable && (
+                          <span className="flex items-center space-x-1 bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200">
+                            <Building2 className="w-3 h-3" />
+                            <span>In-Person</span>
+                          </span>
+                        )}
+                        {inst.onlineAvailable && (
+                          <span className="flex items-center space-x-1 bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+                            <Video className="w-3 h-3" />
+                            <span>Online</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="pt-4 border-t border-[#E2E5DD] flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-[#59665C] uppercase block font-semibold">Session Rate</span>
+                        <span className="font-serif font-bold text-base text-[#263D32]">
+                          {formatPrice(inst.hourlyRateUSD || 45)}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedInstructorForEnquiry(inst)}
+                        className="bg-[#263D32] hover:bg-[#1E3228] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                      >
+                        <span>Request Session</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
         )}
+
+        <InstructorEnquiryModal
+          isOpen={Boolean(selectedInstructorForEnquiry)}
+          onClose={() => setSelectedInstructorForEnquiry(null)}
+          instructor={selectedInstructorForEnquiry}
+        />
 
       </div>
     </div>

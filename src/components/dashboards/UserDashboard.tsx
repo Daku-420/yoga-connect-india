@@ -28,9 +28,10 @@ import {
   Phone,
   Globe,
   Sliders,
-  BookOpen
+  BookOpen,
+  Star
 } from 'lucide-react';
-import { UserPreferences } from '../../types';
+import { UserPreferences, BookingRequest } from '../../types';
 
 export const UserDashboard: React.FC = () => {
   const { 
@@ -51,7 +52,8 @@ export const UserDashboard: React.FC = () => {
     updateUserProfile,
     updateUserPreferences,
     requestBookingCancellation,
-    enquiries
+    enquiries,
+    submitReview
   } = useApp();
 
   // Active tab state
@@ -75,6 +77,13 @@ export const UserDashboard: React.FC = () => {
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState<string>('');
   const [cancelSuccessMsg, setCancelSuccessMsg] = useState<string>('');
+
+  // Review submission modal state
+  const [reviewBooking, setReviewBooking] = useState<BookingRequest | null>(null);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewTitle, setReviewTitle] = useState<string>('');
+  const [reviewComment, setReviewComment] = useState<string>('');
+  const [reviewSuccessMsg, setReviewSuccessMsg] = useState<string>('');
 
   // Preference form state
   const [prefForm, setPrefForm] = useState<UserPreferences>({
@@ -492,32 +501,50 @@ export const UserDashboard: React.FC = () => {
                         </span>
 
                         {b.status === 'pending_admin' && (
-                          <span className="bg-[#DCCDB5]/40 text-[#252C27] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#DCCDB5]">
-                            <Clock className="w-3 h-3 text-[#536B50]" />
-                            <span>Pending Admin Review</span>
+                          <span className="bg-[#FFFBEB] text-[#B54708] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#FEDF89]">
+                            <Clock className="w-3 h-3 text-[#B54708]" />
+                            <span>Booking: Pending Verification</span>
                           </span>
                         )}
 
                         {b.status === 'assigned_to_centre' && (
-                          <span className="bg-[#E6EDE2] text-[#263D32] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#A5B89A]/40">
+                          <span className="bg-[#E6EDE2] text-[#263D32] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#A5B89A]/40">
                             <CheckCircle2 className="w-3 h-3 text-[#536B50]" />
-                            <span>Assigned to Ashram</span>
+                            <span>Booking: Assigned to Ashram</span>
                           </span>
                         )}
 
                         {b.status === 'confirmed_paid' && (
-                          <span className="bg-[#E6EDE2] text-[#286749] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#286749]/30">
+                          <span className="bg-[#E6EDE2] text-[#286749] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#286749]/30">
                             <CheckCircle2 className="w-3 h-3 text-[#286749]" />
-                            <span>Confirmed &amp; Paid (Escrow Verified)</span>
+                            <span>Booking: Confirmed</span>
+                          </span>
+                        )}
+
+                        {b.status === 'completed' && (
+                          <span className="bg-[#E6EDE2] text-[#286749] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#286749]/30">
+                            <CheckCircle2 className="w-3 h-3 text-[#286749]" />
+                            <span>Booking: Completed Journey</span>
                           </span>
                         )}
 
                         {b.status === 'cancelled' && (
-                          <span className="bg-[#FEF3F2] text-[#B42318] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#FDA29B]">
+                          <span className="bg-[#FEF3F2] text-[#B42318] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1 border border-[#FDA29B]">
                             <XCircle className="w-3 h-3 text-[#B42318]" />
-                            <span>Booking Cancelled</span>
+                            <span>Booking: Cancelled</span>
                           </span>
                         )}
+
+                        {/* Payment Status Badge */}
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          b.paymentStatus === 'paid' || b.paymentStatus === 'paid_full'
+                            ? 'bg-[#E6EDE2] text-[#286749] border-[#286749]/30'
+                            : b.paymentStatus === 'refunded'
+                            ? 'bg-[#FEF3F2] text-[#B42318] border-[#FDA29B]'
+                            : 'bg-[#FFFBEB] text-amber-700 border-amber-200'
+                        }`}>
+                          Payment: {b.paymentStatus === 'paid' || b.paymentStatus === 'paid_full' ? 'Verified Escrow' : b.paymentStatus === 'refunded' ? 'Refunded' : 'Pending Verification'}
+                        </span>
                       </div>
 
                       <h3 className="font-serif font-bold text-xl text-[#263D32]">{b.courseTitle}</h3>
@@ -555,7 +582,23 @@ export const UserDashboard: React.FC = () => {
                           <span>View Voucher</span>
                         </button>
 
-                        {b.status !== 'cancelled' && (
+                        {(b.status === 'completed' || b.status === 'confirmed_paid') && (
+                          <button
+                            onClick={() => {
+                              setReviewBooking(b);
+                              setReviewRating(5);
+                              setReviewTitle('');
+                              setReviewComment('');
+                              setReviewSuccessMsg('');
+                            }}
+                            className="bg-[#263D32] hover:bg-[#1E3228] text-white text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center space-x-1 cursor-pointer shadow-xs"
+                          >
+                            <Star className="w-3.5 h-3.5 text-gold-300 fill-current" />
+                            <span>Write Review</span>
+                          </button>
+                        )}
+
+                        {b.status !== 'cancelled' && b.status !== 'completed' && (
                           <button
                             onClick={() => {
                               setCancellingBookingId(b.id);
@@ -993,6 +1036,130 @@ export const UserDashboard: React.FC = () => {
                 <span>Print Voucher</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Submission Modal */}
+      {reviewBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <div className="flex items-center space-x-2">
+                <Star className="w-5 h-5 text-gold-400 fill-current" />
+                <h3 className="font-serif font-bold text-lg text-[#263D32]">Write Verified Review</h3>
+              </div>
+              <button
+                onClick={() => setReviewBooking(null)}
+                className="text-[#8E9B91] hover:text-[#263D32] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {reviewSuccessMsg ? (
+              <div className="text-center py-6 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#E6EDE2] text-[#286749] flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h4 className="font-bold text-[#263D32]">Review Submitted Successfully</h4>
+                <p className="text-xs text-[#59665C]">
+                  Thank you! Your verified practitioner review has been published with an authenticity badge.
+                </p>
+                <button
+                  onClick={() => setReviewBooking(null)}
+                  className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitReview({
+                    centreId: reviewBooking.centreId,
+                    courseName: reviewBooking.courseTitle,
+                    authorName: userProfile?.fullName || reviewBooking.customerName,
+                    authorCountry: userProfile?.country || reviewBooking.customerCountry || 'India',
+                    authorAvatar: userProfile?.avatarUrl || '',
+                    authorEmail: userProfile?.email || reviewBooking.customerEmail,
+                    rating: reviewRating,
+                    title: reviewTitle,
+                    comment: reviewComment,
+                    teacherRating: reviewRating,
+                    foodRating: reviewRating,
+                    stayRating: reviewRating,
+                    isVerifiedBooking: true,
+                    bookingRef: reviewBooking.referenceCode
+                  });
+                  setReviewSuccessMsg('Your verified practitioner review has been submitted.');
+                }}
+                className="space-y-4 text-xs"
+              >
+                <div className="p-3 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]">
+                  <span className="font-bold text-[#263D32] block">{reviewBooking.courseTitle}</span>
+                  <span className="text-[11px] text-[#59665C]">{reviewBooking.centreName} • Ref #{reviewBooking.referenceCode}</span>
+                </div>
+
+                <div>
+                  <label className="block text-[#263D32] font-semibold mb-1">Overall Rating</label>
+                  <div className="flex items-center space-x-1.5 text-gold-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        onClick={() => setReviewRating(star)}
+                        className="cursor-pointer hover:scale-110 transition"
+                      >
+                        <Star className={`w-6 h-6 ${star <= reviewRating ? 'fill-current text-gold-400' : 'text-gray-300'}`} />
+                      </button>
+                    ))}
+                    <span className="text-xs font-bold text-[#263D32] ml-2">{reviewRating} / 5</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[#263D32] font-semibold mb-1">Headline / Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewTitle}
+                    onChange={(e) => setReviewTitle(e.target.value)}
+                    placeholder="e.g. Life-changing Himalayan immersion"
+                    className="w-full px-3 py-2 border border-[#E2E5DD] rounded-xl text-[#263D32] focus:outline-hidden focus:border-[#536B50]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[#263D32] font-semibold mb-1">Detailed Review *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Share your experience regarding ashram discipline, lineage masters, sattvic meals, and accommodation..."
+                    className="w-full px-3 py-2 border border-[#E2E5DD] rounded-xl text-[#263D32] focus:outline-hidden focus:border-[#536B50] resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setReviewBooking(null)}
+                    className="w-1/2 bg-gray-100 hover:bg-gray-200 text-[#263D32] font-semibold py-2.5 rounded-xl transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-1/2 bg-[#536B50] hover:bg-[#40563E] text-white font-semibold py-2.5 rounded-xl transition cursor-pointer shadow-sm"
+                  >
+                    Publish Review
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
