@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
 import { 
   CurrencyCode, 
   CurrencyConfig, 
@@ -10,8 +11,26 @@ import {
   AIRetreatQuizState,
   CentreMatchmakerConfig,
   MatchmakerLeadEnquiry,
-  MatchmakerAnalytics
+  MatchmakerAnalytics,
+  UserProfile,
+  CentreMembership,
+  FinancialLedgerEntry,
+  PayoutRecord,
+  FinancialQuery,
+  AuditLogEntry
 } from '../types';
+import { 
+  supabase, 
+  isSupabaseConfigured, 
+  signInWithGoogle, 
+  sendEmailOtp, 
+  verifyEmailOtp, 
+  signInWithEmailPassword,
+  signUpWithEmailPassword,
+  sendPasswordReset,
+  signOutUser,
+  fetchUserAuthorisation
+} from '../lib/supabase';
 import { mockCentres } from '../data/mockCentres';
 import { mockCourses } from '../data/mockCourses';
 import { mockBookings } from '../data/mockBookings';
@@ -20,6 +39,13 @@ import {
   INITIAL_MATCHMAKER_LEADS, 
   INITIAL_MATCHMAKER_ANALYTICS 
 } from '../data/mockMatchmakers';
+import {
+  INITIAL_MEMBERSHIPS,
+  INITIAL_LEDGER_ENTRIES,
+  INITIAL_PAYOUTS,
+  INITIAL_FINANCIAL_QUERIES,
+  INITIAL_AUDIT_LOGS
+} from '../data/mockAccounting';
 
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
   USD: { code: 'USD', symbol: '$', rateVsUSD: 1.0, label: 'USD ($)' },
@@ -29,6 +55,20 @@ export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
   CAD: { code: 'CAD', symbol: 'C$', rateVsUSD: 1.36, label: 'CAD (C$)' },
   INR: { code: 'INR', symbol: '₹', rateVsUSD: 83.50, label: 'INR (₹)' },
 };
+
+export interface CentreFinancialMetrics {
+  totalBookings: number;
+  confirmedBookings: number;
+  upcomingBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  grossBookingValue: number;
+  platformCommission: number;
+  refunds: number;
+  netAmountPayable: number;
+  totalPayoutsCompleted: number;
+  outstandingPayableBalance: number;
+}
 
 interface AppContextType {
   // Branding
@@ -75,6 +115,7 @@ interface AppContextType {
   updateBookingStatus: (bookingId: string, newStatus: BookingRequest['status'], adminNotes?: string) => void;
   addNewCourse: (course: Course) => void;
   addNewCentre: (centre: YogaCentre) => void;
+  updateCentreProfile: (centreId: string, updates: Partial<YogaCentre>) => void;
 
   // Modals
   isFilterModalOpen: boolean;
@@ -113,7 +154,51 @@ interface AppContextType {
   setChatMessages: React.Dispatch<React.SetStateAction<any[]>>;
   unreadCount: number;
   setUnreadCount: (count: number) => void;
+
+  // User Authentication (Google / Gmail & OTP)
+  currentUser: User | null;
+  userProfile: UserProfile | null;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  loginWithGoogle: (returnPath?: string) => Promise<{ success?: boolean; error?: string }>;
+  sendOtp: (email: string) => Promise<{ success: boolean; error?: string; isDemo?: boolean; demoCode?: string }>;
+  verifyOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithPassword: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUpWithPassword: (email: string, password: string, fullName?: string) => Promise<{ success: boolean; error?: string; requiresVerification?: boolean; message?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string; message?: string }>;
+  logout: () => Promise<void>;
+  loginAsPersona: (email: string) => void;
+
+  // Partner Centre & Memberships
+  memberships: CentreMembership[];
+  partnerCentre: YogaCentre | null;
+  partnerMembership: CentreMembership | null;
+  assignPartnerToCentre: (userEmail: string, userName: string, centreId: string, role?: 'owner' | 'manager' | 'accountant') => { success: boolean; membership?: CentreMembership; error?: string };
+  updateMembershipStatus: (membershipId: string, status: 'active' | 'suspended' | 'inactive') => void;
+  removePartnerMembership: (membershipId: string) => void;
+
+  // Financial Ledger & Accounting
+  ledgerEntries: FinancialLedgerEntry[];
+  addLedgerAdjustment: (centreId: string, amount: number, direction: 'credit' | 'debit', description: string, referenceCode?: string) => FinancialLedgerEntry;
+  getCentreLedgerEntries: (centreId: string) => FinancialLedgerEntry[];
+  getCentreFinancialMetrics: (centreId: string, dateRange?: { from?: string; to?: string }) => CentreFinancialMetrics;
+
+  // Payouts & Settlements
+  payouts: PayoutRecord[];
+  createPayoutBatch: (centreId: string, netAmount: number, notes?: string, periodStart?: string, periodEnd?: string) => PayoutRecord;
+  processPayoutSettlement: (payoutId: string, settlementReference: string) => { success: boolean; error?: string };
+  getCentrePayouts: (centreId: string) => PayoutRecord[];
+
+  // Financial Queries
+  financialQueries: FinancialQuery[];
+  createFinancialQuery: (centreId: string, subject: string, message: string) => FinancialQuery;
+  respondToFinancialQuery: (queryId: string, response: string) => void;
+
+  // Audit Logs
+  auditLogs: AuditLogEntry[];
+  recordAuditLog: (action: string, targetEntity: string, targetId?: string, details?: Record<string, any>) => void;
 }
+
 
 const defaultFilters: FilterState = {
   searchLocation: 'all',
@@ -158,6 +243,374 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAIQuizModalOpen, setIsAIQuizModalOpen] = useState(false);
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
   const [isAddCentreOpen, setIsAddCentreOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Centre Memberships, Financial Ledger, Payouts, Audit Logs
+  const [memberships, setMemberships] = useState<CentreMembership[]>(INITIAL_MEMBERSHIPS);
+  const [ledgerEntries, setLedgerEntries] = useState<FinancialLedgerEntry[]>(INITIAL_LEDGER_ENTRIES);
+  const [payouts, setPayouts] = useState<PayoutRecord[]>(INITIAL_PAYOUTS);
+  const [financialQueries, setFinancialQueries] = useState<FinancialQuery[]>(INITIAL_FINANCIAL_QUERIES);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
+
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  // Active Partner Membership and Centre (derived from authenticated profile)
+  const partnerMembership = memberships.find(
+    m => (m.userEmail || '').toLowerCase() === (userProfile?.email || '').toLowerCase()
+  ) || (userProfile?.assignedCentreId ? memberships.find(m => m.centreId === userProfile.assignedCentreId) : null) || null;
+
+  const partnerCentre = centres.find(
+    c => c.id === (userProfile?.assignedCentreId || partnerMembership?.centreId)
+  ) || null;
+
+  // Initialize and listen to Supabase Auth state
+  useEffect(() => {
+    // 1. Check local storage for persistent profile in fallback mode
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('yogaconnect_user_profile');
+        if (saved) {
+          const parsed: UserProfile = JSON.parse(saved);
+          if (parsed.role === 'centre') parsed.role = 'partner';
+          setUserProfile(parsed);
+          setUserRole(parsed.role as UserRole || 'user');
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (!isSupabaseConfigured) return;
+
+    // 2. Fetch active Supabase session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setCurrentUser(session.user);
+        syncUserProfile(session.user);
+      }
+    });
+
+    // 3. Listen to Auth changes (OAuth redirect back, OTP sign-in, sign-out)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setCurrentUser(null);
+        setUserProfile(null);
+        setUserRole('visitor');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('yogaconnect_user_profile');
+        }
+      } else if (session?.user) {
+        setCurrentUser(session.user);
+        syncUserProfile(session.user);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const syncUserProfile = async (user: User) => {
+    // 1. Query live database authorization if Supabase is connected
+    const authData = await fetchUserAuthorisation(user.id, user.email || '');
+    if (authData && authData.membership) {
+      const mem = authData.membership;
+      const centre = centres.find(c => c.id === mem.centre_id);
+      const profile: UserProfile = {
+        id: user.id,
+        email: user.email || '',
+        fullName: authData.profile?.full_name || user.user_metadata?.full_name || 'Centre Partner',
+        avatarUrl: authData.profile?.avatar_url || user.user_metadata?.avatar_url || '',
+        role: 'partner',
+        assignedCentreId: mem.centre_id,
+        assignedCentreName: centre?.name || (mem.centres as any)?.name || 'Authorized Centre',
+        membershipStatus: mem.status as any,
+        createdAt: user.created_at,
+      };
+      setUserProfile(profile);
+      setUserRole(mem.status === 'active' ? 'partner' : 'visitor');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+      }
+      return;
+    }
+
+    if (authData?.role === 'admin') {
+      const profile: UserProfile = {
+        id: user.id,
+        email: user.email || '',
+        fullName: authData.profile?.full_name || 'Chief Administrator',
+        role: 'admin',
+        createdAt: user.created_at,
+      };
+      setUserProfile(profile);
+      setUserRole('admin');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+      }
+      return;
+    }
+
+    // 2. Check local configured memberships
+    const userEmail = (user.email || '').toLowerCase().trim();
+    const existingMembership = memberships.find(m => (m.userEmail || '').toLowerCase() === userEmail);
+    if (existingMembership) {
+      const centre = centres.find(c => c.id === existingMembership.centreId);
+      const profile: UserProfile = {
+        id: user.id,
+        email: userEmail,
+        fullName: existingMembership.userName || user.user_metadata?.full_name || 'Centre Partner',
+        role: 'partner',
+        assignedCentreId: existingMembership.centreId,
+        assignedCentreName: centre?.name || existingMembership.centreName,
+        membershipStatus: existingMembership.status,
+        createdAt: user.created_at,
+      };
+      setUserProfile(profile);
+      setUserRole(existingMembership.status === 'active' ? 'partner' : 'visitor');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+      }
+      return;
+    }
+
+    if (userEmail === 'admin@yogaconnect.in') {
+      const profile: UserProfile = {
+        id: user.id,
+        email: userEmail,
+        fullName: 'Chief Administrator',
+        role: 'admin',
+        createdAt: user.created_at,
+      };
+      setUserProfile(profile);
+      setUserRole('admin');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+      }
+      return;
+    }
+
+    // Default regular customer
+    const profile: UserProfile = {
+      id: user.id,
+      email: user.email || '',
+      fullName: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Traveler',
+      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
+      role: 'user',
+      createdAt: user.created_at,
+    };
+    setUserProfile(profile);
+    setUserRole('user');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+    }
+  };
+
+  const loginAsPersona = (email: string) => {
+    const trimmed = email.trim().toLowerCase();
+    if (trimmed === 'admin@yogaconnect.in') {
+      const profile: UserProfile = {
+        id: 'admin-1',
+        email: 'admin@yogaconnect.in',
+        fullName: 'Chief Administrator',
+        avatarUrl: '',
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      };
+      setUserProfile(profile);
+      setUserRole('admin');
+      setActiveView('admin-dashboard');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+      }
+      setIsAuthModalOpen(false);
+      return;
+    }
+
+    const membership = memberships.find(m => (m.userEmail || '').toLowerCase() === trimmed);
+    if (membership) {
+      const centre = centres.find(c => c.id === membership.centreId);
+      const profile: UserProfile = {
+        id: membership.userId,
+        email: membership.userEmail || trimmed,
+        fullName: membership.userName || 'Centre Partner',
+        avatarUrl: '',
+        role: 'partner',
+        assignedCentreId: membership.centreId,
+        assignedCentreName: centre?.name || membership.centreName,
+        membershipStatus: membership.status,
+        createdAt: membership.createdAt
+      };
+      setUserProfile(profile);
+      setUserRole(membership.status === 'active' ? 'partner' : 'visitor');
+      setActiveView('centre-dashboard');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+      }
+      setIsAuthModalOpen(false);
+      return;
+    }
+
+    // Regular customer
+    const profile: UserProfile = {
+      id: 'customer-' + Date.now(),
+      email: trimmed,
+      fullName: trimmed.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Sarah Jenkins',
+      avatarUrl: '',
+      role: 'user',
+      createdAt: new Date().toISOString()
+    };
+    setUserProfile(profile);
+    setUserRole('user');
+    setActiveView('user-dashboard');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yogaconnect_user_profile', JSON.stringify(profile));
+    }
+    setIsAuthModalOpen(false);
+  };
+
+  const loginWithGoogle = async (returnPath?: string) => {
+    if (!isSupabaseConfigured) {
+      // Demo fallback login as regular customer
+      loginAsPersona('emma.watson@gmail.com');
+      return { success: true };
+    }
+
+    const { error } = await signInWithGoogle(returnPath);
+    if (error) {
+      return { error: error.message };
+    }
+    return { success: true };
+  };
+
+  const sendOtp = async (emailToVerify: string) => {
+    const trimmed = emailToVerify.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+
+    if (!isSupabaseConfigured) {
+      // Simulated OTP for immediate testing
+      return { success: true, isDemo: true, demoCode: '108108' };
+    }
+
+    const { error, isDemo } = await sendEmailOtp(trimmed);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, isDemo: isDemo || false };
+  };
+
+  const verifyOtp = async (emailToVerify: string, token: string) => {
+    const trimmedEmail = emailToVerify.trim().toLowerCase();
+    const trimmedToken = token.trim();
+
+    if (!isSupabaseConfigured) {
+      // In demo mode, sign in with role matching the email address
+      loginAsPersona(trimmedEmail);
+      return { success: true };
+    }
+
+    const { data, error } = await verifyEmailOtp(trimmedEmail, trimmedToken);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    if (data?.user) {
+      setCurrentUser(data.user);
+      syncUserProfile(data.user);
+    }
+    setIsAuthModalOpen(false);
+    return { success: true };
+  };
+
+  const loginWithPassword = async (emailToVerify: string, password: string) => {
+    const trimmedEmail = emailToVerify.trim().toLowerCase();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    if (!password) {
+      return { success: false, error: 'Please enter your password.' };
+    }
+
+    if (!isSupabaseConfigured) {
+      loginAsPersona(trimmedEmail);
+      return { success: true };
+    }
+
+    const { data, error } = await signInWithEmailPassword(trimmedEmail, password);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    if (data?.user) {
+      setCurrentUser(data.user);
+      syncUserProfile(data.user);
+    }
+    setIsAuthModalOpen(false);
+    return { success: true };
+  };
+
+  const signUpWithPassword = async (emailToVerify: string, password: string, fullName?: string) => {
+    const trimmedEmail = emailToVerify.trim().toLowerCase();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    if (!password || password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    if (!isSupabaseConfigured) {
+      loginAsPersona(trimmedEmail);
+      return { success: true };
+    }
+
+    const { data, error } = await signUpWithEmailPassword(trimmedEmail, password, fullName);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    if (data?.session && data?.user) {
+      setCurrentUser(data.user);
+      syncUserProfile(data.user);
+      setIsAuthModalOpen(false);
+      return { success: true };
+    } else {
+      return { 
+        success: true, 
+        requiresVerification: true,
+        message: 'Account created! If email confirmation is required, please check your inbox.' 
+      };
+    }
+  };
+
+  const resetPassword = async (emailToVerify: string) => {
+    const trimmedEmail = emailToVerify.trim().toLowerCase();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    if (!isSupabaseConfigured) {
+      return { success: true, message: 'Password reset link sent (demo mode).' };
+    }
+    const { error } = await sendPasswordReset(trimmedEmail);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, message: 'Password reset instructions have been sent to your email.' };
+  };
+
+  const logout = async () => {
+    if (isSupabaseConfigured) {
+      await signOutUser();
+    }
+    setCurrentUser(null);
+    setUserProfile(null);
+    setUserRole('visitor');
+    setActiveView('home');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('yogaconnect_user_profile');
+    }
+  };
+
 
   // Centre Matchmaker System State
   const [matchmakerConfigs, setMatchmakerConfigs] = useState<Record<string, CentreMatchmakerConfig>>(INITIAL_CENTRE_MATCHMAKERS);
@@ -357,16 +810,402 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const recordAuditLog = (
+    action: string, 
+    targetEntity: string, 
+    targetId?: string, 
+    details?: Record<string, any>
+  ) => {
+    const entry: AuditLogEntry = {
+      id: 'audit-' + Date.now(),
+      actorId: userProfile?.id || 'admin-1',
+      actorEmail: userProfile?.email || 'admin@yogaconnect.in',
+      action,
+      targetEntity,
+      targetId,
+      details,
+      ipAddress: '103.21.244.2',
+      createdAt: new Date().toISOString()
+    };
+    setAuditLogs(prev => [entry, ...prev]);
+  };
+
+  const assignPartnerToCentre = (
+    userEmail: string, 
+    userName: string, 
+    centreId: string, 
+    role: 'owner' | 'manager' | 'accountant' = 'owner'
+  ) => {
+    const trimmedEmail = userEmail.trim().toLowerCase();
+    const centre = centres.find(c => c.id === centreId);
+    if (!centre) {
+      return { success: false, error: 'Specified yoga centre does not exist.' };
+    }
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      return { success: false, error: 'Valid email address is required.' };
+    }
+
+    const existing = memberships.find(m => m.userEmail?.toLowerCase() === trimmedEmail && m.centreId === centreId);
+    if (existing) {
+      return { success: false, error: 'A membership for this email and centre already exists.' };
+    }
+
+    const newMembership: CentreMembership = {
+      id: 'mem-' + Date.now(),
+      userId: 'user-' + Date.now(),
+      userEmail: trimmedEmail,
+      userName: userName || trimmedEmail.split('@')[0],
+      centreId,
+      centreName: centre.name,
+      role,
+      status: 'active',
+      assignedBy: userProfile?.id || 'admin-1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setMemberships(prev => [newMembership, ...prev]);
+
+    recordAuditLog(
+      'partner_account_assigned',
+      'centre_memberships',
+      newMembership.id,
+      {
+        partnerEmail: trimmedEmail,
+        centreId,
+        centreName: centre.name,
+        role
+      }
+    );
+
+    return { success: true, membership: newMembership };
+  };
+
+  const updateMembershipStatus = (membershipId: string, status: 'active' | 'suspended' | 'inactive') => {
+    setMemberships(prev => prev.map(m => {
+      if (m.id === membershipId) {
+        return {
+          ...m,
+          status,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return m;
+    }));
+
+    const membership = memberships.find(m => m.id === membershipId);
+    if (membership) {
+      if (userProfile && (userProfile.email.toLowerCase() === membership.userEmail?.toLowerCase() || userProfile.assignedCentreId === membership.centreId)) {
+        setUserProfile(prev => prev ? { ...prev, membershipStatus: status } : null);
+        if (status !== 'active') {
+          setUserRole('visitor');
+        } else {
+          setUserRole('partner');
+        }
+      }
+
+      recordAuditLog(
+        status === 'suspended' ? 'partner_account_suspended' : status === 'inactive' ? 'partner_account_deactivated' : 'partner_account_activated',
+        'centre_memberships',
+        membershipId,
+        {
+          partnerEmail: membership.userEmail,
+          centreId: membership.centreId,
+          centreName: membership.centreName,
+          newStatus: status
+        }
+      );
+    }
+  };
+
+  const removePartnerMembership = (membershipId: string) => {
+    const mem = memberships.find(m => m.id === membershipId);
+    setMemberships(prev => prev.filter(m => m.id !== membershipId));
+    if (mem) {
+      if (userProfile && userProfile.email.toLowerCase() === mem.userEmail?.toLowerCase()) {
+        setUserProfile(prev => prev ? { ...prev, assignedCentreId: undefined, assignedCentreName: undefined, role: 'user' } : null);
+        setUserRole('user');
+      }
+      recordAuditLog('partner_account_removed', 'centre_memberships', membershipId, {
+        partnerEmail: mem.userEmail,
+        centreId: mem.centreId
+      });
+    }
+  };
+
+  const addLedgerAdjustment = (
+    centreId: string, 
+    amount: number, 
+    direction: 'credit' | 'debit', 
+    description: string, 
+    referenceCode?: string
+  ): FinancialLedgerEntry => {
+    const newEntry: FinancialLedgerEntry = {
+      id: 'led-' + Date.now(),
+      entryNumber: ledgerEntries.length + 101,
+      centreId,
+      entryType: 'adjustment',
+      entryDirection: direction,
+      amount: Math.abs(amount),
+      currency: 'USD',
+      description,
+      referenceCode: referenceCode || 'ADJ-' + Date.now().toString().slice(-6),
+      status: 'posted',
+      actorEmail: userProfile?.email || 'admin@yogaconnect.in',
+      createdAt: new Date().toISOString()
+    };
+
+    setLedgerEntries(prev => [newEntry, ...prev]);
+
+    recordAuditLog('ledger_adjustment_created', 'financial_ledger', newEntry.id, {
+      centreId,
+      amount,
+      direction,
+      description,
+      referenceCode: newEntry.referenceCode
+    });
+
+    return newEntry;
+  };
+
+  const getCentreLedgerEntries = (centreId: string): FinancialLedgerEntry[] => {
+    return ledgerEntries
+      .filter(e => e.centreId === centreId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  };
+
+  const getCentreFinancialMetrics = (centreId: string, dateRange?: { from?: string; to?: string }): CentreFinancialMetrics => {
+    const centreBookings = bookings.filter(b => b.centreId === centreId);
+    const centreLedger = ledgerEntries.filter(e => e.centreId === centreId);
+    const centrePayoutsList = payouts.filter(p => p.centreId === centreId && p.status === 'paid');
+
+    const totalBookings = centreBookings.length;
+    const confirmedBookings = centreBookings.filter(b => b.status === 'confirmed_paid').length;
+    const upcomingBookings = centreBookings.filter(b => b.status === 'confirmed_paid' || b.status === 'assigned_to_centre').length;
+    const completedBookings = centreBookings.filter(b => b.status === 'confirmed_paid' && new Date(b.startDate) < new Date()).length;
+    const cancelledBookings = centreBookings.filter(b => b.status === 'cancelled').length;
+
+    const grossBookingValue = centreLedger
+      .filter(e => e.entryType === 'booking_charge' && e.entryDirection === 'credit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const platformCommission = centreLedger
+      .filter(e => e.entryType === 'platform_commission' && e.entryDirection === 'debit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const refunds = centreLedger
+      .filter(e => e.entryType === 'refund' && e.entryDirection === 'debit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const creditAdjustments = centreLedger
+      .filter(e => e.entryType === 'adjustment' && e.entryDirection === 'credit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const debitAdjustments = centreLedger
+      .filter(e => e.entryType === 'adjustment' && e.entryDirection === 'debit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const totalPayoutsCompleted = centrePayoutsList.reduce((sum, p) => sum + p.netPayoutAmount, 0);
+
+    const netAmountPayable = Math.max(0, grossBookingValue - platformCommission - refunds + creditAdjustments - debitAdjustments);
+    const outstandingPayableBalance = Math.max(0, netAmountPayable - totalPayoutsCompleted);
+
+    return {
+      totalBookings,
+      confirmedBookings,
+      upcomingBookings,
+      completedBookings,
+      cancelledBookings,
+      grossBookingValue,
+      platformCommission,
+      refunds,
+      netAmountPayable,
+      totalPayoutsCompleted,
+      outstandingPayableBalance
+    };
+  };
+
+  const createPayoutBatch = (
+    centreId: string, 
+    netAmount: number, 
+    notes?: string, 
+    periodStart?: string, 
+    periodEnd?: string
+  ): PayoutRecord => {
+    const centre = centres.find(c => c.id === centreId);
+    const commRate = centre?.commissionRatePercent || 15;
+    const grossAmount = Math.round((netAmount / (1 - commRate / 100)) * 100) / 100;
+    const commissionDeducted = Math.round((grossAmount - netAmount) * 100) / 100;
+
+    const newPayout: PayoutRecord = {
+      id: 'pay-' + Date.now(),
+      referenceCode: 'PO-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+      centreId,
+      centreName: centre?.name || 'Yoga Centre',
+      grossAmount,
+      commissionDeducted,
+      refundsDeducted: 0,
+      netPayoutAmount: netAmount,
+      currency: 'USD',
+      status: 'pending',
+      settlementReference: '',
+      payoutMethod: 'NEFT Bank Transfer',
+      periodStart: periodStart || new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0],
+      periodEnd: periodEnd || new Date().toISOString().split('T')[0],
+      notes: notes || 'Scheduled escrow payout settlement batch',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setPayouts(prev => [newPayout, ...prev]);
+
+    recordAuditLog('payout_batch_created', 'payouts', newPayout.id, {
+      centreId,
+      referenceCode: newPayout.referenceCode,
+      netPayoutAmount: netAmount
+    });
+
+    return newPayout;
+  };
+
+  const processPayoutSettlement = (payoutId: string, settlementReference: string) => {
+    const trimmedRef = settlementReference.trim();
+    if (!trimmedRef) {
+      return { success: false, error: 'A verified payment/settlement reference (e.g. Bank NEFT / Wire Tx ID) is mandatory.' };
+    }
+
+    const payout = payouts.find(p => p.id === payoutId);
+    if (!payout) {
+      return { success: false, error: 'Payout record not found.' };
+    }
+
+    if (payout.status === 'paid') {
+      return { success: false, error: 'This payout is already settled and paid.' };
+    }
+
+    const updatedPayout: PayoutRecord = {
+      ...payout,
+      status: 'paid',
+      settlementReference: trimmedRef,
+      processedBy: userProfile?.id || 'admin-1',
+      processedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setPayouts(prev => prev.map(p => p.id === payoutId ? updatedPayout : p));
+
+    const ledgerEntry: FinancialLedgerEntry = {
+      id: 'led-' + Date.now(),
+      entryNumber: ledgerEntries.length + 101,
+      centreId: payout.centreId,
+      payoutId: payout.id,
+      entryType: 'payout',
+      entryDirection: 'debit',
+      amount: payout.netPayoutAmount,
+      currency: payout.currency,
+      description: `Settled bank transfer payout (Ref: ${payout.referenceCode}, Settlement Tx: ${trimmedRef})`,
+      referenceCode: payout.referenceCode,
+      status: 'posted',
+      actorEmail: userProfile?.email || 'admin@yogaconnect.in',
+      createdAt: new Date().toISOString()
+    };
+
+    setLedgerEntries(prev => [ledgerEntry, ...prev]);
+
+    recordAuditLog('payout_settlement_verified', 'payouts', payout.id, {
+      centreId: payout.centreId,
+      referenceCode: payout.referenceCode,
+      netPayoutAmount: payout.netPayoutAmount,
+      settlementReference: trimmedRef
+    });
+
+    return { success: true };
+  };
+
+  const getCentrePayouts = (centreId: string): PayoutRecord[] => {
+    return payouts
+      .filter(p => p.centreId === centreId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  };
+
+  const createFinancialQuery = (centreId: string, subject: string, message: string): FinancialQuery => {
+    const centre = centres.find(c => c.id === centreId);
+    const newQuery: FinancialQuery = {
+      id: 'fq-' + Date.now(),
+      centreId,
+      centreName: centre?.name || 'Yoga Centre',
+      partnerId: userProfile?.id || 'partner-1',
+      partnerEmail: userProfile?.email || 'partner@yogaconnect.in',
+      subject,
+      message,
+      status: 'open',
+      createdAt: new Date().toISOString()
+    };
+
+    setFinancialQueries(prev => [newQuery, ...prev]);
+
+    recordAuditLog('financial_query_raised', 'financial_queries', newQuery.id, {
+      centreId,
+      subject
+    });
+
+    return newQuery;
+  };
+
+  const respondToFinancialQuery = (queryId: string, response: string) => {
+    setFinancialQueries(prev => prev.map(q => {
+      if (q.id === queryId) {
+        return {
+          ...q,
+          status: 'resolved',
+          adminResponse: response,
+          resolvedAt: new Date().toISOString()
+        };
+      }
+      return q;
+    }));
+
+    recordAuditLog('financial_query_resolved', 'financial_queries', queryId, { response });
+  };
+
+  const updateCentreProfile = (centreId: string, updates: Partial<YogaCentre>) => {
+    // Sanitize updates: partners can update contact, description, photos, facilities, faqs, teachers.
+    // Sensitive financial terms (commissionRatePercent, sponsoredRank) require administrative authorization.
+    setCentres(prev => prev.map(c => {
+      if (c.id === centreId) {
+        const safeUpdates = { ...updates };
+        if (userRole !== 'admin') {
+          delete safeUpdates.commissionRatePercent;
+          delete safeUpdates.sponsoredRank;
+          delete safeUpdates.isVerified;
+        }
+        return { ...c, ...safeUpdates };
+      }
+      return c;
+    }));
+
+    recordAuditLog('centre_profile_updated', 'centres', centreId, {
+      updatedFields: Object.keys(updates)
+    });
+  };
+
   const createBookingRequest = (requestData: Omit<BookingRequest, 'id' | 'referenceCode' | 'createdAt' | 'status'>): BookingRequest => {
     const randomRef = 'YC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const centre = centres.find(c => c.id === requestData.centreId);
+    const commRate = centre?.commissionRatePercent || 15;
+    const commFee = Math.round((requestData.totalUSD * commRate / 100) * 100) / 100;
+    const payout = Math.round((requestData.totalUSD - commFee) * 100) / 100;
+
     const newBooking: BookingRequest = {
       ...requestData,
       id: 'bk-' + Date.now(),
       referenceCode: randomRef,
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       status: 'pending_admin',
-      adminNotes: 'New traveler inquiry received. Contact details masked from centre until admin approval.'
-    };
+      centrePayoutUSD: payout,
+      commissionFeeUSD: commFee,
+      adminNotes: `New inquiry received. 100% Escrow deposit pending. Centre contractual entitlement: $${payout.toFixed(2)} (${100 - commRate}%).`
+    } as any;
 
     setBookings(prev => [newBooking, ...prev]);
     return newBooking;
@@ -375,6 +1214,79 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateBookingStatus = (bookingId: string, newStatus: BookingRequest['status'], adminNotes?: string) => {
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
+        // If status changes to confirmed_paid and no ledger entry yet exists
+        if (newStatus === 'confirmed_paid' && b.status !== 'confirmed_paid') {
+          const centre = centres.find(c => c.id === b.centreId);
+          const commRate = centre?.commissionRatePercent || 15;
+          const commAmount = Math.round((b.totalUSD * commRate / 100) * 100) / 100;
+
+          const creditEntry: FinancialLedgerEntry = {
+            id: 'led-' + Date.now() + '-1',
+            entryNumber: ledgerEntries.length + 101,
+            centreId: b.centreId,
+            bookingId: b.id,
+            entryType: 'booking_charge',
+            entryDirection: 'credit',
+            amount: b.totalUSD,
+            currency: 'USD',
+            description: `Gross booking escrow collected for ${b.customerName} (Ref: ${b.referenceCode})`,
+            referenceCode: b.referenceCode,
+            status: 'posted',
+            actorEmail: userProfile?.email || 'admin@yogaconnect.in',
+            createdAt: new Date().toISOString()
+          };
+
+          const debitEntry: FinancialLedgerEntry = {
+            id: 'led-' + Date.now() + '-2',
+            entryNumber: ledgerEntries.length + 102,
+            centreId: b.centreId,
+            bookingId: b.id,
+            entryType: 'platform_commission',
+            entryDirection: 'debit',
+            amount: commAmount,
+            currency: 'USD',
+            description: `Platform commission (${commRate}%) on Booking ${b.referenceCode}`,
+            referenceCode: 'COMM-' + b.referenceCode,
+            status: 'posted',
+            actorEmail: userProfile?.email || 'admin@yogaconnect.in',
+            createdAt: new Date().toISOString()
+          };
+
+          setLedgerEntries(l => [creditEntry, debitEntry, ...l]);
+
+          recordAuditLog('booking_escrow_confirmed', 'bookings', b.id, {
+            referenceCode: b.referenceCode,
+            grossAmount: b.totalUSD,
+            commissionAmount: commAmount
+          });
+        }
+
+        // If status cancelled and was previously confirmed
+        if (newStatus === 'cancelled' && b.status === 'confirmed_paid') {
+          const netEntitlement = b.centrePayoutUSD || (b.totalUSD * 0.85);
+          const refundEntry: FinancialLedgerEntry = {
+            id: 'led-' + Date.now() + '-ref',
+            entryNumber: ledgerEntries.length + 101,
+            centreId: b.centreId,
+            bookingId: b.id,
+            entryType: 'refund',
+            entryDirection: 'debit',
+            amount: netEntitlement,
+            currency: 'USD',
+            description: `Entitlement reversed due to booking cancellation (Ref: ${b.referenceCode})`,
+            referenceCode: 'REF-' + b.referenceCode,
+            status: 'posted',
+            actorEmail: userProfile?.email || 'admin@yogaconnect.in',
+            createdAt: new Date().toISOString()
+          };
+          setLedgerEntries(l => [refundEntry, ...l]);
+
+          recordAuditLog('booking_refund_reversed', 'bookings', b.id, {
+            referenceCode: b.referenceCode,
+            refundEntitlement: netEntitlement
+          });
+        }
+
         return {
           ...b,
           status: newStatus,
@@ -424,6 +1336,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateBookingStatus,
       addNewCourse,
       addNewCentre,
+      updateCentreProfile,
       isFilterModalOpen,
       setIsFilterModalOpen,
       isBookingModalOpen,
@@ -455,12 +1368,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       chatMessages,
       setChatMessages,
       unreadCount,
-      setUnreadCount
+      setUnreadCount,
+      currentUser,
+      userProfile,
+      isAuthModalOpen,
+      setIsAuthModalOpen,
+      loginWithGoogle,
+      sendOtp,
+      verifyOtp,
+      loginWithPassword,
+      signUpWithPassword,
+      resetPassword,
+      logout,
+      loginAsPersona,
+      memberships,
+      partnerCentre,
+      partnerMembership,
+      assignPartnerToCentre,
+      updateMembershipStatus,
+      removePartnerMembership,
+      ledgerEntries,
+      addLedgerAdjustment,
+      getCentreLedgerEntries,
+      getCentreFinancialMetrics,
+      payouts,
+      createPayoutBatch,
+      processPayoutSettlement,
+      getCentrePayouts,
+      financialQueries,
+      createFinancialQuery,
+      respondToFinancialQuery,
+      auditLogs,
+      recordAuditLog
     }}>
       {children}
     </AppContext.Provider>
   );
 };
+
 
 export const useApp = () => {
   const context = useContext(AppContext);

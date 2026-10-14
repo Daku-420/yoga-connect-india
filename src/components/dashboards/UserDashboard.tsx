@@ -9,7 +9,10 @@ import {
   ShieldCheck, 
   MapPin, 
   ArrowRight,
-  Download
+  Download,
+  LogIn,
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 
 export const UserDashboard: React.FC = () => {
@@ -21,36 +24,100 @@ export const UserDashboard: React.FC = () => {
     formatPrice, 
     setSelectedCentreId, 
     setActiveView,
-    currency
+    currency,
+    currentUser,
+    userProfile,
+    setIsAuthModalOpen,
+    logout
   } = useApp();
 
   const wishlistedCentres = centres.filter(c => wishlist.includes(c.id));
+
+  // Strict customer privacy: only show bookings belonging to the authenticated customer
+  const myBookings = userProfile?.email 
+    ? bookings.filter(b => b.customerEmail?.toLowerCase() === userProfile.email.toLowerCase())
+    : (userProfile ? [] : bookings.slice(0, 1)); // Guest preview or empty
 
   return (
     <div className="py-10 bg-[#F7F5EE] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
+        {/* Guest Notification Banner if not logged in */}
+        {!userProfile && (
+          <div className="bg-gradient-to-r from-[#263D32] to-[#3A5345] rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                <Sparkles className="w-5 h-5 text-gold-400" />
+              </div>
+              <div>
+                <h3 className="font-serif font-bold text-lg text-[#F7F5EE]">
+                  Sign In to Sync Your Retreat Inquiries
+                </h3>
+                <p className="text-xs text-[#E6EDE2]/80 mt-0.5">
+                  Use Gmail or instant Email OTP to access your booking status, confirmed ashram vouchers, and saved wishlist across all devices.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="bg-[#E6EDE2] hover:bg-white text-[#263D32] font-semibold text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-2 shrink-0 cursor-pointer"
+            >
+              <LogIn className="w-4 h-4 text-[#536B50]" />
+              <span>Sign In with Gmail / OTP</span>
+            </button>
+          </div>
+        )}
+
         {/* User Profile Header */}
         <div className="bg-white rounded-2xl p-8 border border-[#E2E5DD] shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-full bg-[#263D32] text-[#F7F5EE] flex items-center justify-center font-serif font-bold text-2xl shadow-sm">
-              EW
-            </div>
+            {userProfile?.avatarUrl ? (
+              <img 
+                src={userProfile.avatarUrl} 
+                alt="Avatar" 
+                className="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-[#536B50]"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-[#263D32] text-[#F7F5EE] flex items-center justify-center font-serif font-bold text-2xl shadow-sm uppercase">
+                {userProfile?.fullName ? userProfile.fullName.slice(0, 2) : 'TR'}
+              </div>
+            )}
             <div>
-              <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-[#A5B89A]/40">
-                International Traveler Member
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-[#A5B89A]/40">
+                  {userProfile ? 'Verified Traveler Member' : 'Guest Traveler Mode'}
+                </span>
+                {userProfile && (
+                  <span className="bg-[#286749]/10 text-[#286749] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Active Session
+                  </span>
+                )}
+              </div>
               <h1 className="font-serif font-bold text-2xl sm:text-3xl text-[#263D32] mt-1">
-                Welcome, Emma Watson-Smith
+                Welcome, {userProfile?.fullName || 'Traveler'}
               </h1>
-              <span className="text-xs text-[#59665C]">Los Angeles, CA, USA • Member since 2026</span>
+              <div className="flex items-center space-x-3 text-xs text-[#59665C] mt-0.5">
+                <span>{userProfile?.email || 'Sign in with your email or Google account'}</span>
+                {userProfile && (
+                  <>
+                    <span>•</span>
+                    <button 
+                      onClick={() => logout()}
+                      className="text-[#B42318] font-semibold hover:underline flex items-center space-x-1"
+                    >
+                      <LogOut className="w-3 h-3" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-3 bg-[#F7F5EE] p-4 rounded-xl border border-[#E2E5DD] text-xs">
             <div>
               <span className="text-[#59665C] font-medium block">Active Bookings</span>
-              <span className="font-serif font-bold text-lg text-[#263D32]">{bookings.length} Requests</span>
+              <span className="font-serif font-bold text-lg text-[#263D32]">{myBookings.length} Requests</span>
             </div>
             <div className="border-l border-[#E2E5DD] pl-3">
               <span className="text-[#59665C] font-medium block">Saved Wishlist</span>
@@ -74,9 +141,9 @@ export const UserDashboard: React.FC = () => {
             </span>
           </div>
 
-          {bookings.length > 0 ? (
+          {myBookings.length > 0 ? (
             <div className="space-y-4">
-              {bookings.map((b) => (
+              {myBookings.map((b) => (
                 <div key={b.id} className="bg-[#F7F5EE]/60 p-6 rounded-xl border border-[#E2E5DD] flex flex-col md:flex-row items-start justify-between gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">

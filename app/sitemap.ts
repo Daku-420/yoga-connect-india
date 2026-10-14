@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
-import { mockAsanas } from '../data/mockAsanas';
-import { mockBlogs } from '../data/mockBlogs';
-import { mockCentres } from '../data/mockCentres';
+import { mockAsanas } from '../src/data/mockAsanas';
+import { mockBlogs } from '../src/data/mockBlogs';
+import { mockCentres } from '../src/data/mockCentres';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://yogaconnectindia.com';

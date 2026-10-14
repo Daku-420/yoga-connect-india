@@ -28,7 +28,9 @@ export const BookingModal: React.FC = () => {
     formatPrice,
     createBookingRequest,
     setActiveView,
-    setUserRole
+    setUserRole,
+    userProfile,
+    setIsAuthModalOpen
   } = useApp();
 
   const [step, setStep] = useState(1);
@@ -43,15 +45,23 @@ export const BookingModal: React.FC = () => {
   const [roomType, setRoomType] = useState(centre?.accommodationTypes?.[0] || 'Private Deluxe Ashram Room');
   const [airportPickup, setAirportPickup] = useState(true);
 
-  // Customer Contact Details
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerCountry, setCustomerCountry] = useState('United States');
+  // Customer Contact Details (Pre-populated if user is logged in)
+  const [customerName, setCustomerName] = useState(userProfile?.fullName || '');
+  const [customerEmail, setCustomerEmail] = useState(userProfile?.email || '');
+  const [customerPhone, setCustomerPhone] = useState(userProfile?.phone || '');
+  const [customerCountry, setCustomerCountry] = useState(userProfile?.country || 'United States');
   const [specialRequests, setSpecialRequests] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'wise' | 'applepay' | 'card'>('stripe');
 
   const [createdRef, setCreatedRef] = useState<string | null>(null);
+
+  // Sync when user logs in
+  React.useEffect(() => {
+    if (userProfile) {
+      if (userProfile.fullName && !customerName) setCustomerName(userProfile.fullName);
+      if (userProfile.email && !customerEmail) setCustomerEmail(userProfile.email);
+    }
+  }, [userProfile]);
 
   if (!isBookingModalOpen) return null;
 
@@ -257,6 +267,19 @@ export const BookingModal: React.FC = () => {
                 <strong>Confidential Lead Protection:</strong> Your contact details are stored securely and reviewed exclusively by the Platform Admin. Yoga ashrams do not receive your email/phone directly.
               </span>
             </div>
+
+            {!userProfile && (
+              <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2E5DD] text-xs">
+                <span className="text-[#59665C]">Already have an account?</span>
+                <button
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="text-[#536B50] font-bold hover:underline cursor-pointer"
+                >
+                  Sign In with Gmail / OTP to auto-fill →
+                </button>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">

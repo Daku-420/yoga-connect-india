@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { BookingStatus } from '../../types';
+import { BookingStatus, CentreMembership, PayoutRecord, FinancialLedgerEntry } from '../../types';
 import {
   Crown,
   ShieldCheck,
@@ -27,18 +27,43 @@ import {
   MapPin,
   ShieldAlert,
   ArrowLeft,
-  Award
+  Award,
+  Download,
+  Printer,
+  UserCheck,
+  UserX,
+  FileSpreadsheet,
+  AlertTriangle,
+  Send,
+  MessageSquare,
+  Key,
+  RefreshCw,
+  CreditCard,
+  History,
+  Check,
+  Ban
 } from 'lucide-react';
 
 import { PREDEFINED_QUESTION_TEMPLATES } from '../../data/mockMatchmakers';
 import { AsanaManagerTab } from '../admin/AsanaManagerTab';
 import { CentreMatchmakerBuilder } from './CentreMatchmakerBuilder';
+import { exportLedgerToCSV, printCentreStatement } from '../../utils/statementExport';
 
 interface AdminDashboardProps {
-  initialTab?: 'bookings' | 'centre-portal' | 'matchmakers' | 'centres' | 'asanas' | 'revenue' | 'coupons';
+  initialTab?: 
+    | 'partners'
+    | 'bookings'
+    | 'financial-oversight'
+    | 'payouts'
+    | 'centres'
+    | 'queries'
+    | 'audit-logs'
+    | 'matchmakers'
+    | 'asanas'
+    | 'coupons';
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'bookings' }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'partners' }) => {
   const {
     bookings,
     updateBookingStatus,
@@ -53,11 +78,81 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'bo
     matchmakerAnalytics,
     matchmakerLeads,
     openCentreMatchmaker,
-    setActiveView
+    setActiveView,
+    userRole,
+    userProfile,
+    memberships,
+    assignPartnerToCentre,
+    updateMembershipStatus,
+    removePartnerMembership,
+    ledgerEntries,
+    addLedgerAdjustment,
+    getCentreLedgerEntries,
+    getCentreFinancialMetrics,
+    payouts,
+    createPayoutBatch,
+    processPayoutSettlement,
+    financialQueries,
+    respondToFinancialQuery,
+    auditLogs,
+    loginAsPersona,
+    setIsAuthModalOpen
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'bookings' | 'centre-portal' | 'matchmakers' | 'centres' | 'asanas' | 'revenue' | 'coupons'>(initialTab);
+  // Tab State
+  const [activeTab, setActiveTab] = useState<
+    | 'partners'
+    | 'bookings'
+    | 'financial-oversight'
+    | 'payouts'
+    | 'centres'
+    | 'queries'
+    | 'audit-logs'
+    | 'matchmakers'
+    | 'asanas'
+    | 'coupons'
+  >(initialTab);
+
   const [unmaskedBookingIds, setUnmaskedBookingIds] = useState<string[]>([]);
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingCentreFilter, setBookingCentreFilter] = useState('all');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
+
+  // Partner Provisioning Modal State
+  const [isProvisioningPartner, setIsProvisioningPartner] = useState(false);
+  const [provCentreId, setProvCentreId] = useState(centres[0]?.id || 'centre-1');
+  const [provEmail, setProvEmail] = useState('');
+  const [provName, setProvName] = useState('');
+  const [provRole, setProvRole] = useState<'owner' | 'manager' | 'accountant'>('owner');
+  const [provFeedback, setProvFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Financial Adjustment Modal State
+  const [isCreatingAdjustment, setIsCreatingAdjustment] = useState(false);
+  const [adjCentreId, setAdjCentreId] = useState(centres[0]?.id || 'centre-1');
+  const [adjAmount, setAdjAmount] = useState(100);
+  const [adjDirection, setAdjDirection] = useState<'credit' | 'debit'>('credit');
+  const [adjDescription, setAdjDescription] = useState('');
+  const [adjRefCode, setAdjRefCode] = useState('');
+
+  // Payout Settlement Modal State
+  const [settlementModalPayout, setSettlementModalPayout] = useState<PayoutRecord | null>(null);
+  const [settlementRefInput, setSettlementRefInput] = useState('');
+  const [settlementError, setSettlementError] = useState('');
+
+  // Create Payout Batch Modal State
+  const [isCreatingPayoutBatch, setIsCreatingPayoutBatch] = useState(false);
+  const [payoutCentreId, setPayoutCentreId] = useState(centres[0]?.id || 'centre-1');
+  const [payoutAmount, setPayoutAmount] = useState(1000);
+  const [payoutNotes, setPayoutNotes] = useState('');
+
+  // Query Response State
+  const [selectedQueryToAnswer, setSelectedQueryToAnswer] = useState<string | null>(null);
+  const [queryResponseInput, setQueryResponseInput] = useState('');
+
+  // Audit Logs Filter
+  const [auditActionFilter, setAuditActionFilter] = useState('all');
+
+  // Coupon State
   const [couponCode, setCouponCode] = useState('YOGA2026');
   const [discountPercent, setDiscountPercent] = useState(10);
   const [couponList, setCouponList] = useState([
@@ -65,52 +160,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'bo
     { code: 'NAMASTE15', discount: 15, usage: 19 }
   ]);
 
-  // Centre Portal Sub-states (Merged from CentreDashboard)
-  const [managedCentreId, setManagedCentreId] = useState<string>(centres[0]?.id || 'centre-1');
-  const [centrePortalSubTab, setCentrePortalSubTab] = useState<'courses' | 'matchmaker' | 'leads'>('courses');
-  const [isAddingCourse, setIsAddingCourse] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState<'200h-ttc' | '300h-ttc' | 'meditation' | 'ayurveda'>('200h-ttc');
-  const [newPriceUSD, setNewPriceUSD] = useState(1200);
-  const [newDuration, setNewDuration] = useState(14);
+  // Security Check: Enforce Platform Administrator Access
+  if (userRole !== 'admin') {
+    return (
+      <div className="min-h-screen bg-[#F7F5EE] py-20 px-4 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-red-200 shadow-xl text-center space-y-5 animate-in fade-in duration-200">
+          <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto border border-red-200">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div>
+            <span className="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              Unauthorized
+            </span>
+            <h2 className="text-2xl font-serif font-bold text-gray-900 mt-2">
+              Platform Administrator Access Required
+            </h2>
+            <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+              You do not possess the required administrator privileges to view platform-wide bookings, manage partner credentials, or access audit logs.
+            </p>
+          </div>
 
-  const myCentre = centres.find(c => c.id === managedCentreId) || centres[0];
-  const myCourses = courses.filter(c => c.centreId === myCentre?.id);
-  const myCentreBookings = bookings.filter(b => b.centreId === myCentre?.id);
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => {
+                loginAsPersona('admin@yogaconnect.in');
+              }}
+              className="w-full bg-[#263D32] hover:bg-[#1E3228] text-white py-3 px-4 rounded-xl text-xs font-bold transition shadow flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <Crown className="w-4 h-4 text-gold-400" />
+              <span>Instant Test: Login as Platform Admin</span>
+            </button>
 
-  const handleCreateCourse = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!myCentre) return;
-    addNewCourse({
-      id: 'course-new-' + Date.now(),
-      centreId: myCentre.id,
-      centreName: myCentre.name,
-      title: newTitle || 'Custom Yoga Course',
-      subtitle: 'Newly added ashram certification program',
-      category: newCategory,
-      durationDays: newDuration,
-      priceUSD: newPriceUSD,
-      certification: 'Yoga Alliance USA RYS 200/300',
-      syllabus: ['Asana Alignment', 'Pranayama', 'Anatomy', 'Meditation'],
-      dailySchedule: [
-        { time: '06:00 AM', activity: 'Morning Practice' },
-        { time: '09:00 AM', activity: 'Sattvic Breakfast' },
-      ],
-      mealsIncluded: '3 Organic Meals Daily',
-      accommodationOptions: ['Deluxe Room', 'Shared Suite'],
-      upcomingDates: ['Nov 1, 2026', 'Dec 1, 2026'],
-      photos: [myCentre.coverImage],
-      requirements: ['Open mind & willingness to learn']
-    });
-    setIsAddingCourse(false);
-    setNewTitle('');
-  };
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="w-full bg-white hover:bg-[#F7F5EE] text-[#263D32] py-2.5 px-4 rounded-xl text-xs font-semibold border border-[#E2E5DD] transition flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <Key className="w-3.5 h-3.5 text-[#536B50]" />
+              <span>Sign In with Passwordless OTP / Google</span>
+            </button>
 
-  const totalPlatformStarts = Object.values(matchmakerAnalytics).reduce((sum, s) => sum + s.startsCount, 0);
-  const totalPlatformCompletions = Object.values(matchmakerAnalytics).reduce((sum, s) => sum + s.completionsCount, 0);
-  const platformAvgConversion = totalPlatformCompletions > 0
-    ? ((matchmakerLeads.length / totalPlatformCompletions) * 100).toFixed(1)
-    : '0.0';
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+                  window.location.href = '/';
+                } else {
+                  setActiveView('home');
+                }
+              }}
+              className="w-full text-xs text-[#8E9B91] hover:text-[#263D32] py-2 transition cursor-pointer"
+            >
+              Return to Homepage
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Filtered Bookings for Platform Oversight
+  const filteredBookings = bookings.filter(b => {
+    const matchesCentre = bookingCentreFilter === 'all' || b.centreId === bookingCentreFilter;
+    const matchesStatus = bookingStatusFilter === 'all' || b.status === bookingStatusFilter;
+    const matchesSearch = !bookingSearch ||
+      b.referenceCode.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+      b.customerName.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+      b.centreName.toLowerCase().includes(bookingSearch.toLowerCase());
+    return matchesCentre && matchesStatus && matchesSearch;
+  });
 
   const toggleMask = (id: string) => {
     setUnmaskedBookingIds(prev =>
@@ -118,708 +234,1032 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'bo
     );
   };
 
-  const totalGMV = bookings.reduce((sum, b) => sum + b.totalUSD, 0);
-  const totalCommissionRevenue = totalGMV * 0.15; // 15% marketplace commission
+  // Platform-wide Metrics Calculation
+  const platformTotals = useMemo(() => {
+    const grossEscrow = ledgerEntries
+      .filter(e => e.entryType === 'booking_charge' && e.entryDirection === 'credit')
+      .reduce((sum, e) => sum + e.amount, 0);
 
-  const handleAddCoupon = (e: React.FormEvent) => {
+    const commissions = ledgerEntries
+      .filter(e => e.entryType === 'platform_commission' && e.entryDirection === 'debit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const refunds = ledgerEntries
+      .filter(e => e.entryType === 'refund' && e.entryDirection === 'debit')
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const settledPayouts = payouts
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + p.netPayoutAmount, 0);
+
+    const netPayable = Math.max(0, grossEscrow - commissions - refunds);
+    const outstanding = Math.max(0, netPayable - settledPayouts);
+
+    return {
+      grossEscrow,
+      commissions,
+      refunds,
+      settledPayouts,
+      netPayable,
+      outstanding
+    };
+  }, [ledgerEntries, payouts]);
+
+  // Handle Provision Partner Account
+  const handleProvisionPartner = (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode) {
-      setCouponList(prev => [...prev, { code: couponCode.toUpperCase(), discount: discountPercent, usage: 0 }]);
-      setCouponCode('');
+    setProvFeedback(null);
+    const res = assignPartnerToCentre(provEmail, provName, provCentreId, provRole);
+    if (res.success) {
+      setProvFeedback({ type: 'success', message: `Partner account for ${provEmail} created and mapped to ${res.membership?.centreName}. Secure credentials setup sent.` });
+      setProvEmail('');
+      setProvName('');
+      setTimeout(() => setIsProvisioningPartner(false), 2500);
+    } else {
+      setProvFeedback({ type: 'error', message: res.error || 'Failed to create partner membership.' });
     }
   };
 
-  const handleBackToSite = () => {
-    setActiveView('home');
-    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
-      window.location.href = '/';
+  // Handle Adjustment Submit
+  const handleCreateAdjustment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adjDescription) return;
+    addLedgerAdjustment(adjCentreId, adjAmount, adjDirection, adjDescription, adjRefCode);
+    setIsCreatingAdjustment(false);
+    setAdjDescription('');
+    setAdjRefCode('');
+  };
+
+  // Handle Payout Settlement Execution
+  const handleExecuteSettlement = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettlementError('');
+    if (!settlementModalPayout) return;
+    const res = processPayoutSettlement(settlementModalPayout.id, settlementRefInput);
+    if (!res.success) {
+      setSettlementError(res.error || 'Failed to process settlement.');
+      return;
     }
+    setSettlementModalPayout(null);
+    setSettlementRefInput('');
+  };
+
+  // Handle Create Payout Batch
+  const handleCreatePayoutBatch = (e: React.FormEvent) => {
+    e.preventDefault();
+    createPayoutBatch(payoutCentreId, payoutAmount, payoutNotes);
+    setIsCreatingPayoutBatch(false);
+    setPayoutNotes('');
+  };
+
+  // Handle Query Answer
+  const handleAnswerQuery = (queryId: string) => {
+    if (!queryResponseInput.trim()) return;
+    respondToFinancialQuery(queryId, queryResponseInput);
+    setSelectedQueryToAnswer(null);
+    setQueryResponseInput('');
   };
 
   return (
-    <div className="py-10 bg-sage-950 text-white min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="py-8 bg-[#F7F5EE] min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-        {/* Back Link to Public Site */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleBackToSite}
-            className="flex items-center space-x-1.5 text-xs text-sage-300 hover:text-gold-400 transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>← Return to Traveler Site</span>
-          </button>
-
-          <span className="text-[11px] font-mono text-sage-400">
-            Route: /admin • Unified Command Center
-          </span>
-        </div>
-
-        {/* Admin Header Banner */}
-        <div className="bg-gradient-to-r from-purple-950 via-sage-900 to-purple-950 rounded-3xl p-8 border border-purple-800/60 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-amber-600 text-sage-950 flex items-center justify-center font-bold shadow-xl shrink-0">
-              <Crown className="w-8 h-8" />
+        {/* Master Admin Header */}
+        <div className="bg-[#1E3228] text-white rounded-3xl p-6 sm:p-8 border border-[#344C3F] shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="flex items-center space-x-4 sm:space-x-5 z-10">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 border-2 border-gold-400 flex items-center justify-center shrink-0">
+              <Crown className="w-9 h-9 text-gold-400" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="bg-gold-400 text-sage-950 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  Platform Admin &amp; Centre Portal
+                <span className="bg-gold-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Master Platform Administrator
                 </span>
-                <span className="bg-purple-800 text-purple-200 text-[10px] font-bold px-2 py-0.5 rounded">
-                  Full Escrow &amp; Catalog Control
+                <span className="bg-white/10 text-[#DCCDB5] text-[10px] font-bold px-2 py-0.5 rounded">
+                  Escrow Authority
                 </span>
               </div>
-              <h1 className="font-serif font-bold text-2xl sm:text-3xl text-sand-50 mt-1">
-                YogaConnect India Master Administration
+              <h1 className="font-serif font-bold text-2xl sm:text-3xl text-white mt-1.5">
+                YogaConnect India Master Control
               </h1>
-              <span className="text-xs text-sage-300">
-                Unified Management: Escrow Leads, Partner Centre Courses, Matchmaker Quizzes, Asanas &amp; Revenue
+              <span className="text-xs text-[#A5B89A]">
+                Platform-wide oversight • Partner account provisioning • Double-entry ledger audit
               </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 z-10">
+            <button
+              onClick={() => setIsProvisioningPartner(true)}
+              className="bg-gold-500 hover:bg-gold-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center space-x-1.5 cursor-pointer shadow"
+            >
+              <UserCheck className="w-4 h-4 text-slate-950" />
+              <span>Provision Centre Partner</span>
+            </button>
             <button
               onClick={() => setIsAddCentreOpen(true)}
-              className="bg-gold-500 hover:bg-gold-400 text-sage-950 font-bold px-4 py-2.5 rounded-xl text-xs shadow transition flex items-center space-x-1.5"
+              className="bg-white/10 hover:bg-white/20 text-[#F7F5EE] font-medium px-3.5 py-2.5 rounded-xl text-xs border border-white/20 transition flex items-center space-x-1.5 cursor-pointer"
             >
-              <PlusCircle className="w-4 h-4" />
-              <span>+ Upload Centre</span>
-            </button>
-            <button
-              onClick={() => setIsSchemaModalOpen(true)}
-              className="bg-sage-900 hover:bg-sage-800 text-gold-400 border border-gold-400/40 font-medium px-4 py-2.5 rounded-xl text-xs shadow transition flex items-center space-x-1.5"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Inspect SEO Schema</span>
+              <Plus className="w-4 h-4" />
+              <span>Register Centre</span>
             </button>
           </div>
         </div>
 
-        {/* Financial Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="bg-sage-900/60 p-5 rounded-2xl border border-sage-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-sage-400 block">Total Booking Inquiries GMV</span>
-            <span className="font-serif font-bold text-2xl text-gold-400">{formatPrice(totalGMV)}</span>
-          </div>
+        {/* Admin Navigation Tabs */}
+        <div className="border-b border-[#E2E5DD] flex space-x-2 sm:space-x-5 overflow-x-auto text-xs sm:text-sm font-semibold text-[#59665C]">
+          <button
+            onClick={() => setActiveTab('partners')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'partners'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Partner Accounts</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {memberships.length}
+            </span>
+          </button>
 
-          <div className="bg-sage-900/60 p-5 rounded-2xl border border-sage-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-sage-400 block">Net Platform Commission (15%)</span>
-            <span className="font-serif font-bold text-2xl text-emerald-400">{formatPrice(totalCommissionRevenue)}</span>
-          </div>
+          <button
+            onClick={() => setActiveTab('bookings')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'bookings'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Platform Bookings</span>
+            <span className="bg-[#E6EDE2] text-[#263D32] text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {bookings.length}
+            </span>
+          </button>
 
-          <div className="bg-sage-900/60 p-5 rounded-2xl border border-sage-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-sage-400 block">Verified Ashrams Partnered</span>
-            <span className="font-serif font-bold text-2xl text-white">{centres.length} Centres</span>
-          </div>
+          <button
+            onClick={() => setActiveTab('financial-oversight')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'financial-oversight'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <DollarSign className="w-4 h-4" />
+            <span>Financial Oversight</span>
+          </button>
 
-          <div className="bg-sage-900/60 p-5 rounded-2xl border border-sage-800 space-y-1">
-            <span className="text-[10px] uppercase font-bold text-sage-400 block">Escrow Lead Pipeline</span>
-            <span className="font-serif font-bold text-2xl text-[#A5B89A]">{bookings.length} Active Leads</span>
-          </div>
+          <button
+            onClick={() => setActiveTab('payouts')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'payouts'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Payouts &amp; Settlements</span>
+            {payouts.filter(p => p.status === 'pending').length > 0 && (
+              <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                {payouts.filter(p => p.status === 'pending').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('centres')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'centres'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Centre Directory</span>
+            <span className="bg-gray-100 text-gray-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {centres.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('queries')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'queries'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Financial Inquiries</span>
+            {financialQueries.filter(q => q.status === 'open').length > 0 && (
+              <span className="bg-red-100 text-red-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                {financialQueries.filter(q => q.status === 'open').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('audit-logs')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'audit-logs'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span>Audit Logs</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('matchmakers')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'matchmakers'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>AI Matchmakers</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('asanas')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'asanas'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Asana Directory</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('coupons')}
+            className={`py-3 transition border-b-2 font-medium flex items-center space-x-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'coupons'
+                ? 'border-[#536B50] text-[#536B50] font-bold'
+                : 'border-transparent text-[#59665C] hover:text-[#263D32]'
+            }`}
+          >
+            <Gift className="w-4 h-4" />
+            <span>Coupons</span>
+          </button>
         </div>
 
-        {/* Tab Header Navigation */}
-        <div className="border-b border-sage-800 flex space-x-6 text-sm font-semibold text-sage-300 overflow-x-auto scrollbar-none">
-          {[
-            { id: 'bookings', label: `Lead Pipeline & Escrow (${bookings.length})` },
-            { id: 'centre-portal', label: `Partner Centre Portal (${centres.length})` },
-            { id: 'matchmakers', label: `Centre Matchmaker Moderation (${centres.length})` },
-            { id: 'centres', label: `Centre Approvals (${centres.length})` },
-            { id: 'asanas', label: 'Asana Encyclopedia CMS' },
-            { id: 'revenue', label: 'Revenue & Commissions' },
-            { id: 'coupons', label: 'Coupon & Discount CMS' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`py-3 transition border-b-2 whitespace-nowrap ${activeTab === tab.id
-                  ? 'border-gold-400 text-gold-400 font-bold'
-                  : 'border-transparent text-sage-400 hover:text-white'
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* TAB 1: Booking Lead Management & Escrow */}
-        {activeTab === 'bookings' && (
-          <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-6">
+        {/* TAB 1: PARTNER ACCOUNT MANAGEMENT */}
+        {activeTab === 'partners' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="font-serif font-bold text-2xl text-sand-50">Master Customer Lead Pipeline</h2>
-                <p className="text-xs text-sage-300 mt-1">
-                  You hold complete control of customer contact details. Unmask customer data when ready to assign or invoice.
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Yoga Centre Partner Account Provisioning &amp; Access Control
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Grant each registered yoga centre its dedicated login credentials. Assigned partners only access records belonging to their authorized centre.
                 </p>
               </div>
-
-              <span className="bg-emerald-950 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-800 flex items-center space-x-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Admin Confidential Privilege</span>
-              </span>
+              <button
+                onClick={() => setIsProvisioningPartner(true)}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shrink-0"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>Provision New Partner Account</span>
+              </button>
             </div>
 
-            <div className="space-y-4">
-              {bookings.map((b) => {
-                const isUnmasked = unmaskedBookingIds.includes(b.id);
-
-                return (
-                  <div key={b.id} className="bg-sage-950 p-6 rounded-2xl border border-sage-800 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sage-800 pb-3">
-                      <div className="flex items-center space-x-3">
-                        <span className="font-mono text-xs bg-sage-800 text-gold-400 font-bold px-2.5 py-1 rounded">
-                          {b.referenceCode}
+            {/* Memberships Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Partner Account</th>
+                    <th className="py-3 px-3 font-bold">Assigned Centre</th>
+                    <th className="py-3 px-3 font-bold">Role</th>
+                    <th className="py-3 px-3 font-bold">Status</th>
+                    <th className="py-3 px-3 font-bold">Assigned Date</th>
+                    <th className="py-3 px-3 font-bold text-center">Security Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {memberships.map((m) => (
+                    <tr key={m.id} className="hover:bg-[#F7F5EE]/50 transition">
+                      <td className="py-3.5 px-3">
+                        <div className="font-semibold text-gray-900">{m.userName || 'Centre Partner'}</div>
+                        <span className="font-mono text-[11px] text-gray-500">{m.userEmail}</span>
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span className="font-bold text-[#263D32]">{m.centreName || m.centreId}</span>
+                        <span className="block text-[10px] text-gray-500 font-mono">ID: {m.centreId}</span>
+                      </td>
+                      <td className="py-3.5 px-3 uppercase text-[11px] font-bold text-gray-700">
+                        {m.role}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          m.status === 'active' ? 'bg-emerald-100 text-emerald-800' :
+                          m.status === 'suspended' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {m.status}
                         </span>
-                        <span className="text-xs font-serif font-bold text-white">{b.courseTitle}</span>
-                        <span className="text-xs text-[#A5B89A]">({b.centreName})</span>
-                      </div>
-
-                      {/* Action Status Controls */}
-                      <div className="flex items-center space-x-2 text-xs">
-                        <span className="text-sage-400 mr-1">Status:</span>
-                        <select
-                          value={b.status}
-                          onChange={(e) => updateBookingStatus(b.id, e.target.value as BookingStatus)}
-                          className="bg-sage-800 text-white font-semibold text-xs rounded px-2.5 py-1 border border-sage-700 focus:outline-none cursor-pointer"
-                        >
-                          <option value="pending_admin">1. Pending Admin Review</option>
-                          <option value="assigned_to_centre">2. Assigned to Ashram</option>
-                          <option value="confirmed_paid">3. Confirmed &amp; Paid</option>
-                          <option value="cancelled">4. Cancelled</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Sensitive Traveler Contact Box */}
-                    <div className="bg-sage-900/80 p-4 rounded-xl border border-sage-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs font-bold text-gold-400">TRAVELER PRIVACY DATA:</span>
+                      </td>
+                      <td className="py-3.5 px-3 text-gray-500">
+                        {new Date(m.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="flex items-center justify-center space-x-1.5">
+                          {m.status === 'active' ? (
+                            <button
+                              onClick={() => updateMembershipStatus(m.id, 'suspended')}
+                              className="bg-red-50 hover:bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-[10px] font-bold transition border border-red-200 cursor-pointer"
+                              title="Immediately suspend access to protected data"
+                            >
+                              Suspend
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => updateMembershipStatus(m.id, 'active')}
+                              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg text-[10px] font-bold transition border border-emerald-200 cursor-pointer"
+                              title="Reactivate partner access"
+                            >
+                              Reactivate
+                            </button>
+                          )}
                           <button
-                            onClick={() => toggleMask(b.id)}
-                            className="bg-sage-800 hover:bg-sage-700 text-sage-200 text-[11px] px-2.5 py-0.5 rounded flex items-center space-x-1"
+                            onClick={() => {
+                              if (confirm(`Revoke partner membership for ${m.userEmail}?`)) {
+                                removePartnerMembership(m.id);
+                              }
+                            }}
+                            className="text-gray-400 hover:text-red-600 p-1 cursor-pointer"
+                            title="Unassign partner"
                           >
-                            {isUnmasked ? <EyeOff className="w-3 h-3 text-[#DCCDB5]" /> : <Eye className="w-3 h-3 text-gold-400" />}
-                            <span>{isUnmasked ? 'Mask Details' : 'Reveal Contact Info'}</span>
+                            <Ban className="w-3.5 h-3.5" />
                           </button>
                         </div>
-
-                        {isUnmasked ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono pt-2 text-emerald-300">
-                            <div>Name: <strong>{b.customerName}</strong></div>
-                            <div>Email: <strong>{b.customerEmail}</strong></div>
-                            <div>Phone: <strong>{b.customerPhone}</strong></div>
-                            <div>Country: <strong>{b.customerCountry}</strong></div>
-                          </div>
-                        ) : (
-                          <div className="text-xs text-sage-400 italic pt-1">
-                            Contact details are masked from yoga centre. Click &apos;Reveal Contact Info&apos; to unmask.
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] text-sage-400 font-semibold uppercase block">Package Value</span>
-                        <span className="font-serif font-bold text-xl text-gold-400">{formatPrice(b.totalUSD)}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: MERGED CENTRE PORTAL & CATALOG */}
-        {activeTab === 'centre-portal' && myCentre && (
-          <div className="space-y-8">
-            
-            {/* Ashram Selector & Banner */}
-            <div className="bg-sage-900/80 rounded-3xl p-6 sm:p-8 border border-sage-800 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="flex items-center space-x-4">
-                <img 
-                  src={myCentre.coverImage} 
-                  alt={myCentre.name} 
-                  className="w-20 h-20 rounded-2xl object-cover border-2 border-gold-400/60 shrink-0" 
-                />
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="bg-gold-400/20 text-gold-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-gold-400/30">
-                      Partner Ashram
-                    </span>
-                    <span className="bg-emerald-900/60 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-700/40">
-                      Verified Rank #{myCentre.sponsoredRank || 1}
-                    </span>
-                  </div>
-                  <h2 className="font-serif font-bold text-2xl text-white">
-                    {myCentre.name}
-                  </h2>
-                  <p className="text-xs text-sage-300">
-                    {myCentre.location} • {myCentre.commissionRatePercent}% Commission Agreement
-                  </p>
-                </div>
-              </div>
-
-              {/* Centre Controls: Ashram Dropdown & Quick Actions */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="bg-sage-950 p-1.5 rounded-xl border border-sage-700">
-                  <label htmlFor="ashram-selector" className="text-[10px] text-sage-400 block px-2 font-semibold">Switch Managed Ashram:</label>
-                  <select
-                    id="ashram-selector"
-                    value={managedCentreId}
-                    onChange={(e) => setManagedCentreId(e.target.value)}
-                    className="bg-transparent text-gold-300 font-semibold text-xs px-2 py-1 outline-none cursor-pointer"
-                  >
-                    {centres.map(c => (
-                      <option key={c.id} value={c.id} className="bg-sage-900 text-white">
-                        {c.name} ({c.location.split(',')[0]})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={() => setIsAddingCourse(true)}
-                  className="bg-gold-500 hover:bg-gold-400 text-sage-950 font-bold px-4 py-2.5 rounded-xl text-xs shadow transition flex items-center space-x-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Add Course Listing</span>
-                </button>
-
-                <button
-                  onClick={() => openCentreMatchmaker(myCentre.id)}
-                  className="bg-sage-800 hover:bg-sage-700 text-white font-medium px-4 py-2.5 rounded-xl text-xs border border-sage-700 transition flex items-center space-x-1.5"
-                >
-                  <Sparkles className="w-4 h-4 text-gold-400" />
-                  <span>Preview Quiz</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Centre Portal Sub-tab Navigation */}
-            <div className="flex space-x-4 border-b border-sage-800 text-xs font-semibold">
-              <button
-                onClick={() => setCentrePortalSubTab('courses')}
-                className={`pb-3 border-b-2 flex items-center space-x-2 transition ${
-                  centrePortalSubTab === 'courses'
-                    ? 'border-gold-400 text-gold-400 font-bold'
-                    : 'border-transparent text-sage-400 hover:text-white'
-                }`}
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Course &amp; Certification Catalog ({myCourses.length})</span>
-              </button>
-
-              <button
-                onClick={() => setCentrePortalSubTab('matchmaker')}
-                className={`pb-3 border-b-2 flex items-center space-x-2 transition ${
-                  centrePortalSubTab === 'matchmaker'
-                    ? 'border-gold-400 text-gold-400 font-bold'
-                    : 'border-transparent text-sage-400 hover:text-white'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-gold-400" />
-                <span>Ashram Matchmaker Quiz Builder</span>
-              </button>
-
-              <button
-                onClick={() => setCentrePortalSubTab('leads')}
-                className={`pb-3 border-b-2 flex items-center space-x-2 transition ${
-                  centrePortalSubTab === 'leads'
-                    ? 'border-gold-400 text-gold-400 font-bold'
-                    : 'border-transparent text-sage-400 hover:text-white'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Assigned Ashram Leads ({myCentreBookings.length})</span>
-              </button>
-            </div>
-
-            {/* Sub-view 1: Courses */}
-            {centrePortalSubTab === 'courses' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div className="bg-sage-900/50 p-4 rounded-xl border border-sage-800">
-                    <span className="text-[10px] uppercase font-bold text-sage-400 block">Active Courses</span>
-                    <span className="font-serif font-bold text-2xl text-white">{myCourses.length} Listings</span>
-                  </div>
-                  <div className="bg-sage-900/50 p-4 rounded-xl border border-sage-800">
-                    <span className="text-[10px] uppercase font-bold text-sage-400 block">Ashram Commission Rate</span>
-                    <span className="font-serif font-bold text-2xl text-gold-400">{myCentre.commissionRatePercent}%</span>
-                  </div>
-                  <div className="bg-sage-900/50 p-4 rounded-xl border border-sage-800">
-                    <span className="text-[10px] uppercase font-bold text-sage-400 block">Total Ashram Leads</span>
-                    <span className="font-serif font-bold text-2xl text-emerald-400">{myCentreBookings.length}</span>
-                  </div>
-                  <div className="bg-sage-900/50 p-4 rounded-xl border border-sage-800">
-                    <span className="text-[10px] uppercase font-bold text-sage-400 block">Escrow Status</span>
-                    <span className="font-serif font-bold text-lg text-[#A5B89A]">Verified Active</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {myCourses.map(course => (
-                    <div key={course.id} className="bg-sage-950 rounded-2xl border border-sage-800 overflow-hidden flex flex-col justify-between">
-                      <div>
-                        <div className="h-44 w-full relative">
-                          <img 
-                            src={course.photos[0] || myCentre.coverImage} 
-                            alt={course.title} 
-                            className="w-full h-full object-cover"
-                          />
-                          <span className="absolute top-3 left-3 bg-sage-900/90 text-gold-300 text-[10px] font-bold px-2.5 py-1 rounded-md border border-gold-400/30 uppercase">
-                            {course.category}
-                          </span>
-                        </div>
-                        <div className="p-5 space-y-3">
-                          <h3 className="font-serif font-bold text-lg text-white leading-snug">
-                            {course.title}
-                          </h3>
-                          <p className="text-xs text-sage-300 line-clamp-2">
-                            {course.subtitle}
-                          </p>
-                          <div className="flex items-center space-x-4 text-xs text-sage-400 pt-1">
-                            <span className="flex items-center space-x-1">
-                              <Clock className="w-3.5 h-3.5 text-gold-400" />
-                              <span>{course.durationDays} Days</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="w-3.5 h-3.5 text-gold-400" />
-                              <span>{course.upcomingDates[0] || 'Ongoing'}</span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-5 border-t border-sage-800/80 bg-sage-900/30 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-sage-400 block uppercase font-semibold">Tuition</span>
-                          <span className="font-serif font-bold text-xl text-gold-400">
-                            {formatPrice(course.priceUSD)}
-                          </span>
-                        </div>
-                        <span className="text-xs text-emerald-400 font-semibold bg-emerald-950 px-2.5 py-1 rounded border border-emerald-800">
-                          Active Listing
-                        </span>
-                      </div>
-                    </div>
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sub-view 2: Matchmaker Quiz Funnel */}
-            {centrePortalSubTab === 'matchmaker' && (
-              <div className="bg-sage-950 p-6 sm:p-8 rounded-3xl border border-sage-800">
-                <CentreMatchmakerBuilder centre={myCentre} />
-              </div>
-            )}
-
-            {/* Sub-view 3: Assigned Leads */}
-            {centrePortalSubTab === 'leads' && (
-              <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-serif font-bold text-xl text-white">
-                      Assigned Inquiries for {myCentre.name}
-                    </h3>
-                    <p className="text-xs text-sage-300 mt-1">
-                      Traveler direct details are protected by Admin Escrow until booking confirmation.
-                    </p>
-                  </div>
-                  <span className="bg-emerald-950 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-800 flex items-center space-x-1">
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Escrow Protected</span>
-                  </span>
-                </div>
-
-                {myCentreBookings.length === 0 ? (
-                  <div className="p-8 text-center bg-sage-950 rounded-2xl border border-sage-800 text-sage-400 text-xs">
-                    No active booking inquiries currently mapped to {myCentre.name}.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {myCentreBookings.map(b => (
-                      <div key={b.id} className="bg-sage-950 p-6 rounded-2xl border border-sage-800 flex flex-col md:flex-row items-start justify-between gap-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-mono text-xs bg-sage-800 text-gold-400 font-bold px-2 py-0.5 rounded">
-                              {b.referenceCode}
-                            </span>
-                            <span className="bg-emerald-950 text-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-800">
-                              Status: {b.status}
-                            </span>
-                          </div>
-                          <h4 className="font-serif font-bold text-lg text-white">{b.courseTitle}</h4>
-                          <div className="text-xs text-sage-300">
-                            Intake: <strong>{b.startDate}</strong> • Room: <strong>{b.roomType}</strong> • Airport Transfer: <strong>{b.airportPickup ? 'Yes' : 'No'}</strong>
-                          </div>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <span className="text-[10px] text-sage-400 uppercase font-semibold block">Ashram Net Payout</span>
-                          <span className="font-serif font-bold text-xl text-emerald-400">{formatPrice(b.centrePayoutUSD || 1000)}</span>
-                          <span className="text-[10px] text-sage-500 block">After 15% Platform Commission</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Modal: Add New Course */}
-            {isAddingCourse && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sage-950/80 backdrop-blur-md">
-                <div className="bg-sage-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-4 border border-sage-700 shadow-2xl">
-                  <div className="flex justify-between items-center border-b border-sage-800 pb-3">
-                    <h3 className="font-serif font-bold text-xl text-white">Add Course for {myCentre.name}</h3>
-                    <button onClick={() => setIsAddingCourse(false)} className="text-sage-400 hover:text-white">✕</button>
-                  </div>
-
-                  <form onSubmit={handleCreateCourse} className="space-y-4 text-xs">
-                    <div>
-                      <label className="font-bold text-sand-50 block mb-1">Course Title</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 200 Hour Hatha &amp; Kundalini TTC"
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        className="w-full bg-sage-950 border border-sage-700 p-2.5 rounded-xl text-sm text-white focus:border-gold-400 outline-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="font-bold text-sand-50 block mb-1">Category</label>
-                        <select
-                          value={newCategory}
-                          onChange={(e) => setNewCategory(e.target.value as any)}
-                          className="w-full bg-sage-950 border border-sage-700 p-2.5 rounded-xl text-sm text-white focus:border-gold-400 outline-none"
-                        >
-                          <option value="200h-ttc">200-Hour TTC</option>
-                          <option value="300h-ttc">300-Hour TTC</option>
-                          <option value="meditation">Meditation Retreat</option>
-                          <option value="ayurveda">Ayurveda &amp; Detox</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="font-bold text-sand-50 block mb-1">Price (USD)</label>
-                        <input
-                          type="number"
-                          value={newPriceUSD}
-                          onChange={(e) => setNewPriceUSD(Number(e.target.value))}
-                          className="w-full bg-sage-950 border border-sage-700 p-2.5 rounded-xl text-sm text-white focus:border-gold-400 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-sand-50 block mb-1">Duration (Days)</label>
-                      <input
-                        type="number"
-                        value={newDuration}
-                        onChange={(e) => setNewDuration(Number(e.target.value))}
-                        className="w-full bg-sage-950 border border-sage-700 p-2.5 rounded-xl text-sm text-white focus:border-gold-400 outline-none"
-                      />
-                    </div>
-
-                    <div className="pt-2">
-                      <button 
-                        type="submit" 
-                        className="w-full bg-gold-500 hover:bg-gold-400 text-sage-950 font-bold py-3 rounded-xl transition text-xs shadow-md"
-                      >
-                        Publish Course Listing to {myCentre.name}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
-        {/* TAB 3: Centre Matchmaker Moderation */}
-        {activeTab === 'matchmakers' && (
-          <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-8">
+        {/* TAB 2: PLATFORM BOOKINGS */}
+        {activeTab === 'bookings' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="font-serif font-bold text-2xl text-sand-50">Partner Centre Matchmaker Moderation</h2>
-                <p className="text-xs text-sage-300 mt-1">
-                  Manage interactive AI recommendation quizzes deployed by partner ashrams.
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Platform-Wide Escrow Bookings &amp; Inquiries
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Full administrative oversight. Customer contact information is unmasked for authorized platform admins to manage dispute resolution and arrival escrow releases.
                 </p>
               </div>
-              <div className="flex items-center space-x-4 text-xs font-mono bg-sage-950 px-4 py-2 rounded-xl border border-sage-800">
-                <span>Total Starts: <strong className="text-gold-400">{totalPlatformStarts}</strong></span>
-                <span>Completions: <strong className="text-emerald-400">{totalPlatformCompletions}</strong></span>
-                <span>Avg Conversion: <strong className="text-gold-400">{platformAvgConversion}%</strong></span>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  value={bookingSearch}
+                  onChange={(e) => setBookingSearch(e.target.value)}
+                  placeholder="Search ref, guest, centre..."
+                  className="px-3 py-2 bg-[#F7F5EE] rounded-xl text-xs border border-[#E2E5DD] focus:outline-none"
+                />
+                <select
+                  value={bookingCentreFilter}
+                  onChange={(e) => setBookingCentreFilter(e.target.value)}
+                  className="bg-[#F7F5EE] text-[#263D32] font-semibold text-xs py-2 px-3 rounded-xl border border-[#E2E5DD] outline-none cursor-pointer"
+                >
+                  <option value="all">All Centres</option>
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={bookingStatusFilter}
+                  onChange={(e) => setBookingStatusFilter(e.target.value)}
+                  className="bg-[#F7F5EE] text-[#263D32] font-semibold text-xs py-2 px-3 rounded-xl border border-[#E2E5DD] outline-none cursor-pointer"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="confirmed_paid">Confirmed (Paid)</option>
+                  <option value="assigned_to_centre">Assigned to Centre</option>
+                  <option value="pending_admin">Pending Admin Escrow</option>
+                  <option value="cancelled">Cancelled (Refunded)</option>
+                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {centres.map(centre => {
-                const config = matchmakerConfigs[centre.id];
-                const stats = matchmakerAnalytics[centre.id];
-                const isDisabled = config?.adminDisabled;
-
-                return (
-                  <div key={centre.id} className="bg-sage-950 p-6 rounded-2xl border border-sage-800 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <img src={centre.coverImage} alt={centre.name} className="w-10 h-10 rounded-xl object-cover" />
-                        <div>
-                          <h4 className="font-serif font-bold text-base text-white">{centre.name}</h4>
-                          <span className="text-[11px] text-sage-400">{centre.location}</span>
-                        </div>
-                      </div>
-
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        isDisabled ? 'bg-red-950 text-red-400' : 'bg-emerald-950 text-emerald-400'
-                      }`}>
-                        {isDisabled ? 'Suspended by Admin' : 'Active Funnel'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-center bg-sage-900/60 p-3 rounded-xl border border-sage-800/80">
-                      <div>
-                        <span className="text-[10px] text-sage-400 block">Starts</span>
-                        <span className="font-bold text-sm text-white">{stats?.startsCount || 0}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-sage-400 block">Finished</span>
-                        <span className="font-bold text-sm text-emerald-400">{stats?.completionsCount || 0}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-sage-400 block">Leads</span>
-                        <span className="font-bold text-sm text-gold-400">{stats?.enquiriesCount || 0}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-sage-800">
-                      <button
-                        onClick={() => openCentreMatchmaker(centre.id)}
-                        className="text-xs text-gold-400 hover:underline flex items-center space-x-1"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Preview Live Quiz</span>
-                      </button>
-
-                      <button
-                        onClick={() => setAdminMatchmakerDisabled(centre.id, !isDisabled)}
-                        className={`text-xs px-3 py-1 rounded font-semibold transition ${
-                          isDisabled 
-                            ? 'bg-emerald-900 hover:bg-emerald-800 text-white' 
-                            : 'bg-red-900/60 hover:bg-red-900 text-red-200'
-                        }`}
-                      >
-                        {isDisabled ? 'Re-enable Quiz' : 'Suspend Quiz'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Ref Code</th>
+                    <th className="py-3 px-3 font-bold">Yoga Centre</th>
+                    <th className="py-3 px-3 font-bold">Traveler (Admin View)</th>
+                    <th className="py-3 px-3 font-bold">Retreat Package</th>
+                    <th className="py-3 px-3 font-bold">Dates</th>
+                    <th className="py-3 px-3 font-bold text-right">Gross Total</th>
+                    <th className="py-3 px-3 font-bold text-right">Commission (15%)</th>
+                    <th className="py-3 px-3 font-bold">Status</th>
+                    <th className="py-3 px-3 font-bold text-center">Status Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {filteredBookings.map((b) => {
+                    const isUnmasked = unmaskedBookingIds.includes(b.id);
+                    return (
+                      <tr key={b.id} className="hover:bg-[#F7F5EE]/50 transition">
+                        <td className="py-3.5 px-3 font-mono font-bold text-[#263D32]">
+                          {b.referenceCode}
+                        </td>
+                        <td className="py-3.5 px-3 font-semibold text-gray-900">
+                          {b.centreName}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <div className="font-semibold text-gray-900">{b.customerName}</div>
+                          {isUnmasked ? (
+                            <div className="text-[10px] text-gray-600 space-y-0.5 mt-0.5">
+                              <div>Email: {b.customerEmail}</div>
+                              <div>Phone: {b.customerPhone}</div>
+                              <button
+                                onClick={() => toggleMask(b.id)}
+                                className="text-gray-400 hover:text-gray-600 underline text-[9px]"
+                              >
+                                Mask contact
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => toggleMask(b.id)}
+                              className="text-[10px] text-[#536B50] hover:underline font-semibold flex items-center space-x-1"
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>Unmask ({b.customerCountry})</span>
+                            </button>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3 max-w-[160px] truncate" title={b.courseTitle}>
+                          {b.courseTitle}
+                        </td>
+                        <td className="py-3.5 px-3 text-gray-600">
+                          {b.startDate}
+                        </td>
+                        <td className="py-3.5 px-3 text-right font-medium text-gray-700">
+                          ${b.totalUSD.toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-3 text-right font-mono font-bold text-red-600">
+                          -${(b.totalUSD * 0.15).toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            b.status === 'confirmed_paid' ? 'bg-emerald-100 text-emerald-800' :
+                            b.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            b.status === 'assigned_to_centre' ? 'bg-blue-100 text-blue-800' :
+                            'bg-amber-100 text-amber-800'
+                          }`}>
+                            {b.status.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-center">
+                          <select
+                            value={b.status}
+                            onChange={(e) => updateBookingStatus(b.id, e.target.value as BookingStatus)}
+                            className="bg-white border border-[#E2E5DD] text-xs font-semibold rounded-lg px-2 py-1 outline-none cursor-pointer"
+                          >
+                            <option value="pending_admin">Pending Admin</option>
+                            <option value="assigned_to_centre">Assign Centre</option>
+                            <option value="confirmed_paid">Confirm Paid (Escrow)</option>
+                            <option value="cancelled">Cancel &amp; Refund</option>
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* TAB 4: Centre Approvals & Verification */}
-        {activeTab === 'centres' && (
-          <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-6">
+        {/* TAB 3: FINANCIAL OVERSIGHT */}
+        {activeTab === 'financial-oversight' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Overview KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[11px] font-semibold uppercase text-gray-500 block">Total Gross Escrow</span>
+                <div className="text-2xl font-bold text-[#263D32] mt-1">${platformTotals.grossEscrow.toFixed(2)}</div>
+                <span className="text-[10px] text-gray-500">All customer bookings</span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[11px] font-semibold uppercase text-gray-500 block">Platform Commissions</span>
+                <div className="text-2xl font-bold text-emerald-700 mt-1">${platformTotals.commissions.toFixed(2)}</div>
+                <span className="text-[10px] text-gray-500">15% platform earnings</span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[11px] font-semibold uppercase text-gray-500 block">Refunds Reversed</span>
+                <div className="text-2xl font-bold text-gray-700 mt-1">${platformTotals.refunds.toFixed(2)}</div>
+                <span className="text-[10px] text-gray-500">Cancelled bookings</span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[11px] font-semibold uppercase text-gray-500 block">Total Net Entitlement</span>
+                <div className="text-2xl font-bold text-[#263D32] mt-1">${platformTotals.netPayable.toFixed(2)}</div>
+                <span className="text-[10px] text-gray-500">Payable across centres</span>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-[#E2E5DD] shadow-2xs">
+                <span className="text-[11px] font-semibold uppercase text-gray-500 block">Total Settled Payouts</span>
+                <div className="text-2xl font-bold text-emerald-700 mt-1">${platformTotals.settledPayouts.toFixed(2)}</div>
+                <span className="text-[10px] text-gray-500">Verified bank wires</span>
+              </div>
+              <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 shadow-2xs">
+                <span className="text-[11px] font-semibold uppercase text-emerald-800 block">Outstanding Balance</span>
+                <div className="text-2xl font-bold text-emerald-900 mt-1">${platformTotals.outstanding.toFixed(2)}</div>
+                <span className="text-[10px] text-emerald-700">Due for next batch</span>
+              </div>
+            </div>
+
+            {/* Centre-wise Financial Breakdown */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-serif font-bold text-xl text-[#263D32]">
+                    Centre-wise Financial Breakdown &amp; Ledgers
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Compare gross bookings, commissions collected, settled payouts, and outstanding payable balances across every registered centre.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsCreatingAdjustment(true)}
+                  className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Post Ledger Adjustment</span>
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                      <th className="py-3 px-3 font-bold">Yoga Centre</th>
+                      <th className="py-3 px-3 font-bold">Commission %</th>
+                      <th className="py-3 px-3 font-bold text-right">Gross Escrow</th>
+                      <th className="py-3 px-3 font-bold text-right">Platform Commission</th>
+                      <th className="py-3 px-3 font-bold text-right">Net Entitlement</th>
+                      <th className="py-3 px-3 font-bold text-right">Settled Payouts</th>
+                      <th className="py-3 px-3 font-bold text-right">Outstanding Due</th>
+                      <th className="py-3 px-3 font-bold text-center">Export</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E2E5DD]">
+                    {centres.map((c) => {
+                      const m = getCentreFinancialMetrics(c.id);
+                      const cLedger = getCentreLedgerEntries(c.id);
+                      return (
+                        <tr key={c.id} className="hover:bg-[#F7F5EE]/50 transition">
+                          <td className="py-3.5 px-3">
+                            <span className="font-bold text-[#263D32] block">{c.name}</span>
+                            <span className="text-[10px] text-gray-500 font-mono">{c.id}</span>
+                          </td>
+                          <td className="py-3.5 px-3 font-semibold text-gray-700">
+                            {c.commissionRatePercent || 15}%
+                          </td>
+                          <td className="py-3.5 px-3 text-right font-medium">
+                            ${m.grossBookingValue.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-3 text-right font-mono font-bold text-emerald-700">
+                            ${m.platformCommission.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-3 text-right font-bold text-[#263D32]">
+                            ${m.netAmountPayable.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-3 text-right font-mono text-gray-700">
+                            ${m.totalPayoutsCompleted.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-3 text-right font-mono font-bold text-emerald-800">
+                            ${m.outstandingPayableBalance.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-3 text-center">
+                            <div className="flex items-center justify-center space-x-1">
+                              <button
+                                onClick={() => exportLedgerToCSV(c, cLedger)}
+                                className="bg-[#E6EDE2] hover:bg-[#536B50] hover:text-white text-[#263D32] px-2 py-1 rounded text-[10px] font-bold cursor-pointer"
+                                title="Export CSV"
+                              >
+                                CSV
+                              </button>
+                              <button
+                                onClick={() => printCentreStatement(c, cLedger, payouts, m)}
+                                className="bg-[#E6EDE2] hover:bg-[#536B50] hover:text-white text-[#263D32] px-2 py-1 rounded text-[10px] font-bold cursor-pointer"
+                                title="Print PDF statement"
+                              >
+                                PDF
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Platform Full Ledger Stream */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-4">
+              <h3 className="font-serif font-bold text-xl text-[#263D32]">
+                Global Platform Immutable Ledger (All Centres)
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                      <th className="py-2.5 px-3 font-bold">Entry #</th>
+                      <th className="py-2.5 px-3 font-bold">Centre</th>
+                      <th className="py-2.5 px-3 font-bold">Type</th>
+                      <th className="py-2.5 px-3 font-bold">Reference</th>
+                      <th className="py-2.5 px-3 font-bold">Description</th>
+                      <th className="py-2.5 px-3 font-bold text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E2E5DD]">
+                    {ledgerEntries.slice(0, 15).map((e) => (
+                      <tr key={e.id} className="hover:bg-[#F7F5EE]/50 transition">
+                        <td className="py-2.5 px-3 font-mono font-bold text-gray-700">#{e.entryNumber}</td>
+                        <td className="py-2.5 px-3 font-semibold text-gray-900">{e.centreId}</td>
+                        <td className="py-2.5 px-3 capitalize">{e.entryType.replace(/_/g, ' ')}</td>
+                        <td className="py-2.5 px-3 font-mono text-[11px] text-gray-600">{e.referenceCode || '-'}</td>
+                        <td className="py-2.5 px-3 text-gray-700 truncate max-w-sm">{e.description}</td>
+                        <td className={`py-2.5 px-3 text-right font-mono font-bold ${
+                          e.entryDirection === 'credit' ? 'text-emerald-700' : 'text-red-700'
+                        }`}>
+                          {e.entryDirection === 'credit' ? '+' : '-'}${e.amount.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* TAB 4: PAYOUTS & SETTLEMENTS */}
+        {activeTab === 'payouts' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="font-serif font-bold text-2xl text-sand-50">Yoga Centre &amp; Course Approvals</h2>
-                <p className="text-xs text-sage-300">Upload centres on behalf of partner ashrams and manage active listings.</p>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Payout Batches &amp; Bank Settlement Verification
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Only mark a payout as "PAID" after verified confirmation with real payment-provider or bank wire settlement reference.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsCreatingPayoutBatch(true)}
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Payout Batch</span>
+              </button>
+            </div>
+
+            {/* Payouts Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-3 px-3 font-bold">Payout Ref</th>
+                    <th className="py-3 px-3 font-bold">Target Centre</th>
+                    <th className="py-3 px-3 font-bold">Period</th>
+                    <th className="py-3 px-3 font-bold text-right">Net Amount</th>
+                    <th className="py-3 px-3 font-bold">Settlement Reference</th>
+                    <th className="py-3 px-3 font-bold">Status</th>
+                    <th className="py-3 px-3 font-bold text-center">Settlement Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {payouts.map((p) => (
+                    <tr key={p.id} className="hover:bg-[#F7F5EE]/50 transition">
+                      <td className="py-3.5 px-3 font-mono font-bold text-[#263D32]">
+                        {p.referenceCode}
+                      </td>
+                      <td className="py-3.5 px-3 font-bold text-gray-900">
+                        {p.centreName}
+                      </td>
+                      <td className="py-3.5 px-3 text-gray-600">
+                        {p.periodStart} to {p.periodEnd}
+                      </td>
+                      <td className="py-3.5 px-3 text-right font-mono font-bold text-[#263D32]">
+                        ${p.netPayoutAmount.toFixed(2)}
+                      </td>
+                      <td className="py-3.5 px-3 font-mono text-[11px] text-gray-700">
+                        {p.settlementReference || <span className="text-gray-400 italic">None</span>}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          p.status === 'paid' ? 'bg-emerald-100 text-emerald-800' :
+                          p.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {p.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        {p.status !== 'paid' ? (
+                          <button
+                            onClick={() => {
+                              setSettlementModalPayout(p);
+                              setSettlementRefInput('');
+                              setSettlementError('');
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer"
+                          >
+                            Record Settlement
+                          </button>
+                        ) : (
+                          <span className="text-emerald-700 font-bold text-[10px] flex items-center justify-center space-x-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>Settled</span>
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: CENTRE DIRECTORY */}
+        {activeTab === 'centres' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Registered Yoga Centres Directory
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Canonical yoga centre records, active partner memberships, and verification tiers.
+                </p>
               </div>
               <button
                 onClick={() => setIsAddCentreOpen(true)}
-                className="bg-gold-500 hover:bg-gold-400 text-sage-950 font-bold px-4 py-2 rounded-xl text-xs shadow transition flex items-center space-x-1.5"
+                className="bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center space-x-1 cursor-pointer"
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>+ Upload Centre On Behalf of Ashram</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Centre</span>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {centres.map((centre) => (
-                <div key={centre.id} className="bg-sage-950 p-6 rounded-2xl border border-sage-800 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-serif font-bold text-lg text-white">{centre.name}</h3>
-                    <span className="bg-emerald-900 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded">
-                      Verified Active
-                    </span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {centres.map((c) => {
+                const assignedPartner = memberships.find(m => m.centreId === c.id);
+                return (
+                  <div key={c.id} className="bg-[#F7F5EE] rounded-2xl p-5 border border-[#E2E5DD] space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <img src={c.coverImage} alt={c.name} className="w-14 h-14 rounded-xl object-cover shrink-0 border" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-bold text-sm text-[#263D32] truncate block">{c.name}</span>
+                        <span className="text-[11px] text-gray-500 block">{c.city}, {c.state}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-gray-700 space-y-1 bg-white p-3 rounded-xl border border-[#E2E5DD]">
+                      <div>Commission Rate: <strong>{c.commissionRatePercent || 15}%</strong></div>
+                      <div>Partner Login: <strong>{assignedPartner?.userEmail || <span className="text-amber-600 italic">No partner assigned</span>}</strong></div>
+                      <div>Partner Status: <strong>{assignedPartner?.status || 'N/A'}</strong></div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <button
+                        onClick={() => {
+                          setProvCentreId(c.id);
+                          setIsProvisioningPartner(true);
+                        }}
+                        className="text-xs text-[#536B50] font-semibold hover:underline cursor-pointer"
+                      >
+                        {assignedPartner ? 'Manage Partner' : '+ Assign Partner'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveView('centre-dashboard');
+                        }}
+                        className="text-xs bg-[#263D32] text-white px-3 py-1 rounded-lg font-medium cursor-pointer"
+                      >
+                        Preview Portal
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-xs text-sage-300">{centre.location}</p>
-                  <div className="text-xs text-gold-400 font-semibold">
-                    Commission Rate: {centre.commissionRatePercent}%
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* TAB 5: Yoga Asana Encyclopedia CMS */}
+        {/* TAB 6: FINANCIAL INQUIRIES */}
+        {activeTab === 'queries' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div>
+              <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                Partner Accounting Queries &amp; Dispute Tickets
+              </h2>
+              <p className="text-xs text-gray-600 mt-0.5">
+                Review and resolve questions raised by yoga centre partners regarding commission percentages, airport transit fees, or settlement schedules.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {financialQueries.length === 0 ? (
+                <div className="text-center py-10 text-gray-500 text-xs">No inquiries currently pending.</div>
+              ) : (
+                financialQueries.map((q) => (
+                  <div key={q.id} className="p-5 bg-[#F7F5EE] rounded-2xl border border-[#E2E5DD] space-y-3 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-sm text-[#263D32]">{q.subject}</span>
+                        <div className="text-[11px] text-gray-500 mt-0.5">
+                          From: <strong>{q.partnerEmail}</strong> • Centre: <strong>{q.centreName}</strong>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        q.status === 'resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {q.status.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <p className="text-gray-800 bg-white p-3 rounded-xl border border-[#E2E5DD]/70">
+                      {q.message}
+                    </p>
+
+                    {q.adminResponse ? (
+                      <div className="bg-[#E6EDE2] p-3 rounded-xl border border-[#A5B89A]/40">
+                        <span className="font-bold text-[#263D32] block">Recorded Administrator Response:</span>
+                        <p className="text-gray-800">{q.adminResponse}</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 pt-1">
+                        {selectedQueryToAnswer === q.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              rows={3}
+                              placeholder="Type official response..."
+                              value={queryResponseInput}
+                              onChange={(e) => setQueryResponseInput(e.target.value)}
+                              className="w-full p-2.5 bg-white border border-[#E2E5DD] rounded-xl text-xs"
+                            />
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleAnswerQuery(q.id)}
+                                className="bg-[#536B50] text-white px-4 py-1.5 rounded-lg font-bold"
+                              >
+                                Send Response
+                              </button>
+                              <button
+                                onClick={() => setSelectedQueryToAnswer(null)}
+                                className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedQueryToAnswer(q.id);
+                              setQueryResponseInput('');
+                            }}
+                            className="bg-[#263D32] text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer"
+                          >
+                            Answer Query
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: AUDIT LOGS */}
+        {activeTab === 'audit-logs' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+                  Immutable System Security &amp; Audit Logs
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Append-only record of all security-sensitive administrative events: partner provisioning, role modifications, financial adjustments, and payout confirmations.
+                </p>
+              </div>
+              <span className="bg-[#DCCDB5]/30 text-[#263D32] text-xs font-bold px-2.5 py-1 rounded">
+                Tamper-Resistant
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F7F5EE] text-[#263D32] border-b border-[#E2E5DD]">
+                    <th className="py-2.5 px-3 font-bold">Timestamp</th>
+                    <th className="py-2.5 px-3 font-bold">Action</th>
+                    <th className="py-2.5 px-3 font-bold">Actor</th>
+                    <th className="py-2.5 px-3 font-bold">Target Entity</th>
+                    <th className="py-2.5 px-3 font-bold">Details</th>
+                    <th className="py-2.5 px-3 font-bold font-mono">IP Address</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E5DD]">
+                  {auditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-[#F7F5EE]/50 transition">
+                      <td className="py-2.5 px-3 text-gray-500 font-mono text-[11px]">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className="font-bold text-[#263D32] font-mono text-[11px]">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-700 font-medium">
+                        {log.actorEmail || 'system'}
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-600">
+                        {log.targetEntity} {log.targetId ? `(${log.targetId})` : ''}
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-600 max-w-xs truncate" title={JSON.stringify(log.details)}>
+                        {JSON.stringify(log.details || {})}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[11px] text-gray-500">
+                        {log.ipAddress || '127.0.0.1'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 8: MATCHMAKERS (Preserved) */}
+        {activeTab === 'matchmakers' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+              AI Retreat Matchmaker Moderation
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {centres.map(c => {
+                const conf = matchmakerConfigs[c.id];
+                return (
+                  <div key={c.id} className="p-4 bg-[#F7F5EE] rounded-2xl border border-[#E2E5DD] flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-sm text-[#263D32]">{c.name}</span>
+                      <span className="block text-[11px] text-gray-500">Status: {conf?.status || 'draft'}</span>
+                    </div>
+                    <button
+                      onClick={() => openCentreMatchmaker(c.id)}
+                      className="bg-[#536B50] text-white px-3 py-1.5 rounded-lg text-xs font-semibold"
+                    >
+                      Configure Quiz
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 9: ASANAS (Preserved) */}
         {activeTab === 'asanas' && (
-          <AsanaManagerTab />
-        )}
-
-        {/* TAB 6: Revenue & Commission Tracker */}
-        {activeTab === 'revenue' && (
-          <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-6">
-            <h2 className="font-serif font-bold text-2xl text-sand-50">Revenue &amp; Commission Analytics</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="bg-sage-950 p-6 rounded-2xl border border-sage-800 space-y-2">
-                <span className="text-xs text-sage-400 font-semibold">Gross Booking Value (GMV)</span>
-                <span className="font-serif font-bold text-3xl text-gold-400 block">{formatPrice(totalGMV)}</span>
-                <p className="text-xs text-sage-300">Total volume of traveler bookings across all centres.</p>
-              </div>
-
-              <div className="bg-sage-950 p-6 rounded-2xl border border-sage-800 space-y-2">
-                <span className="text-xs text-sage-400 font-semibold">Net Platform Revenue (15% Avg Fee)</span>
-                <span className="font-serif font-bold text-3xl text-emerald-400 block">{formatPrice(totalCommissionRevenue)}</span>
-                <p className="text-xs text-sage-300">Platform earnings retained from booking commissions.</p>
-              </div>
-            </div>
+          <div className="animate-fade-in">
+            <AsanaManagerTab />
           </div>
         )}
 
-        {/* TAB 7: Coupon Code CMS */}
+        {/* TAB 10: COUPONS (Preserved) */}
         {activeTab === 'coupons' && (
-          <div className="bg-sage-900/50 p-8 rounded-3xl border border-sage-800 space-y-6">
-            <h2 className="font-serif font-bold text-2xl text-sand-50">Promo Coupon Code Management</h2>
-
-            <form onSubmit={handleAddCoupon} className="flex flex-col sm:flex-row gap-3 bg-sage-950 p-4 rounded-xl border border-sage-800">
-              <input
-                type="text"
-                placeholder="PROMO CODE (e.g. EARLYBIRD15)"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="bg-sage-900 border border-sage-700 text-white text-xs p-3 rounded-lg flex-1"
-              />
-              <input
-                type="number"
-                placeholder="Discount %"
-                value={discountPercent}
-                onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                className="bg-sage-900 border border-sage-700 text-white text-xs p-3 rounded-lg w-28"
-              />
-              <button type="submit" className="bg-gold-500 hover:bg-gold-600 text-sage-950 font-bold px-6 py-3 rounded-lg text-xs">
-                Create Promo Code
-              </button>
-            </form>
-
-            <div className="space-y-2">
-              {couponList.map((c, i) => (
-                <div key={i} className="bg-sage-950 p-4 rounded-xl border border-sage-800 flex justify-between items-center text-xs">
-                  <div>
-                    <span className="font-mono font-bold text-gold-400 text-sm">{c.code}</span>
-                    <span className="text-sage-400 ml-3">{c.discount}% Discount</span>
-                  </div>
-                  <span className="text-sage-400">{c.usage} Times Used</span>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E5DD] shadow-2xs space-y-6 animate-fade-in">
+            <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#263D32]">
+              Promotional Escrow Coupons
+            </h2>
+            <div className="space-y-3 max-w-md">
+              {couponList.map((cpn, idx) => (
+                <div key={idx} className="p-3 bg-[#F7F5EE] rounded-xl flex items-center justify-between border border-[#E2E5DD]">
+                  <span className="font-mono font-bold text-sm text-[#263D32]">{cpn.code}</span>
+                  <span className="text-xs text-gray-600">{cpn.discount}% Discount • Used {cpn.usage} times</span>
                 </div>
               ))}
             </div>
@@ -827,6 +1267,318 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'bo
         )}
 
       </div>
+
+      {/* MODAL 1: Provision Partner Account */}
+      {isProvisioningPartner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <h3 className="font-serif font-bold text-lg text-[#263D32]">
+                Provision Centre Partner Account
+              </h3>
+              <button onClick={() => setIsProvisioningPartner(false)} className="text-gray-400">✕</button>
+            </div>
+
+            {provFeedback && (
+              <div className={`p-3 rounded-xl text-xs font-semibold ${
+                provFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {provFeedback.message}
+              </div>
+            )}
+
+            <form onSubmit={handleProvisionPartner} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Select Yoga Centre</label>
+                <select
+                  value={provCentreId}
+                  onChange={(e) => setProvCentreId(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] font-semibold"
+                >
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.city})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Partner Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. partner.ashram@yogaconnect.in"
+                  value={provEmail}
+                  onChange={(e) => setProvEmail(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Partner Contact Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Acharya Vishwajeet"
+                  value={provName}
+                  onChange={(e) => setProvName(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Account Role</label>
+                <select
+                  value={provRole}
+                  onChange={(e) => setProvRole(e.target.value as any)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                >
+                  <option value="owner">Authorised Centre Owner</option>
+                  <option value="manager">Operations Manager</option>
+                  <option value="accountant">Financial Accountant</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsProvisioningPartner(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#536B50] hover:bg-[#40563E] text-white rounded-xl font-bold"
+                >
+                  Create &amp; Assign Account
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Record Financial Adjustment */}
+      {isCreatingAdjustment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <h3 className="font-serif font-bold text-lg text-[#263D32]">
+                Record Financial Ledger Adjustment
+              </h3>
+              <button onClick={() => setIsCreatingAdjustment(false)} className="text-gray-400">✕</button>
+            </div>
+
+            <form onSubmit={handleCreateAdjustment} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Yoga Centre</label>
+                <select
+                  value={adjCentreId}
+                  onChange={(e) => setAdjCentreId(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                >
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#263D32] mb-1">Direction</label>
+                  <select
+                    value={adjDirection}
+                    onChange={(e) => setAdjDirection(e.target.value as any)}
+                    className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                  >
+                    <option value="credit">Credit (+) (Increases Entitlement)</option>
+                    <option value="debit">Debit (-) (Deducts Entitlement)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-[#263D32] mb-1">Amount (USD)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={adjAmount}
+                    onChange={(e) => setAdjAmount(Number(e.target.value))}
+                    className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Reason / Description</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="e.g. Airport transfer transit adjustment credited to ashram account"
+                  value={adjDescription}
+                  onChange={(e) => setAdjDescription(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Reference Code (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. ADJ-TRANSIT-4402"
+                  value={adjRefCode}
+                  onChange={(e) => setAdjRefCode(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingAdjustment(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#536B50] text-white rounded-xl font-bold"
+                >
+                  Post Immutable Adjustment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: Settlement Verification */}
+      {settlementModalPayout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <h3 className="font-serif font-bold text-lg text-[#263D32]">
+                Verify Bank Settlement &amp; Disburse Payout
+              </h3>
+              <button onClick={() => setSettlementModalPayout(null)} className="text-gray-400">✕</button>
+            </div>
+
+            <div className="bg-[#F7F5EE] p-3 rounded-xl text-xs space-y-1">
+              <div>Payout Ref: <strong>{settlementModalPayout.referenceCode}</strong></div>
+              <div>Centre: <strong>{settlementModalPayout.centreName}</strong></div>
+              <div>Net Payable Amount: <strong className="text-emerald-700 text-sm">${settlementModalPayout.netPayoutAmount.toFixed(2)} USD</strong></div>
+            </div>
+
+            {settlementError && (
+              <div className="p-2.5 bg-red-50 text-red-800 text-xs font-semibold rounded-xl border border-red-200">
+                {settlementError}
+              </div>
+            )}
+
+            <form onSubmit={handleExecuteSettlement} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">
+                  Bank Settlement / NEFT / Wire Reference ID *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. HDFC-NEFT-9284192410 or STRIPE-PO-1092"
+                  value={settlementRefInput}
+                  onChange={(e) => setSettlementRefInput(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD] font-mono"
+                />
+                <span className="text-[10px] text-gray-500 mt-1 block">
+                  Mandatory proof of wire settlement. A corresponding debit entry will be permanently posted to the centre's ledger.
+                </span>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSettlementModalPayout(null)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold flex items-center space-x-1"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Confirm Settlement</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: Create Payout Batch */}
+      {isCreatingPayoutBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-[#E2E5DD] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E5DD] pb-3">
+              <h3 className="font-serif font-bold text-lg text-[#263D32]">Create Payout Batch</h3>
+              <button onClick={() => setIsCreatingPayoutBatch(false)} className="text-gray-400">✕</button>
+            </div>
+
+            <form onSubmit={handleCreatePayoutBatch} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Target Yoga Centre</label>
+                <select
+                  value={payoutCentreId}
+                  onChange={(e) => setPayoutCentreId(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                >
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Net Disbursement Amount (USD)</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={payoutAmount}
+                  onChange={(e) => setPayoutAmount(Number(e.target.value))}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#263D32] mb-1">Accounting Notes</label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Scheduled mid-month escrow release for confirmed retreats"
+                  value={payoutNotes}
+                  onChange={(e) => setPayoutNotes(e.target.value)}
+                  className="w-full p-2.5 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingPayoutBatch(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#536B50] text-white rounded-xl font-bold"
+                >
+                  Create Batch (Pending)
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

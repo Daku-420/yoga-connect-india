@@ -12,6 +12,7 @@ import { SchemaViewerModal } from '../src/components/seo/SchemaViewerModal';
 import { LiveChatWidget } from '../src/components/support/LiveChatWidget';
 import { AddCentreModal } from '../src/components/admin/AddCentreModal';
 import { CentreMatchmakerModal } from '../src/components/matchmaker/CentreMatchmakerModal';
+import { AuthModal } from '../src/components/auth/AuthModal';
 
 export default function RootLayout({
   children,
@@ -47,6 +48,7 @@ export default function RootLayout({
           <AddCentreModal />
           <LiveChatWidget />
           <CentreMatchmakerModal />
+          <AuthModal />
         </AppProvider>
       </body>
     </html>

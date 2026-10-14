@@ -17,7 +17,14 @@ import {
   Sparkles,
   HelpCircle,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
+  LogIn,
+  LogOut,
+  FileText,
+  DollarSign,
+  ShieldAlert,
+  ArrowRight,
+  Shield
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -32,12 +39,22 @@ export const Navbar: React.FC = () => {
     wishlist,
     bookings,
     filters,
-    setFilters
+    setFilters,
+    currentUser,
+    userProfile,
+    partnerCentre,
+    partnerMembership,
+    loginAsPersona,
+    setIsAuthModalOpen,
+    logout
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  const isPartnerProfile = userProfile?.role === 'partner' || userProfile?.role === 'centre';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,7 +74,7 @@ export const Navbar: React.FC = () => {
     }
     setActiveView(view as any);
     setIsMobileMenuOpen(false);
-    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
       window.location.href = '/';
     }
   };
@@ -68,6 +85,17 @@ export const Navbar: React.FC = () => {
     setActiveView('admin-dashboard');
     if (typeof window !== 'undefined' && window.location.pathname !== '/admin') {
       window.location.href = '/admin';
+    }
+  };
+
+  const handlePartnerClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setUserRole('partner');
+    setActiveView('centre-dashboard');
+    setIsProfileOpen(false);
+    setIsMobileMenuOpen(false);
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+      window.location.href = '/';
     }
   };
 
@@ -86,17 +114,49 @@ export const Navbar: React.FC = () => {
             </span>
           </div>
 
-          {/* Right Controls: Admin Portal Shortcut */}
+          {/* Right Controls: Role Portal Shortcuts */}
           <div className="flex items-center space-x-2 text-xs">
-            <a
-              href="/admin"
-              onClick={handleAdminClick}
-              className="flex items-center space-x-1.5 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/60 transition"
-              title="Master Admin Escrow & Centre Portal"
-            >
-              <Crown className="w-3.5 h-3.5 text-gold-400" />
-              <span>Admin Portal</span>
-            </a>
+            {isPartnerProfile ? (
+              <button
+                onClick={handlePartnerClick}
+                className="flex items-center space-x-1.5 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/60 transition cursor-pointer"
+                title={`Authorized Partner Portal: ${partnerCentre?.name || 'Assigned Ashram'}`}
+              >
+                <Building2 className="w-3.5 h-3.5 text-[#A5B89A]" />
+                <span className="max-w-[200px] truncate">{partnerCentre?.name || 'Partner Portal'}</span>
+              </button>
+            ) : userProfile?.role === 'admin' ? (
+              <a
+                href="/admin"
+                onClick={handleAdminClick}
+                className="flex items-center space-x-1.5 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-[#3D5E4C]/60 transition"
+                title="Master Admin Escrow & Centre Portal"
+              >
+                <Crown className="w-3.5 h-3.5 text-gold-400" />
+                <span>Admin Portal</span>
+              </a>
+            ) : (
+              <div className="flex items-center space-x-1.5">
+                <a
+                  href="/partner"
+                  onClick={handlePartnerClick}
+                  className="flex items-center space-x-1 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-medium px-2 py-0.5 rounded border border-[#3D5E4C]/40 transition"
+                  title="Ashram Partner Portal"
+                >
+                  <Building2 className="w-3 h-3 text-[#A5B89A]" />
+                  <span>Partner Portal</span>
+                </a>
+                <a
+                  href="/admin"
+                  onClick={handleAdminClick}
+                  className="flex items-center space-x-1 bg-[#1E3228] hover:bg-[#2F4738] text-[#DCCDB5] hover:text-white text-[11px] font-medium px-2 py-0.5 rounded border border-[#3D5E4C]/40 transition"
+                  title="Platform Administrator Portal"
+                >
+                  <Crown className="w-3 h-3 text-gold-400" />
+                  <span>Admin</span>
+                </a>
+              </div>
+            )}
           </div>
 
         </div>
@@ -275,108 +335,466 @@ export const Navbar: React.FC = () => {
             </select>
           </div>
 
-          {/* Profile Icon with My Bookings Dropdown (To the right of Currency) */}
+          {/* Profile Icon with Role-Aware Account Menu */}
           <div className="relative" ref={profileRef}>
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className={`p-2 rounded-full border transition flex items-center justify-center relative cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-full border transition flex items-center justify-center relative cursor-pointer ${
                 isProfileOpen 
                   ? 'bg-[#E6EDE2] text-[#263D32] border-[#536B50]' 
+                  : userProfile?.role === 'admin'
+                  ? 'bg-[#F7F5EE] text-[#263D32] border-[#DCCDB5] ring-2 ring-[#DCCDB5]/50'
+                  : isPartnerProfile
+                  ? 'bg-[#E6EDE2] text-[#263D32] border-[#536B50] ring-2 ring-[#536B50]/30'
                   : 'bg-white hover:bg-[#E6EDE2] text-[#59665C] hover:text-[#263D32] border-[#E2E5DD]'
               }`}
-              title="Profile & My Bookings"
-              aria-label="Open profile menu"
+              title={
+                userProfile?.role === 'admin' 
+                  ? `Platform Administrator (${userProfile.email})`
+                  : isPartnerProfile
+                  ? `Yoga Centre Partner: ${partnerCentre?.name || 'Assigned Centre'}`
+                  : userProfile 
+                  ? `${userProfile.fullName || userProfile.email} (Customer Account)`
+                  : "Sign In & My Account"
+              }
+              aria-label="Open account menu"
               aria-expanded={isProfileOpen}
             >
-              <User className="w-5 h-5" />
-              {bookings.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#286749] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center ring-2 ring-white shadow">
-                  {bookings.length}
-                </span>
+              {userProfile?.avatarUrl ? (
+                <img 
+                  src={userProfile.avatarUrl} 
+                  alt={userProfile.fullName || 'User Avatar'} 
+                  className="w-5 h-5 rounded-full object-cover"
+                />
+              ) : userProfile?.role === 'admin' ? (
+                <Crown className="w-5 h-5 text-[#263D32]" />
+              ) : isPartnerProfile ? (
+                <Building2 className="w-5 h-5 text-[#286749]" />
+              ) : userProfile?.fullName ? (
+                <div className="w-5 h-5 rounded-full bg-[#263D32] text-white text-[9px] font-bold flex items-center justify-center uppercase">
+                  {userProfile.fullName.slice(0, 2)}
+                </div>
+              ) : (
+                <User className="w-5 h-5" />
               )}
+
+              {/* Role indicator badge */}
+              {userProfile?.role === 'admin' ? (
+                <span className="absolute -top-1 -right-1 bg-[#263D32] text-gold-400 text-[8px] font-bold px-1 py-0.2 rounded-full border border-gold-400/50 shadow">
+                  ADM
+                </span>
+              ) : isPartnerProfile ? (
+                <span className={`absolute -top-1 -right-1 text-white text-[8px] font-bold px-1 py-0.2 rounded-full border shadow ${
+                  partnerMembership?.status === 'suspended' ? 'bg-[#B42318] border-[#FDA29B]' : 'bg-[#286749] border-[#A5B89A]'
+                }`}>
+                  {partnerMembership?.status === 'suspended' ? 'SUSP' : 'PTR'}
+                </span>
+              ) : bookings.length > 0 && userProfile?.role === 'user' ? (
+                <span className="absolute -top-0.5 -right-0.5 bg-[#286749] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center ring-2 ring-white shadow">
+                  {bookings.filter(b => b.customerEmail?.toLowerCase() === userProfile?.email?.toLowerCase()).length}
+                </span>
+              ) : null}
             </button>
 
             {/* Dropdown Menu inside Profile Icon */}
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#E2E5DD] p-2 z-50 animate-fade-in space-y-1">
-                {/* Profile Header */}
-                <div className="px-3 py-2.5 bg-[#F7F5EE] rounded-xl flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0 border border-[#A5B89A]/40">
-                    <User className="w-4 h-4 text-[#536B50]" />
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-[#E2E5DD] p-3 z-50 animate-fade-in space-y-2">
+                
+                {/* ROLE-AWARE HEADER */}
+                {userProfile ? (
+                  <div className="p-3 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]/80 space-y-2">
+                    <div className="flex items-center space-x-2.5">
+                      {userProfile.role === 'admin' ? (
+                        <div className="w-9 h-9 rounded-full bg-[#263D32] text-gold-400 flex items-center justify-center font-bold text-xs shrink-0 border border-[#DCCDB5]">
+                          <Crown className="w-4 h-4 text-gold-400" />
+                        </div>
+                      ) : isPartnerProfile ? (
+                        <div className="w-9 h-9 rounded-full bg-[#E6EDE2] text-[#286749] flex items-center justify-center font-bold text-xs shrink-0 border border-[#A5B89A]">
+                          <Building2 className="w-4 h-4 text-[#286749]" />
+                        </div>
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-[#263D32] text-white flex items-center justify-center font-bold text-xs shrink-0 uppercase">
+                          {userProfile.fullName?.slice(0, 2) || 'TR'}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-1.5">
+                          <span className="block text-xs font-bold text-[#263D32] truncate">
+                            {userProfile.fullName || userProfile.email}
+                          </span>
+                        </div>
+                        <span className="block text-[10px] text-[#8E9B91] truncate">
+                          {userProfile.email}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Role Pill & Details */}
+                    {userProfile.role === 'admin' && (
+                      <div className="flex items-center justify-between pt-1 border-t border-[#E2E5DD]/60 text-[10px]">
+                        <span className="bg-[#263D32] text-gold-400 font-bold px-2 py-0.5 rounded flex items-center space-x-1">
+                          <Crown className="w-3 h-3 text-gold-400" />
+                          <span>Platform Administrator</span>
+                        </span>
+                        <span className="text-[#59665C] font-semibold">Full Oversight</span>
+                      </div>
+                    )}
+
+                    {isPartnerProfile && (
+                      <div className="space-y-1.5 pt-1.5 border-t border-[#E2E5DD]/60">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-[#8E9B91] font-semibold">Authorised Centre:</span>
+                          <span className={`font-bold px-1.5 py-0.2 rounded text-[9px] uppercase ${
+                            partnerMembership?.status === 'suspended'
+                              ? 'bg-[#FEF3F2] text-[#B42318] border border-[#FECDCA]'
+                              : 'bg-[#E6EDE2] text-[#286749] border border-[#A5B89A]/50'
+                          }`}>
+                            {partnerMembership?.status === 'suspended' ? 'Suspended' : 'Active Partner'}
+                          </span>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-[#E2E5DD] flex items-center space-x-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#536B50] shrink-0" />
+                          <span className="text-xs font-serif font-bold text-[#263D32] truncate">
+                            {partnerCentre?.name || partnerMembership?.centreName || 'Assigned Yoga Centre'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {userProfile.role === 'user' && (
+                      <div className="flex items-center justify-between pt-1 border-t border-[#E2E5DD]/60 text-[10px]">
+                        <span className="bg-[#E6EDE2] text-[#286749] font-bold px-2 py-0.5 rounded">
+                          Traveler Member
+                        </span>
+                        <span className="text-[#59665C]">Verified Account</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold text-[#263D32] truncate">Traveler Profile</span>
-                    <span className="block text-[10px] text-[#8E9B91] truncate">Escrow Protected Inquiries</span>
+                ) : (
+                  <div className="p-3 bg-[#F7F5EE] rounded-xl border border-[#E2E5DD]/70 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded-full bg-[#E6EDE2] text-[#263D32] flex items-center justify-center shrink-0">
+                        <User className="w-4 h-4 text-[#536B50]" />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-[#263D32]">Account Login</span>
+                        <span className="block text-[10px] text-[#8E9B91]">Customer, Partner, or Administrator</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full bg-[#536B50] hover:bg-[#40563E] text-white text-xs font-semibold py-2 px-3 rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                    >
+                      <LogIn className="w-3.5 h-3.5" />
+                      <span>Sign In with Gmail / OTP</span>
+                    </button>
                   </div>
+                )}
+
+                {/* ROLE SPECIFIC ACTIONS */}
+                
+                {/* 1. YOGA CENTRE PARTNER MENU */}
+                {isPartnerProfile && (
+                  <div className="space-y-1 pt-1">
+                    <button
+                      onClick={() => {
+                        setUserRole('partner');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl bg-[#E6EDE2]/50 hover:bg-[#E6EDE2] text-[#263D32] transition flex items-center space-x-2.5 group cursor-pointer border border-[#A5B89A]/30"
+                    >
+                      <div className="p-1.5 rounded-lg bg-[#263D32] text-[#DCCDB5] shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-xs font-bold text-[#263D32]">
+                          Partner Centre Dashboard
+                        </span>
+                        <span className="text-[10px] text-[#59665C] block truncate">
+                          Bookings, guest list & profile
+                        </span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#536B50] shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserRole('partner');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
+                        <DollarSign className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-semibold">Financial Ledger & Settlements</span>
+                        <span className="text-[10px] text-[#8E9B91]">Escrow debits, payouts & net entitlement</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserRole('partner');
+                        setActiveView('centre-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-semibold">Download Statements</span>
+                        <span className="text-[10px] text-[#8E9B91]">CSV & printable tax PDF statements</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+
+                {/* 2. PLATFORM ADMINISTRATOR MENU */}
+                {userProfile?.role === 'admin' && (
+                  <div className="space-y-1 pt-1">
+                    <button
+                      onClick={(e) => {
+                        handleAdminClick(e);
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl bg-[#263D32] hover:bg-[#1E3228] text-white transition flex items-center space-x-2.5 group cursor-pointer shadow-sm"
+                    >
+                      <div className="p-1.5 rounded-lg bg-white/10 text-gold-400 shrink-0">
+                        <Crown className="w-4 h-4 text-gold-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-xs font-bold text-white">
+                          Admin Control Center
+                        </span>
+                        <span className="text-[10px] text-[#A5B89A] block truncate">
+                          Platform-wide escrow & centres
+                        </span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        handleAdminClick(e);
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-semibold">Centre Directory & Partner Accounts</span>
+                        <span className="text-[10px] text-[#8E9B91]">Provision logins & assign ashrams</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        handleAdminClick(e);
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#252C27] cursor-pointer"
+                    >
+                      <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50] shrink-0">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-semibold">Audit Logs & Security</span>
+                        <span className="text-[10px] text-[#8E9B91]">Track adjustments, payouts & changes</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+
+                {/* 3. REGULAR CUSTOMER MENU (OR GUEST) */}
+                {(!userProfile || userProfile.role === 'user') && (
+                  <div className="space-y-1 pt-1">
+                    <button
+                      onClick={() => {
+                        setUserRole('user');
+                        handleNavClick('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] group-hover:bg-[#263D32] group-hover:text-white transition-colors">
+                          <BookOpen className="w-4 h-4 text-[#536B50] group-hover:text-white" />
+                        </div>
+                        <div>
+                          <span className="block text-xs font-semibold text-[#252C27] group-hover:text-[#263D32]">
+                            My Retreat Bookings
+                          </span>
+                          <span className="text-[10px] text-[#8E9B91] block">
+                            Inquiries & escrow receipts
+                          </span>
+                        </div>
+                      </div>
+                      {userProfile && (
+                        <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#286749]/30">
+                          {bookings.filter(b => b.customerEmail?.toLowerCase() === userProfile?.email?.toLowerCase()).length}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserRole('user');
+                        handleNavClick('user-dashboard');
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50]">
+                          <Heart className="w-3.5 h-3.5 text-[#536B50]" />
+                        </div>
+                        <span className="text-xs font-medium text-[#252C27]">
+                          Saved Sanctuaries
+                        </span>
+                      </div>
+                      {wishlist.length > 0 && (
+                        <span className="text-[10px] font-semibold text-[#8E9B91]">
+                          {wishlist.length}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* DEMO / TEST PERSONAS COLLAPSIBLE */}
+                <div className="pt-2 border-t border-[#E2E5DD]">
+                  <button
+                    onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
+                    className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold text-[#59665C] hover:text-[#263D32] rounded-lg hover:bg-[#F7F5EE] transition cursor-pointer"
+                  >
+                    <span className="flex items-center space-x-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-gold-500" />
+                      <span>Switch Demo Role (Auth Test)</span>
+                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showRoleSwitcher ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showRoleSwitcher && (
+                    <div className="mt-1 p-2 bg-[#F7F5EE] rounded-xl space-y-1 text-[11px] border border-[#E2E5DD]/70">
+                      <button
+                        onClick={() => {
+                          loginAsPersona('admin@yogaconnect.in');
+                          setUserRole('admin');
+                          setActiveView('admin-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.role === 'admin' ? 'bg-[#263D32] text-white font-bold' : 'hover:bg-white text-[#252C27]'
+                        }`}
+                      >
+                        <Crown className="w-3 h-3 text-gold-400 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">1. Platform Admin</span>
+                          <span className="text-[9px] opacity-75 block">admin@yogaconnect.in</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          loginAsPersona('partner.parmarth@yogaconnect.in');
+                          setUserRole('partner');
+                          setActiveView('centre-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.email === 'partner.parmarth@yogaconnect.in' ? 'bg-[#536B50] text-white font-bold' : 'hover:bg-white text-[#252C27]'
+                        }`}
+                      >
+                        <Building2 className="w-3 h-3 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">2. Partner A: Parmarth Niketan</span>
+                          <span className="text-[9px] opacity-75 block">Rishikesh • Active</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          loginAsPersona('partner.phoolchatti@yogaconnect.in');
+                          setUserRole('partner');
+                          setActiveView('centre-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.email === 'partner.phoolchatti@yogaconnect.in' ? 'bg-[#536B50] text-white font-bold' : 'hover:bg-white text-[#252C27]'
+                        }`}
+                      >
+                        <Building2 className="w-3 h-3 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">3. Partner B: Phool Chatti</span>
+                          <span className="text-[9px] opacity-75 block">Rishikesh • Active</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          loginAsPersona('partner.suspended@yogaconnect.in');
+                          setUserRole('partner');
+                          setActiveView('centre-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.email === 'partner.suspended@yogaconnect.in' ? 'bg-[#B42318] text-white font-bold' : 'hover:bg-white text-[#B42318]'
+                        }`}
+                      >
+                        <ShieldAlert className="w-3 h-3 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">4. Partner (Suspended): Sivananda</span>
+                          <span className="text-[9px] opacity-75 block">Access Blocked Test</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          loginAsPersona('sarah.jenkins@example.com');
+                          setUserRole('user');
+                          setActiveView('user-dashboard');
+                          setIsProfileOpen(false);
+                        }}
+                        className={`w-full text-left p-1.5 rounded-lg flex items-center space-x-2 transition cursor-pointer ${
+                          userProfile?.email === 'sarah.jenkins@example.com' ? 'bg-[#536B50] text-white font-bold' : 'hover:bg-white text-[#252C27]'
+                        }`}
+                      >
+                        <User className="w-3 h-3 shrink-0" />
+                        <div className="min-w-0 flex-1 truncate">
+                          <span className="block font-semibold">5. Regular Customer: Sarah J.</span>
+                          <span className="text-[9px] opacity-75 block">Traveler • My Bookings</span>
+                        </div>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {/* My Bookings item inside Profile */}
-                <button
-                  onClick={() => {
-                    setUserRole('user');
-                    handleNavClick('user-dashboard');
-                    setIsProfileOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <div className="p-1.5 rounded-lg bg-[#E6EDE2] text-[#263D32] group-hover:bg-[#263D32] group-hover:text-white transition-colors">
-                      <BookOpen className="w-4 h-4 text-[#536B50] group-hover:text-white" />
-                    </div>
-                    <div>
-                      <span className="block text-xs font-semibold text-[#252C27] group-hover:text-[#263D32]">
-                        My Bookings
-                      </span>
-                      <span className="text-[10px] text-[#8E9B91] block">
-                        View retreat inquiries &amp; escrow status
-                      </span>
-                    </div>
+                {/* Sign Out Option if logged in */}
+                {userProfile && (
+                  <div className="pt-2 border-t border-[#E2E5DD]">
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#FEF3F2] transition flex items-center space-x-2 text-[#B42318] text-xs font-semibold cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-[#B42318]" />
+                      <span>Sign Out ({userProfile.email})</span>
+                    </button>
                   </div>
-                  {bookings.length > 0 && (
-                    <span className="bg-[#E6EDE2] text-[#286749] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#286749]/30">
-                      {bookings.length}
-                    </span>
-                  )}
-                </button>
+                )}
 
-                {/* Saved Wishlist in Profile */}
-                <button
-                  onClick={() => {
-                    setUserRole('user');
-                    handleNavClick('user-dashboard');
-                    setIsProfileOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <div className="p-1.5 rounded-lg bg-[#F7F5EE] text-[#536B50]">
-                      <Heart className="w-3.5 h-3.5 text-[#536B50]" />
-                    </div>
-                    <span className="text-xs font-medium text-[#252C27]">
-                      Saved Retreats
-                    </span>
-                  </div>
-                  {wishlist.length > 0 && (
-                    <span className="text-[10px] font-semibold text-[#8E9B91]">
-                      {wishlist.length}
-                    </span>
-                  )}
-                </button>
-
-                <div className="border-t border-[#E2E5DD] my-1" />
-
-                {/* Admin Portal Shortcut in Profile */}
-                <a
-                  href="/admin"
-                  onClick={(e) => {
-                    handleAdminClick(e);
-                    setIsProfileOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F7F5EE] transition flex items-center space-x-2.5 text-[#59665C] hover:text-[#263D32] block"
-                >
-                  <Crown className="w-3.5 h-3.5 text-gold-400" />
-                  <span className="text-xs font-medium">Admin &amp; Centre Portal</span>
-                </a>
               </div>
             )}
           </div>
@@ -500,23 +918,76 @@ export const Navbar: React.FC = () => {
                 </select>
               </div>
 
-              <div className="pt-2 border-t border-[#E2E5DD]/60 flex items-center justify-between text-xs">
-                <button 
-                  onClick={() => handleNavClick('user-dashboard')}
-                  className="flex items-center space-x-1.5 text-[#536B50] font-semibold py-1.5 px-2"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>My Bookings</span>
-                </button>
+              <div className="pt-2 border-t border-[#E2E5DD]/60 flex flex-col space-y-2 text-xs">
+                {userProfile ? (
+                  <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-[#E2E5DD]">
+                    <div className="flex items-center space-x-2 min-w-0">
+                      {userProfile.role === 'admin' ? (
+                        <Crown className="w-4 h-4 text-gold-500 shrink-0" />
+                      ) : isPartnerProfile ? (
+                        <Building2 className="w-4 h-4 text-[#286749] shrink-0" />
+                      ) : (
+                        <User className="w-4 h-4 text-[#536B50] shrink-0" />
+                      )}
+                      <div className="truncate">
+                        <span className="block font-bold text-[#263D32] text-xs truncate">
+                          {userProfile.fullName || userProfile.email}
+                        </span>
+                        <span className="block text-[10px] text-[#8E9B91]">
+                          {userProfile.role === 'admin' ? 'Administrator' : isPartnerProfile ? 'Centre Partner' : 'Traveler'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => logout()}
+                      className="text-[#B42318] text-[11px] font-semibold hover:underline shrink-0 ml-2"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="w-full flex items-center justify-center space-x-1.5 bg-[#536B50] text-white py-2.5 px-3 rounded-lg font-semibold text-xs cursor-pointer"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Sign In (Gmail &amp; OTP)</span>
+                  </button>
+                )}
 
-                <a 
-                  href="/admin"
-                  onClick={handleAdminClick}
-                  className="flex items-center space-x-1.5 bg-[#263D32] text-white px-3 py-1.5 rounded-lg font-semibold text-xs"
-                >
-                  <Crown className="w-3.5 h-3.5 text-gold-400" />
-                  <span>Admin Portal</span>
-                </a>
+                {/* Role Specific Quick Jump */}
+                {isPartnerProfile ? (
+                  <button
+                    onClick={handlePartnerClick}
+                    className="w-full flex items-center justify-center space-x-1.5 bg-[#263D32] text-white py-2.5 px-3 rounded-lg font-semibold text-xs cursor-pointer"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-[#A5B89A]" />
+                    <span>Partner Dashboard: {partnerCentre?.name || 'My Centre'}</span>
+                  </button>
+                ) : userProfile?.role === 'admin' ? (
+                  <a 
+                    href="/admin"
+                    onClick={handleAdminClick}
+                    className="w-full flex items-center justify-center space-x-1.5 bg-[#263D32] text-white py-2.5 px-3 rounded-lg font-semibold text-xs"
+                  >
+                    <Crown className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Admin Control Center</span>
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setUserRole('user');
+                      handleNavClick('user-dashboard');
+                    }}
+                    className="w-full flex items-center justify-center space-x-1.5 bg-white text-[#263D32] border border-[#E2E5DD] py-2 px-3 rounded-lg font-semibold text-xs"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-[#536B50]" />
+                    <span>My Bookings &amp; Inquiries</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

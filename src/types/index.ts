@@ -7,7 +7,7 @@ export interface CurrencyConfig {
   label: string;
 }
 
-export type UserRole = 'visitor' | 'user' | 'centre' | 'admin';
+export type UserRole = 'visitor' | 'user' | 'centre' | 'partner' | 'admin';
 
 export interface Teacher {
   id: string;
@@ -345,5 +345,127 @@ export interface AIRetreatQuizState {
   skillLevel: 'beginner' | 'intermediate' | 'advanced';
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  fullName?: string;
+  avatarUrl?: string;
+  phone?: string;
+  country?: string;
+  role?: 'user' | 'centre' | 'partner' | 'admin';
+  assignedCentreId?: string;
+  assignedCentreName?: string;
+  membershipStatus?: 'active' | 'suspended' | 'inactive';
+  createdAt?: string;
+}
+
+export interface CentreMembership {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  centreId: string;
+  centreName?: string;
+  role: 'owner' | 'manager' | 'accountant';
+  status: 'active' | 'suspended' | 'inactive';
+  assignedBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type LedgerEntryType = 
+  | 'booking_charge' 
+  | 'platform_commission' 
+  | 'refund' 
+  | 'payout' 
+  | 'adjustment' 
+  | 'fee_reversal' 
+  | 'tax_fee';
+
+export type LedgerDirection = 'credit' | 'debit';
+
+export interface FinancialLedgerEntry {
+  id: string;
+  entryNumber: number;
+  centreId: string;
+  bookingId?: string;
+  payoutId?: string;
+  entryType: LedgerEntryType;
+  entryDirection: LedgerDirection;
+  amount: number;
+  currency: CurrencyCode;
+  description: string;
+  referenceCode?: string;
+  status: 'posted' | 'pending' | 'reversed';
+  actorId?: string;
+  actorEmail?: string;
+  createdAt: string;
+}
+
+export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'reversed';
+
+export interface PayoutRecord {
+  id: string;
+  referenceCode: string;
+  centreId: string;
+  centreName?: string;
+  grossAmount: number;
+  commissionDeducted: number;
+  refundsDeducted: number;
+  netPayoutAmount: number;
+  currency: CurrencyCode;
+  status: PayoutStatus;
+  settlementReference?: string;
+  payoutMethod: string;
+  periodStart?: string;
+  periodEnd?: string;
+  notes?: string;
+  processedBy?: string;
+  processedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PaymentRecord {
+  id: string;
+  bookingId?: string;
+  amount: number;
+  currency: CurrencyCode;
+  paymentMethod: string;
+  provider: string;
+  providerTransactionId?: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'refunded' | 'disputed';
+  idempotencyKey?: string;
+  createdAt: string;
+}
+
+export interface FinancialQuery {
+  id: string;
+  centreId: string;
+  centreName?: string;
+  partnerId: string;
+  partnerEmail?: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'in_review' | 'resolved';
+  adminResponse?: string;
+  resolvedAt?: string;
+  createdAt: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId?: string;
+  actorEmail?: string;
+  action: string;
+  targetEntity: string;
+  targetId?: string;
+  details?: Record<string, any>;
+  ipAddress?: string;
+  createdAt: string;
+}
+
 export * from './matchmaker';
+
+
 
